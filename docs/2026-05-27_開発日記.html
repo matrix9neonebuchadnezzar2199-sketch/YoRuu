@@ -282,6 +282,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-0826">#entry-0826</a></td>
       </tr>
+      <tr>
+        <td>08:38</td>
+        <td>第1〜7章 生成指示書を保存（Opus 4.7 向け、3つの安全装置仕込み）</td>
+        <td><span class="tag tag-warn">warn</span></td>
+        <td><a href="#entry-0838">#entry-0838</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -707,7 +713,84 @@ body.diary > footer {
   </ul>
 
   <h3>検証</h3>
-  <p>Commit: <code>pending</code>（このエントリ追記分は次のコミットで push）</p>
+  <p>Commit: <code>0795cda</code>（GitHub に push 済み）</p>
+</section>
+
+<section class="entry" id="entry-0838">
+  <h2>第1〜7章 生成指示書を保存（Opus 4.7 向け、3つの安全装置仕込み）<a href="#entry-0838" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 08:38 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-scope">process</span>
+    <span class="tag tag-warn">warn</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    設計書 第1〜7章を Cursor + <strong>Claude Opus 4.7</strong> に丸投げできる形にまとめた
+    <em class="term">生成指示書</em>を <code>docs/design/00_INSTRUCTIONS_ch01-07.md</code> として保存。
+    指示書には全章共通ルール（言語・文体・図の表現・用語統一・相互参照）、
+    7 章ぶんの章別構成、品質チェックリスト、生成順序、注意事項を網羅。
+    実行は別チャット（Cursor のモデルを Opus 4.7 に切替えて指示書を `@docs/design/00_INSTRUCTIONS_ch01-07.md` で参照）で行う。
+  </p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/00_INSTRUCTIONS_ch01-07.md（新規・約 470 行）</li>
+    <li><span class="op op-mod">~</span> docs/2026-05-27_開発日記.html（本エントリ追記）</li>
+  </ul>
+
+  <h3>指示書に仕込まれた 3 つの安全装置</h3>
+  <table>
+    <thead><tr><th>装置</th><th>内容</th><th>狙い</th></tr></thead>
+    <tbody>
+      <tr><td>装置1 スコープ制限</td><td>「第8章以降の内容には踏み込まないこと」を明記</td><td>Opus の完璧主義による全章一気書きを防止</td></tr>
+      <tr><td>装置2 用語統一の強制</td><td>第1章 1.6 で用語集を確立 → 後続章は必ず参照</td><td>表記揺れの根絶</td></tr>
+      <tr><td>装置3 自己チェック強制</td><td>各章末に品質チェックリスト記入を義務化</td><td>抜け漏れを Opus 自身に検出させる</td></tr>
+    </tbody>
+  </table>
+
+  <h3>第1〜7章のスコープ</h3>
+  <table>
+    <thead><tr><th>章</th><th>ファイル</th><th>主題</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>01_overview.md</code></td><td>概要・本家差分・想定ユーザー・設計5原則・スコープ・用語集</td></tr>
+      <tr><td>2</td><td><code>02_architecture.md</code></td><td>全体アーキ図・技術スタック・デプロイ構成・ディレクトリ構造・横断的関心事</td></tr>
+      <tr><td>3</td><td><code>03_state_diagram.md</code></td><td>8 状態の <code>stateDiagram-v2</code>、遷移条件・副作用・禁止遷移</td></tr>
+      <tr><td>4</td><td><code>04_data_flow.md</code></td><td>DFD レベル0/1、データ寿命表、変換ポイント</td></tr>
+      <tr><td>5</td><td><code>05_trust_boundary.md</code></td><td>4 信頼ゾーン、境界別検証ルール、機密取扱ポリシー</td></tr>
+      <tr><td>6</td><td><code>06_sequence.md</code></td><td>7 ユースケースのシーケンス図（起動・5分判定・約定監視・夜間レビュー・apply・モード切替・緊急停止）</td></tr>
+      <tr><td>7</td><td><code>07_io_diagram.md</code></td><td>I/O 一覧（21 項目）・入力検証マトリクス・出力フォーマット・ユーザー入力集約</td></tr>
+    </tbody>
+  </table>
+
+  <h3>設計判断</h3>
+  <ul>
+    <li><strong>章ごとに 1 ファイル分割</strong>を採用。後工程（章ごとレビュー → APPROVED 昇格）と整合し、git diff も追いやすい</li>
+    <li>図は <strong>Mermaid 第一</strong>、複雑時のみ ASCII。1 図 20 ノード超は分割ルール明記</li>
+    <li>「<strong>動作するコードは書かない</strong>」を全章共通ルールに格上げ（設計段階の侵入実装を完全に禁止）</li>
+    <li><strong>未確定事項は <code>[要確認]</code> マーカー</strong>を残す方針。Opus が推測で埋めるのを禁止</li>
+  </ul>
+
+  <h3>残課題（コードレビュー観点で気付いた指示書の弱点）</h3>
+  <ul>
+    <li><strong>(低) 7.3 で「日次レポート JSON は第15章で完全定義」と参照</strong>しているが、本指示書のスコープは 1〜7 章。Opus が第 15 章を勝手に書き始める誘惑になる可能性。「ここでは概要のみ」と書いてあるので Opus が指示通り守れば問題なし、念のため要観察</li>
+    <li><strong>(低) <code>INDEX.md</code> の更新範囲</strong>が曖昧。「全 24 章を載せて 1〜7 章のみ status を埋めるか、生成済 7 章のみを載せるか」が未指定。初回生成では後者で十分</li>
+    <li><strong>(中)</strong> 第 6 章シーケンスで「想定実行時間」を求めているが、設計段階で実測値はない。Opus が架空数値を埋める恐れあり → 生成物確認時に「概算（測定前）」「未測定」表記の遵守をチェック</li>
+    <li>指示書本体に <strong>ファイル名 2 案併記</strong>（<code>01_overview_to_07_io.md</code> vs <code>00_INSTRUCTIONS_ch01-07.md</code>）があったため、後者を採用して保存</li>
+  </ul>
+
+  <h3>次のアクション</h3>
+  <ol>
+    <li>マスターが Cursor のチャットを開きモデルを <strong>Claude Opus 4.7</strong> に切替</li>
+    <li><code>@docs/design/00_INSTRUCTIONS_ch01-07.md</code> を参照して 7 章生成を依頼</li>
+    <li>Opus 4.7 から「出力後の確認依頼」サマリが返ってきたら、このチャットに持ち込んでレビュー</li>
+    <li>レビュー OK の章から <code>INDEX.md</code> で <code>APPROVED</code> に昇格 → 第8章（UI モックアップ初版作成）へ</li>
+  </ol>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code>（指示書 + 本エントリを次コミットで push）</p>
 </section>
 
 </main>
