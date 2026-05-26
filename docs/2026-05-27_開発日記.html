@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>2026-05-27 開発日記 - YoRuu</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --heading: #cbd5e1;
+  --accent: #a78bfa;
+  --accent-deep: #7c3aed;
+  --border: #334155;
+  --code-bg: #0b1220;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --err: #f87171;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body.diary {
+  margin: 0;
+  padding: 40px 20px 80px;
+  max-width: 960px;
+  margin: 0 auto;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+body.diary > header {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+body.diary > header h1 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  color: var(--accent);
+  font-weight: 600;
+}
+body.diary > header .subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s;
+}
+a:hover { border-bottom-color: var(--accent); }
+strong { color: var(--heading); font-weight: 600; }
+em.term { font-style: normal; color: var(--accent); font-weight: 500; }
+hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+.diary-toc {
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.diary-toc h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--heading);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.diary-toc table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.diary-toc th {
+  text-align: left;
+  padding: 6px 10px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.diary-toc td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.diary-toc tr:last-child td { border-bottom: none; }
+.diary-toc td:first-child {
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.diary-toc a:hover { color: var(--accent); }
+
+.entry {
+  margin: 22px 0;
+  padding: 20px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.entry h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+  color: var(--accent);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.entry h2 a.anchor {
+  color: var(--muted);
+  font-size: 14px;
+  margin-left: 8px;
+  border-bottom: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.entry:hover h2 a.anchor { opacity: 1; }
+
+.entry .meta {
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.entry .meta .date {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.entry h3 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  color: var(--heading);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.entry h3:first-of-type { margin-top: 0; }
+
+.entry p { margin: 8px 0; }
+.entry ul, .entry ol { margin: 8px 0; padding-left: 22px; }
+.entry li { margin: 4px 0; }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.tag-scope { border-color: var(--accent); color: var(--accent); }
+.tag-ok { border-color: var(--ok); color: var(--ok); }
+.tag-warn { border-color: var(--warn); color: var(--warn); }
+.tag-err { border-color: var(--err); color: var(--err); }
+.tag-type { border-color: var(--muted); color: var(--muted); }
+
+code {
+  background: var(--code-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  color: var(--heading);
+}
+pre {
+  background: var(--code-bg);
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin: 12px 0;
+  overflow-x: auto;
+  font-family: ui-monospace, "JetBrains Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+pre code { background: transparent; padding: 0; font-size: 13px; color: inherit; }
+
+.entry table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+}
+.entry th {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.entry td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+.entry tr:last-child td { border-bottom: none; }
+
+.callout {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  background: rgba(167, 139, 250, 0.05);
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+}
+.callout.warn { border-left-color: var(--warn); background: rgba(251, 191, 36, 0.05); }
+.callout.err { border-left-color: var(--err); background: rgba(248, 113, 113, 0.05); }
+.callout.ok { border-left-color: var(--ok); background: rgba(52, 211, 153, 0.05); }
+.callout .callout-label {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 8px;
+  font-weight: 600;
+}
+
+body.diary > footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+</style>
+</head>
+<body class="diary">
+<header>
+  <h1>2026-05-27 開発日記</h1>
+  <p class="subtitle">YoRuu — Polymarket BTC 5分 Up/Down 自動取引Bot 設計検討</p>
+</header>
+
+<section class="diary-toc">
+  <h2>目次</h2>
+  <table>
+    <thead>
+      <tr><th>時刻</th><th>概要</th><th>ステータス</th><th>詳細</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>08:22</td>
+        <td>ツール名「YoRuu」確定 / Telegram削除 / CLI反映方式の選定</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0822">#entry-0822</a></td>
+      </tr>
+      <tr>
+        <td>08:22</td>
+        <td>設計書の章構成拡張（5図 → 24章へ、お金が動く系の安全設計を追加）</td>
+        <td><span class="tag tag-warn">warn</span></td>
+        <td><a href="#entry-0822b">#entry-0822b</a></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<main>
+
+<section class="entry" id="entry-0822">
+  <h2>ツール名確定・Telegram削除・CLI反映方式の選定 <a href="#entry-0822" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 08:22 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    Polymarket の BTC 5分 Up/Down 市場に対する自動取引Botのプロジェクト名を <strong>YoRuu</strong>（ヨルー）に確定。
+    「夜」+ ループ感のある "uu" で、<em class="term">夜間レビューで進化するシステム</em>という設計思想を音にも反映させた。
+    同時に、当初想定していた Telegram Bot による通知・操作経路を削除し、よりシンプルな構成（CLI + ローカルファイル + 既存契約の Genspark Opus 4.7）に切り替える判断を行った。
+  </p>
+
+  <h3>設計判断</h3>
+
+  <p><strong>Telegram削除で消えるもの</strong></p>
+  <ul>
+    <li>Telegram Bot Token / Chat ID 設定</li>
+    <li>Telegram メッセージ送受信処理</li>
+    <li>返信フォーマット解析・コマンドハンドラ</li>
+    <li><code>python-telegram-bot</code> 依存</li>
+  </ul>
+
+  <p><strong>代わりに必要になるもの</strong></p>
+  <ul>
+    <li>毎日決まった時刻に <code>report_YYYY-MM-DD.json</code> をローカルに保存</li>
+    <li>ファイル内に「AI分析用の指示プロンプト」も同梱し、ユーザーがコピペ1回で済むようにする</li>
+    <li>ユーザーが AI から受け取った JSON 結果を <strong>どこに貼り付けるか</strong> の仕組み</li>
+  </ul>
+
+  <p><strong>JSON結果の反映方式（3案比較）</strong></p>
+  <table>
+    <thead>
+      <tr><th>方式</th><th>概要</th><th>長所</th><th>短所</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>方式1 CLI</td>
+        <td><code>yoruu apply</code> でクリップボードから読み取り → 検証 → 確認 → 反映</td>
+        <td>実装30行程度・操作最速</td>
+        <td>クリップボード前提</td>
+      </tr>
+      <tr>
+        <td>方式2 ファイル監視</td>
+        <td><code>~/.yoruu/inbox/</code> に保存 → Bot が自動検知</td>
+        <td>エディタ派に優しい</td>
+        <td>ファイル監視ループが必要</td>
+      </tr>
+      <tr>
+        <td>方式3 Web UI</td>
+        <td><code>http://localhost:8765/review</code> で貼り付け→検証→反映</td>
+        <td>視覚的</td>
+        <td>実装コスト大</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout ok">
+    <span class="callout-label">decision</span>
+    <strong>方式1（CLI）を採用</strong>。実装が軽く、朝のルーチンを 3 ステップ
+    （<code>report</code> をコピー → AI に分析依頼 → <code>yoruu apply</code> 実行）に圧縮できる。将来必要なら方式2のファイル監視を併設する余地は残す。
+  </div>
+
+  <p><strong>朝のルーチン（3ステップ）</strong></p>
+  <ol>
+    <li><code>report_YYYY-MM-DD.json</code> を開いてコピー（または添付）</li>
+    <li>AI（Genspark Opus 4.7）に貼って分析 → 返ってきた JSON をコピー</li>
+    <li>ターミナルで <code>yoruu apply</code> 実行 → <code>y</code> で確定</li>
+  </ol>
+
+  <h3>確定事項マトリクス</h3>
+  <table>
+    <thead><tr><th>項目</th><th>決定内容</th></tr></thead>
+    <tbody>
+      <tr><td>ツール名</td><td><strong>YoRuu</strong>（ヨルー）</td></tr>
+      <tr><td>対象市場</td><td>Polymarket BTC 5分 Up/Down</td></tr>
+      <tr><td>取引判定</td><td>Markov 2状態遷移 + Kelly基準（Python数式のみ、LLM不使用）</td></tr>
+      <tr><td>判定頻度</td><td>5分ごと（1日288回）</td></tr>
+      <tr><td>夜間レビュー</td><td>1日1回、ユーザー設定時刻に JSON + プロンプトをローカル出力</td></tr>
+      <tr><td>レビュー実行者</td><td>人間が Genspark Opus 4.7 にコピペ</td></tr>
+      <tr><td>結果反映</td><td><code>yoruu apply</code> コマンドでクリップボードから検証→反映</td></tr>
+      <tr><td>動作モード</td><td>backtest / paper / simmer / live の 4 モード</td></tr>
+      <tr><td>初期ペーパー残高</td><td>ユーザー指定（例: 1万円相当 ≈ $66）</td></tr>
+      <tr><td>インフラ</td><td>Hetzner VPS（約 $6/月）、ローカルPCでも可</td></tr>
+      <tr><td>通知手段</td><td>Telegram 削除、ログファイル + CLI のみ</td></tr>
+      <tr><td>設定ファイル</td><td><code>yoruu.yaml</code>（1ファイル、時刻・モード等すべて）</td></tr>
+      <tr><td>言語</td><td>Python</td></tr>
+      <tr><td>IDE</td><td>Cursor（設計=Opus 4.7、実装=Composer 2.5）</td></tr>
+      <tr><td>データ永続化</td><td>SQLite + JSON ファイル</td></tr>
+      <tr><td>コスト目標</td><td>LLM API $0（Genspark既存契約活用）、VPS $6/月のみ</td></tr>
+    </tbody>
+  </table>
+
+  <h3>残課題</h3>
+  <ul>
+    <li>設計書フォーマット：(A) 一気に全章出力 vs (B) 章ごとに区切り出力 → <strong>(B) 推奨</strong>を採用予定。序盤章が後続の前提になるため、認識ズレを早期検知する</li>
+    <li>第1章「概要」から書き始める方針で合意待ち</li>
+  </ul>
+</section>
+
+<section class="entry" id="entry-0822b">
+  <h2>設計書の章構成拡張（5図 → 24章、お金が動く系の安全設計を追加）<a href="#entry-0822b" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 08:22 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-scope">safety</span>
+    <span class="tag tag-warn">warn</span>
+  </div>
+
+  <h3>背景</h3>
+  <p>
+    マスターから指定された 5 種類の設計図（シーケンス図 / I/O図 / 操作フロー / 関数呼び出し図 / エラーハンドリング図）に対して、
+    <strong>お金が動くトレーディング Bot 特有の安全要件</strong> を満たすため、追加で必要となる設計図・設計手法を提案し、最終的に
+    <em class="term">24章構成の設計書</em> として合意形成中。
+  </p>
+
+  <h3>マスター指定の設計図（5点）</h3>
+  <table>
+    <thead><tr><th>図</th><th>目的</th></tr></thead>
+    <tbody>
+      <tr><td>シーケンス図</td><td>時系列での処理の流れと参加者間のやり取り</td></tr>
+      <tr><td>インプット/アウトプット図</td><td>ユーザー入力 → システム出力の対応</td></tr>
+      <tr><td>ユーザー操作フロー</td><td>UI 全体の動線、各ボタンの開始から結果まで</td></tr>
+      <tr><td>関数呼び出し図 + データフォーマット図</td><td>関数間の呼び出し関係と受け渡しデータの構造</td></tr>
+      <tr><td>エラーハンドリング図</td><td>どの関数でどのエラーが発生し得るか（トリアージ用）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>追加提案（お金が動く系で推奨/必須）</h3>
+  <ol>
+    <li><strong>状態遷移図（State Machine Diagram）★最重要</strong> — 競合状態によるバグを設計段階で排除（例: <code>STOPPED → RUNNING → REVIEWING → APPLYING → RUNNING</code>）</li>
+    <li><strong>データフロー図（DFD）★重要</strong> — データの出所・加工・保存・利用を可視化、バックアップ戦略にも直結</li>
+    <li><strong>信頼境界線図 ★必須</strong> — Polymarket / Binance / AI からの入力は信頼境界線で必ず検証する設計を強制</li>
+    <li><strong>リスク・セーフガード一覧表（Risk Matrix）★必須</strong> — 事故シナリオ × 影響度 × 発生確率 × 予防/検知/復旧策</li>
+    <li><strong>不変条件（Invariants）一覧</strong> — <code>0.80 ≤ MIN_PROB ≤ 0.95</code>、<code>0 &lt; KELLY_FRACTION ≤ 0.8</code> 等を <code>assert</code> で機械検証可能に</li>
+    <li><strong>ログレベル・トリアージ表</strong> — エラーコード体系（<code>E_APPLY_001</code> 等）でドキュメント即引きを可能に</li>
+    <li><strong>テスト戦略マトリクス</strong> — ユニット 95%+、統合、バックテスト、ペーパー、カオス、セキュリティ</li>
+    <li><strong>設定変更の影響範囲マトリクス</strong> — 即時反映 vs 再起動必要を一覧化</li>
+    <li><strong>UI ワイヤーフレーム / 画面一覧</strong> — ダッシュボード、取引ログ、夜間レビュー、設定、戦略履歴、アラート、モード切替の 7 画面</li>
+    <li><strong>デプロイ・ロールバック手順書</strong> — コードと <code>strategy.json</code> を別管理で単独ロールバック可能に</li>
+    <li><strong>キル・スイッチ設計 ★絶対必要</strong> — 1クリック停止、パスワード不要（緊急時に手間取らない）、Web UI ダウン時の予備 CLI 経路</li>
+    <li><strong>二重承認設計</strong> — paper → live 切替は「LIVE」と手入力タイプ等</li>
+    <li><strong>監査ログ設計</strong> — <code>strategy.json</code> 変更履歴と Opus 4.7 の分析テキストごと append-only で保存</li>
+    <li><strong>読み取り専用モード</strong> — 戦略変更後の「もし取引していたら」観察用</li>
+  </ol>
+
+  <h3>リスク・セーフガード一覧表（抜粋）</h3>
+  <table>
+    <thead>
+      <tr><th>リスク</th><th>影響</th><th>確率</th><th>予防</th><th>検知</th><th>復旧</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Opus が KELLY=2.0 等の暴走パラメータを返す</td><td>致命</td><td>中</td><td>apply 時の範囲検証</td><td>検証失敗を即拒否</td><td>前日 <code>strategy.bak</code> から復元</td></tr>
+      <tr><td>Polymarket API 停止</td><td>高</td><td>低</td><td>タイムアウト設定</td><td>連続失敗カウント</td><td>取引一時停止モード</td></tr>
+      <tr><td>Binance WS 切断</td><td>中</td><td>中</td><td>自動再接続</td><td>5秒以上の無更新検知</td><td>Coinbase へ fallback</td></tr>
+      <tr><td>1日の損失が許容上限超過</td><td>致命</td><td>中</td><td><code>daily_loss_limit</code></td><td>リアルタイム残高監視</td><td>即座に全Bot停止</td></tr>
+      <tr><td>同市場への二重発注</td><td>高</td><td>低</td><td>注文ID冪等性</td><td>DB に発注済みフラグ</td><td>重複検知時キャンセル</td></tr>
+      <tr><td>秘密鍵漏洩</td><td>致命</td><td>低</td><td><code>.env</code> + <code>chmod 600</code></td><td>gitignore 強制</td><td>（起きたら終わり）</td></tr>
+      <tr><td>paper と live の取り違え</td><td>致命</td><td>中</td><td>UI に大きく赤色表示</td><td>起動時に確認モーダル</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3>不変条件（Invariants）リスト</h3>
+  <ul>
+    <li>I1: <code>current_balance ≥ 0</code> 常に成立</li>
+    <li>I2: <code>0.80 ≤ MIN_PROB ≤ 0.95</code></li>
+    <li>I3: <code>0 &lt; KELLY_FRACTION ≤ 0.8</code></li>
+    <li>I4: 同一 <code>market_id</code> に対する未決済ポジションは 1 つまで</li>
+    <li>I5: live モード時は <code>initial_balance</code> 比 -30% を超える損失で自動停止</li>
+    <li>I6: <code>strategy.json</code> は必ずバックアップ後に上書き</li>
+    <li>I7: 1分あたりの API 呼び出しは Polymarket CLOB 制限の 50% 以下</li>
+  </ul>
+
+  <h3>ログレベル・トリアージ表</h3>
+  <table>
+    <thead><tr><th>Level</th><th>用途</th><th>例</th><th>アクション</th></tr></thead>
+    <tbody>
+      <tr><td>DEBUG</td><td>開発時のみ</td><td>Markov 遷移行列の中身</td><td>通常は捨てる</td></tr>
+      <tr><td>INFO</td><td>正常動作</td><td>注文送信完了</td><td>蓄積</td></tr>
+      <tr><td>WARN</td><td>異常だが継続可</td><td>Binance WS 瞬断・自動復帰</td><td>蓄積 + 日次集計</td></tr>
+      <tr><td>ERROR</td><td>機能停止</td><td>apply 検証 NG・注文失敗 3 回</td><td>即 UI 赤色表示</td></tr>
+      <tr><td>CRITICAL</td><td>即停止</td><td>損失上限到達・秘密鍵読込失敗</td><td>Bot 自動停止 + UI 最大強調</td></tr>
+    </tbody>
+  </table>
+
+  <h3>二重承認設計</h3>
+  <table>
+    <thead><tr><th>操作</th><th>一段階目</th><th>二段階目</th></tr></thead>
+    <tbody>
+      <tr><td>paper → live 切替</td><td>ボタンクリック</td><td>「LIVE」と手入力</td></tr>
+      <tr><td><code>strategy.json</code> 適用</td><td>Apply ボタン</td><td>差分プレビュー + 確認</td></tr>
+      <tr><td>全 Bot 停止</td><td>緊急停止ボタン</td><td>（即実行、確認なし＝安全側）</td></tr>
+      <tr><td>live モード初回起動</td><td>起動ボタン</td><td>残高表示 + 「理解した」チェック</td></tr>
+      <tr><td><code>daily_loss_limit</code> 上方修正</td><td>保存ボタン</td><td>「リスク増加」警告 + 確認</td></tr>
+    </tbody>
+  </table>
+
+  <h3>最終的な設計書 24 章構成</h3>
+  <table>
+    <thead><tr><th>章</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>1. 概要</td><td>システム目的、画像のオリジナルとの差分</td></tr>
+      <tr><td>2. アーキテクチャ概観</td><td>全体構成図、技術スタック</td></tr>
+      <tr><td>3. 状態遷移図 ★追加</td><td>Bot 全体の状態と遷移ルール</td></tr>
+      <tr><td>4. データフロー図（DFD）★追加</td><td>データの流れと永続化ポイント</td></tr>
+      <tr><td>5. 信頼境界線図 ★追加</td><td>検証が必要な境界の明示</td></tr>
+      <tr><td>6. シーケンス図</td><td>主要ユースケース毎（起動・取引・夜間レビュー・apply・緊急停止）</td></tr>
+      <tr><td>7. I/O 図</td><td>ユーザー操作と出力の対応表</td></tr>
+      <tr><td>8. UI ワイヤーフレーム + 画面一覧 ★追加</td><td>全画面の構成</td></tr>
+      <tr><td>9. ユーザー操作フロー</td><td>全ボタンの動線</td></tr>
+      <tr><td>10. 関数呼び出し図 + データフォーマット図</td><td>モジュール間 API</td></tr>
+      <tr><td>11. データモデル</td><td>SQLite スキーマ、JSON スキーマ</td></tr>
+      <tr><td>12. 戦略ロジック詳細</td><td>Markov + Kelly の数式</td></tr>
+      <tr><td>13. 動作モード仕様</td><td>backtest / paper / simmer / live</td></tr>
+      <tr><td>14. ペーパー約定エンジン仕様</td><td>現実再現の詳細</td></tr>
+      <tr><td>15. 夜間レビューフロー</td><td>時刻指定・レポート生成・apply</td></tr>
+      <tr><td>16. 不変条件一覧 ★追加</td><td>assert ベースの安全装置</td></tr>
+      <tr><td>17. リスク・セーフガード一覧表 ★追加</td><td>事故シナリオと対策</td></tr>
+      <tr><td>18. エラーハンドリング図 + ログレベル・トリアージ表</td><td>エラー分類、エラーコード体系</td></tr>
+      <tr><td>19. キル・スイッチ + 二重承認設計 ★追加</td><td>緊急停止・誤操作防止</td></tr>
+      <tr><td>20. 監査ログ設計 ★追加</td><td>改ざん不可な変更履歴</td></tr>
+      <tr><td>21. 設定変更影響範囲マトリクス ★追加</td><td>各設定の影響と再起動要否</td></tr>
+      <tr><td>22. 設定ファイル仕様</td><td><code>yoruu.yaml</code> フルスペック</td></tr>
+      <tr><td>23. テスト戦略マトリクス ★追加</td><td>各テスト種別と目標</td></tr>
+      <tr><td>24. デプロイ・ロールバック手順</td><td>安全な更新方法</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="callout-label">pending</span>
+    マスター承認待ち：(1) 24章構成で進めて良いか、(2) 章ごと出力（推奨）か一気に全章出力か、(3) 第1章「概要」から着手して良いか。
+    序盤章（特に 3〜5 章の状態遷移・DFD・信頼境界線）は後続全章の前提になるため、章ごと出力で認識ズレを早期検知する方針を強く推奨。
+  </div>
+
+  <h3>残課題</h3>
+  <ul>
+    <li>マスターの最終 GO サインを受けて第1章執筆開始</li>
+    <li>設計書の保存先パス決定（<code>YoRuu/docs/design/</code> 配下を想定）</li>
+    <li>章を追加した分、設計書ボリュームは markdown 約 15,000〜20,000 文字規模に拡大見込み</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>
+    Commit: <code>pending</code>（このファイルをこれから初回コミットで push）
+  </p>
+</section>
+
+</main>
+
+<footer>
+  <p>generated by Cursor / one-file HTML</p>
+</footer>
+</body>
+</html>
