@@ -276,6 +276,12 @@ body.diary > footer {
         <td><span class="tag tag-warn">warn</span></td>
         <td><a href="#entry-0822b">#entry-0822b</a></td>
       </tr>
+      <tr>
+        <td>08:26</td>
+        <td>モックアップ運用ルール確定（単一HTML / docs/mockups/ / 章ごと更新サイクル）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0826">#entry-0826</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -530,8 +536,178 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>
-    Commit: <code>pending</code>（このファイルをこれから初回コミットで push）
+    Commit: <code>accb794</code>（初回コミットで GitHub に push 済み）
   </p>
+</section>
+
+<section class="entry" id="entry-0826">
+  <h2>モックアップ運用ルール確定（単一HTML / docs/mockups/ / 章ごと更新サイクル）<a href="#entry-0826" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 08:26 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-scope">ui</span>
+    <span class="tag tag-scope">process</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    ワイヤーフレームを <strong>テキスト記述ではなく実動 HTML モックアップ</strong> で扱う方針を採用。
+    認識ズレを劇的に減らし、本実装の HTML/CSS をそのまま再利用できる利点がある。
+    モックアップ運用ルール・配置規約・状態管理・確認サイクル・カラーパレットを一括で確定した。
+  </p>
+
+  <h3>設計判断：モックアップ運用ルール</h3>
+  <table>
+    <thead><tr><th>項目</th><th>ルール</th></tr></thead>
+    <tbody>
+      <tr><td>形式</td><td>単一 HTML ファイル（HTML + CSS + 最小限の Vanilla JS、外部依存なし）</td></tr>
+      <tr><td>配置</td><td><code>docs/mockups/</code> ディレクトリに画面ごとに 1 ファイル</td></tr>
+      <tr><td>動作環境</td><td>ブラウザでダブルクリックで開けば即表示。サーバ不要</td></tr>
+      <tr><td>更新タイミング</td><td>設計章で UI に関わる決定があれば <strong>必ず該当モックを更新</strong></td></tr>
+      <tr><td>確認サイクル</td><td>章ごとに「該当モック提示 → 確認 → フィードバック反映」を必ず挟む</td></tr>
+      <tr><td>本実装との関係</td><td>本実装はモックアップの HTML/CSS を再利用して React / HTMX に移植</td></tr>
+      <tr><td>CDN フレームワーク</td><td>原則禁止（オフラインでも開ける状態を維持）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>モックアップに含める要素</h3>
+  <ul>
+    <li>実データに近い <strong>ダミーデータ</strong>（空欄ではなく <code>$324.72</code> のような具体数値）</li>
+    <li>主要な状態のバリエーション（損益 +／−／ゼロ、エラー時、loading 時）</li>
+    <li>ボタンクリック時の遷移先（<code>href="other-screen.html"</code> で疑似動線）</li>
+    <li>色・タイポグラフィ・余白も実装レベルに近づける</li>
+    <li>ヘッダーに <code>[MOCKUP] YoRuu - ダッシュボード v0.3</code> のような版表記</li>
+  </ul>
+
+  <h3>ファイル命名規則（docs/mockups/）</h3>
+<pre><code>docs/mockups/
+├── index.html              # モックアップ一覧 (全画面へのリンク集)
+├── 01_dashboard.html       # ダッシュボード
+├── 02_trade_log.html       # 取引ログ
+├── 03_nightly_review.html  # 夜間レビュー (★最重要、apply含む)
+├── 04_settings.html        # 設定画面
+├── 05_strategy_history.html # 戦略履歴・ロールバック
+├── 06_alerts.html          # アラート・エラー画面
+├── 07_mode_switch.html     # モード切替 (paper ↔ live)
+├── 08_emergency_stop.html  # キル・スイッチ
+└── shared/
+    ├── style.css           # 全画面共通スタイル
+    └── mock-data.js        # ダミーデータ (任意)</code></pre>
+
+  <h3>モックアップの状態管理</h3>
+  <p>各 HTML ファイルの先頭コメントに状態を明記：</p>
+<pre><code>&lt;!--
+  YoRuu Mockup: Dashboard
+  Version: 0.3
+  Last Updated: 2026-05-26
+  Status: REVIEW_PENDING  (DRAFT / REVIEW_PENDING / APPROVED / IMPLEMENTED)
+  Linked Design Chapter: 8 (UIワイヤーフレーム + 画面一覧), 9 (操作フロー)
+  Related Mockups: 02_trade_log.html, 03_nightly_review.html
+--&gt;</code></pre>
+  <p>設計書の各章にも <code>関連モックアップ</code> セクションを設け、相互参照する。</p>
+
+  <h3>確認フローの具体化</h3>
+  <ol>
+    <li>設計章を執筆（例：第6章 シーケンス図 - 夜間レビュー）</li>
+    <li>UI 要素が登場 → 関連モックを作成/更新</li>
+    <li>提示物：設計章テキスト + 該当モック HTML（全文）+ 確認チェックリスト</li>
+    <li>フィードバック → OK なら APPROVED に昇格、修正要ならモック更新 + 設計章修正</li>
+    <li>完了したら全モックの状態一覧を更新</li>
+  </ol>
+
+  <h3>カラーパレット（機能性重視 + 画像レトロ感の継承）</h3>
+<pre><code>:root {
+  /* ベース (画像のレトロ感を継承) */
+  --bg-primary:   #f5f1e8;   /* クリーム背景 */
+  --bg-secondary: #ebe5d3;   /* カード背景 */
+  --text-primary: #1a1a1a;
+  --text-secondary: #555;
+  --border:       #2a2a2a;
+
+  /* 機能色 (損益・状態) */
+  --positive:     #2d7a3e;   /* 利益 (緑) */
+  --negative:     #c0392b;   /* 損失 (赤) */
+  --warning:      #d68910;   /* 警告 (オレンジ) */
+  --critical:     #8e1f1f;   /* 致命的 (濃赤) */
+  --info:         #2c5f8d;   /* 情報 (青) */
+
+  /* モード色 (誤操作防止に最重要) */
+  --mode-paper:   #6c757d;   /* グレー = 安全 */
+  --mode-simmer:  #2c5f8d;   /* 青 */
+  --mode-live:    #c0392b;   /* 赤 = 本番、常に意識 */
+
+  /* タイポ */
+  --font-mono: 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}</code></pre>
+  <p>
+    <code>mode: live</code> のときは画面全体に赤いボーダーや上部バーを出して、
+    <strong>今ライブで動いていること</strong> を常に意識させる。
+  </p>
+
+  <h3>章構成の微修正（モックアップ更新を明示）</h3>
+  <table>
+    <thead><tr><th>章</th><th>内容</th><th>モックアップ更新</th></tr></thead>
+    <tbody>
+      <tr><td>1〜7</td><td>概要 / アーキ / 状態遷移 / DFD / 信頼境界 / シーケンス / I-O</td><td>—</td></tr>
+      <tr><td><strong>8. UIモックアップ一式</strong></td><td><strong>画面一覧・全モックHTML作成</strong></td><td><strong>★全画面初版作成</strong></td></tr>
+      <tr><td>9. ユーザー操作フロー</td><td>全ボタン動線</td><td>必要に応じ更新</td></tr>
+      <tr><td>10〜12</td><td>関数呼び出し / データモデル / 戦略ロジック</td><td>—</td></tr>
+      <tr><td>13. 動作モード仕様</td><td>4モード詳細</td><td>モード切替モック更新</td></tr>
+      <tr><td>14. ペーパー約定エンジン</td><td>—</td><td>—</td></tr>
+      <tr><td>15. 夜間レビューフロー</td><td>apply 含む</td><td>レビュー画面モック更新</td></tr>
+      <tr><td>16. 不変条件</td><td>—</td><td>—</td></tr>
+      <tr><td>17. リスク・セーフガード</td><td>—</td><td>アラート画面モック更新</td></tr>
+      <tr><td>18. エラーハンドリング図 + ログレベル</td><td>—</td><td>アラート画面モック更新</td></tr>
+      <tr><td>19. キル・スイッチ + 二重承認</td><td>—</td><td>緊急停止モック更新</td></tr>
+      <tr><td>20. 監査ログ</td><td>—</td><td>戦略履歴モック更新</td></tr>
+      <tr><td>21. 設定変更影響範囲マトリクス</td><td>—</td><td>設定画面モック更新</td></tr>
+      <tr><td>22. 設定ファイル仕様</td><td><code>yoruu.yaml</code></td><td>設定画面モック更新</td></tr>
+      <tr><td>23. テスト戦略マトリクス</td><td>—</td><td>—</td></tr>
+      <tr><td>24. デプロイ・ロールバック</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3>最終確認事項（GO サイン直前のまとめ）</h3>
+  <table>
+    <thead><tr><th>項目</th><th>決定内容</th></tr></thead>
+    <tbody>
+      <tr><td>ツール名</td><td>YoRuu（ヨルー）</td></tr>
+      <tr><td>Telegram</td><td>削除、すべて Web UI で完結</td></tr>
+      <tr><td>モックアップ</td><td>単一 HTML、<code>docs/mockups/</code>、章ごとに更新・確認</td></tr>
+      <tr><td>章構成</td><td>24 章（第8章で全モック初版作成）</td></tr>
+      <tr><td>進め方</td><td>章ごとに区切って提示、フィードバック反映</td></tr>
+      <tr><td>Cursor 運用</td><td>設計=Opus 4.7、実装=Composer 2.5、ルールは <code>.cursor/rules/project.md</code> に明文化</td></tr>
+      <tr><td>夜間レビュー</td><td>ローカル保存 → Genspark Opus 4.7 でコピペ分析 → Web UI で apply</td></tr>
+    </tbody>
+  </table>
+
+  <h3>第1章「概要」に含める予定</h3>
+  <ul>
+    <li>システムの目的（Bonereaper の再現ではなく、自分のための BTC 5分予測 Bot）</li>
+    <li>画像オリジナルとの明示的な差分（Telegram 削除、人間レビュー、4 モード対応）</li>
+    <li>想定ユーザー（技術リテラシー高い個人開発者＝マスター本人）</li>
+    <li>設計原則（シンプルさ・安全性・テスト可能性・低コスト運用）</li>
+    <li>スコープ外（今回作らないもの）</li>
+    <li>用語集（Markov, Kelly, persistence, edge, CLOB 等）</li>
+  </ul>
+
+  <div class="callout ok">
+    <span class="callout-label">next</span>
+    マスターの GO サインで第1章執筆開始。同時に <code>docs/mockups/</code> ディレクトリ雛形と <code>shared/style.css</code>（上記カラーパレット内蔵）を準備する流れ。
+  </div>
+
+  <h3>残課題</h3>
+  <ul>
+    <li>Cursor プロジェクトルールファイル <code>.cursor/rules/project.md</code> の新規作成（モックアップ運用・章ごと確認サイクルを明文化）</li>
+    <li>第8章でモック初版作成時、ダミーデータの一貫性（同じ <code>$324.72</code> を全画面で使うか、画面間で意味のある変化を持たせるか）を要検討</li>
+    <li>モック間遷移の疑似動線で循環参照が増えるため、<code>index.html</code> に必ず戻れる導線を全画面に置く</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code>（このエントリ追記分は次のコミットで push）</p>
 </section>
 
 </main>
