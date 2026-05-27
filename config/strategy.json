@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "parameters": {
+    "MIN_PROB": 0.87,
+    "MIN_EDGE": 0.06,
+    "KELLY_FRACTION": 0.65,
+    "PERSISTENCE_THRESHOLD": 0.70
+  },
+  "constraints": {
+    "MIN_PROB": { "min": 0.80, "max": 0.95, "default": 0.87 },
+    "MIN_EDGE": { "min": 0.03, "max": 0.15, "default": 0.06 },
+    "KELLY_FRACTION": { "min": 0.10, "max": 1.00, "default": 0.65 },
+    "PERSISTENCE_THRESHOLD": { "min": 0.50, "max": 0.90, "default": 0.70 }
+  },
+  "metadata": {
+    "applied_at": null,
+    "applied_by": "INITIAL",
+    "previous_version": null
+  }
+}

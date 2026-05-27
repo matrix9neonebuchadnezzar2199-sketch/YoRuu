@@ -32,8 +32,13 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
-strategy.json
+/strategy.json
+config/backups/
 strategy_history/
+config/yoruu.yaml
+data/
+reports/*.json
+!reports/.gitkeep
 
 # Binaries
 *.exe

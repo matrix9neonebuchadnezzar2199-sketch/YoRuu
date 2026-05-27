@@ -133,12 +133,12 @@ gantt
 
 | ID | 内容 |
 |----|------|
-| M3.1 | データ取得層（Binance WS + Polymarket CLOB） |
-| M3.2 | Markov 推定 + Kelly サイジング |
-| M3.3 | ペーパー約定エンジン（スリッページ・手数料・遅延モデル） |
-| M3.4 | SQLite 永続化 + StateMachine |
-| M3.5 | 夜間レポート生成（JSON 出力） |
-| M3.6 | 戦略 Apply ロジック（CLI から） |
+| M3.1 | データ取得層（Binance WS + Polymarket CLOB） | **一部**（`MockMarketProvider` + CLI mock。live WS は未接続） |
+| M3.2 | Markov 推定 + Kelly サイジング | **完了**（`src/yoruu/strategy/`） |
+| M3.3 | ペーパー約定エンジン（スリッページ・手数料・遅延モデル） | **完了**（`FillModel` / `PaperExecutor`） |
+| M3.4 | SQLite 永続化 + StateMachine | **完了**（`Database` + `StateMachine`） |
+| M3.5 | 夜間レポート生成（JSON 出力） | **完了**（`NightlyReporter` + CLI） |
+| M3.6 | 戦略 Apply ロジック（CLI から） | **完了**（`ApplyValidator` + `strategy apply`） |
 
 **Exit Criteria**:
 

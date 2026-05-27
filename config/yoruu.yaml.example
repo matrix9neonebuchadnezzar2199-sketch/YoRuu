@@ -1,0 +1,51 @@
+mode: PAPER
+initial_balance: 1000.0
+currency: USD
+
+market:
+  id: BTC_5MIN_UPDOWN
+  source: POLYMARKET
+  binance_symbol: BTCUSDT
+
+risk:
+  max_trade_size_usd: 10.0
+  daily_loss_limit_usd: 30.0
+  emergency_stop_enabled: true
+  consecutive_fail_limit: 3
+  consecutive_fail_window_min: 15
+
+websocket:
+  polymarket_url: wss://ws-subscriptions-clob.polymarket.com/ws/
+  binance_url: wss://stream.binance.com:9443/ws/btcusdt@trade
+  reconnect_interval_sec: 5
+  max_reconnect_attempts: 10
+  stale_tick_sec: 30
+
+nightly_review:
+  enabled: true
+  send_time: "04:00"
+  timezone: Asia/Tokyo
+  pause_trading_during_review: true
+
+paths:
+  db: data/yoruu.db
+  strategy: config/strategy.json
+  logs: logs/
+  historical: data/historical/
+  reports: reports/
+
+ui:
+  bind_host: 127.0.0.1
+  port: 8765
+  default_language: ja
+
+logging:
+  level: INFO
+  rotate_mb: 50
+  retain_days: 30
+
+paper:
+  slippage_coeff: 0.0001
+  slippage_max: 0.02
+  latency_ms_mean: 80
+  latency_ms_std: 20
