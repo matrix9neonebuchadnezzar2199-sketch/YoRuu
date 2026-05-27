@@ -3,7 +3,7 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — **M1.4** 着手準備（M1.3 完了、14/24）；HTML モックは PHASE 2  
+**現在 PHASE**: PHASE 1 — **M1.4** ch15 レビュー待ち（14/24）；HTML モックは PHASE 2  
 **関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch14.md`](./REVIEW_CHECKLIST_ch14.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
@@ -72,7 +72,7 @@
 
 | # | タイトル | ファイル | ステータス |
 |---|----------|----------|-----------|
-| 15 | 夜間レビューフロー | `15_nightly_review.md` | PENDING |
+| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | REVIEW_PENDING |
 | 16 | 不変条件 | `16_invariants.md` | PENDING |
 | 17 | リスクマトリクス | `17_risk_matrix.md` | PENDING |
 | 18 | エラーハンドリング + ログトリアージ | `18_error_handling.md` | PENDING |
