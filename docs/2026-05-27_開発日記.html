@@ -396,6 +396,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1430">#entry-1430</a></td>
       </tr>
+      <tr>
+        <td>14:45</td>
+        <td>第12章 モード仕様配置（§12.5 切替詳細・REVIEW_PENDING）</td>
+        <td><span class="tag tag-warn">warn</span></td>
+        <td><a href="#entry-1445">#entry-1445</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1412,6 +1418,31 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>Commit: <code>d405f0c</code></p>
+</section>
+
+<section class="entry" id="entry-1445">
+  <h2>第12章 モード仕様配置（§12.5 切替詳細）<a href="#entry-1445" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 14:45 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-warn">warn</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    マスター執筆 <code>12_mode_specification.md</code> v1.0 を配置（4モード・切替 SSOT §12.5.2.x・LIVE 2段階確認・遷移マトリクス）。
+    配置時: <code>INITIALIZING</code> 整合、LIVE の SIMMER 7日要件は UI 注意のみ、ch9 オープンポジション保持切替は 409 に統一、§12.6.2.1 checklist 対応表追加。
+  </p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/12_mode_specification.md</li>
+    <li><span class="op op-mod">~</span> docs/design/INDEX.md、00_ROADMAP.md</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>
