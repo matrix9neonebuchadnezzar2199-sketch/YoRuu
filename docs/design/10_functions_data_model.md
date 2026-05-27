@@ -1,8 +1,9 @@
 # 第10章 関数・データモデル
 
-- **バージョン**: v1.0
+- **バージョン**: v1.0.1
 - **作成日**: 2026-05-27
-- **ステータス**: REVIEW_PENDING
+- **最終更新**: 2026-05-27（v1.0.1: §10.3.11〜13 テーブル追加、§10.7.2 State 注記）
+- **ステータス**: APPROVED
 - **関連章**: 2（アーキテクチャ）, 4（データフロー）, 6（シーケンス）, 7（I/O 図）, 11（戦略ロジック）, 12（モード仕様）, 13（ペーパー約定）, 14（i18n）, 15（夜間レビュー）, 18（エラーハンドリング）, 19（キルスイッチ）
 - **旧章統合**: 旧 ch11「Data Model」を §10.3（SQLite）／§10.4（`strategy.json`）に統合
 
@@ -16,7 +17,7 @@ YoRuu の関数シグネチャ、REST API エンドポイント、SSE ペイロ�
 
 - REST API エンドポイント一覧と JSON スキーマ（§10.2）
 - SSE イベントと JSON ペイロード（§10.5）
-- SQLite テーブル定義 8 件（§10.3）
+- SQLite テーブル定義 11 件（§10.3）
 - 設定ファイル `strategy.json`・`yoruu.yaml` の完全スキーマ（§10.4）
 - 主要内部関数シグネチャ（§10.7〜§10.11、Part 2）
 - データライフサイクル・保持期間（§10.12、Part 2）
@@ -114,6 +115,9 @@ YoRuu の関数シグネチャ、REST API エンドポイント、SSE ペイロ�
 | 6 | `alerts` | アラート履歴 | 90 日 |
 | 7 | `strategy_versions` | 戦略パラメータ履歴 | 永続 |
 | 8 | `daily_reports` | 夜間レポート | 永続 |
+| 9 | `emergency_stops` | 緊急停止履歴 | 永続 |
+| 10 | `audit_log` | 監査ログ | 永続 |
+| 11 | `what_if_scenarios` | What-If シナリオ保存 | 永続（ユーザー削除可） |
 
 ### 10.3.3 `bot_state` テーブル
 
@@ -136,7 +140,7 @@ CREATE TABLE bot_state (
 );
 ```
 
-シングルトン制約（`id = 1`）により 1 行のみ。`state` は第3章 §3.1 の 9 状態と一致。
+シングルトン制約（`id = 1`）により 1 行のみ。`state` は第3章 §3.1 の 9 状態に加え補助状態（`ERROR` / `SHUTDOWN` / `BACKTEST`）を含む（§10.7.2 注記参照）。
 
 ### 10.3.4 `trades` テーブル
 
@@ -260,6 +264,67 @@ CREATE TABLE daily_reports (
   created_at TEXT NOT NULL
 );
 ```
+
+### 10.3.11 `emergency_stops` テーブル
+
+```sql
+CREATE TABLE emergency_stops (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  triggered_at TEXT NOT NULL,
+  trigger TEXT NOT NULL CHECK (trigger IN (
+    'dashboard_button', 'sidebar_button', 'command_palette',
+    'keyboard_shortcut', 'api_call', 'system_invariant'
+  )),
+  state_before TEXT NOT NULL,
+  mode_before TEXT NOT NULL,
+  open_positions_closed INTEGER NOT NULL DEFAULT 0,
+  daily_pnl_at_stop REAL,
+  recovered_at TEXT,
+  recovered_to_mode TEXT,
+  log_archive_path TEXT
+);
+CREATE INDEX idx_emergency_stops_triggered_at ON emergency_stops(triggered_at);
+```
+
+ch9 §9.8.7 の「ログ zip ダウンロード」「復帰履歴」「トリガ別集計」に対応。`emergency_stop_triggered` SSE 発火時にレコード作成、`emergency/recover` 時に `recovered_at` を更新。
+
+### 10.3.12 `audit_log` テーブル
+
+```sql
+CREATE TABLE audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts TEXT NOT NULL,
+  actor TEXT NOT NULL CHECK (actor IN ('USER', 'SYSTEM', 'NIGHTLY_REVIEW', 'SCHEDULER')),
+  action TEXT NOT NULL,
+  resource TEXT NOT NULL,
+  resource_id TEXT,
+  details_json TEXT,
+  result TEXT NOT NULL CHECK (result IN ('SUCCESS', 'FAILURE', 'PARTIAL'))
+);
+CREATE INDEX idx_audit_log_ts ON audit_log(ts);
+CREATE INDEX idx_audit_log_resource ON audit_log(resource, resource_id);
+```
+
+監査対象: モード切替、戦略 Apply/Rollback、設定変更、緊急停止、復帰、手動ポジションクローズ。保持期間は永続（§10.12.1）。
+
+### 10.3.13 `what_if_scenarios` テーブル
+
+```sql
+CREATE TABLE what_if_scenarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  period_from TEXT NOT NULL,
+  period_to TEXT NOT NULL,
+  parameters_json TEXT NOT NULL,
+  result_json TEXT,
+  created_at TEXT NOT NULL,
+  created_by TEXT NOT NULL DEFAULT 'USER',
+  notes TEXT
+);
+CREATE INDEX idx_what_if_scenarios_created_at ON what_if_scenarios(created_at);
+```
+
+§8.21 / §10.6.9 の「シナリオ保存」に対応。PHASE 2 では空テーブルでモック対応可。
 
 ## 10.4 設定ファイルスキーマ（旧 ch11 統合）
 
@@ -680,6 +745,8 @@ class StateMachine:
         """第3章 §3.2 の遷移表に基づく許可遷移リスト"""
 ```
 
+**State Enum と第3章の関係**: 第3章 §3.1 の 9 状態（`INITIALIZING` 〜 `EMERGENCY_STOP`）に加え、本章 `State` Enum では補助状態 `ERROR` / `SHUTDOWN` / `BACKTEST` を定義する。`BACKTEST` は StateMachine の外側で完結（§10.7.8・第3章 §3.3）。`ERROR` / `SHUTDOWN` は `bot_state.state` の CHECK 制約および第3章 §3.2 遷移表で使用。
+
 `StateViolationError` は `severity=ERROR` のアラートを生成し、第18章 `E_STATE_001` に対応。
 
 ### 10.7.3 OrderManager（`src/yoruu/execution/order_manager.py`）
@@ -1021,6 +1088,9 @@ class I18n:
 | `alerts` | 90 日 | cron（04:00 JST） | 重大は別エクスポート可 |
 | `strategy_versions` | 永続 | 削除なし | 監査用 |
 | `daily_reports` | 永続 | 削除なし | LLM 提案含む |
+| `emergency_stops` | 永続 | 削除なし | 監査用 |
+| `audit_log` | 永続 | 削除なし | 監査用 |
+| `what_if_scenarios` | 永続 | ユーザー削除可 | UI から手動削除 |
 | `data/backup/*.db` | 30 日 | cron（04:30 JST） | ローテーション |
 | ログファイル | `logging.retain_days`（既定 30 日） | logrotate 相当 | 50MB ローテート |
 
@@ -1051,7 +1121,10 @@ class I18n:
 |-------|--------|------|
 | §10.2.4 認証 | 第5章 §5.2 | SSH トンネル前提 |
 | §10.3 SQLite | 第2章 §2.4 | データ層配置 |
-| §10.3.3 `bot_state` | 第3章 §3.1 | 9 状態定義 |
+| §10.3.3 `bot_state` | 第3章 §3.1, §10.7.2 | 9 状態 + 補助 3 状態 |
+| §10.3.11 `emergency_stops` | 第9章 §9.8.7 | 緊急停止履歴 |
+| §10.3.12 `audit_log` | 第18章 | 監査ログ |
+| §10.3.13 `what_if_scenarios` | 第8章 §8.21, §10.6.9 | What-If 保存 |
 | §10.4.1 `strategy.json` | 第7章 §7.2, 第11章 §11.4 | パラメータ範囲 |
 | §10.4.3 反映タイミング | 第9章 §9.9 | 設定画面操作 |
 | §10.5 SSE | 第8章 §8.9 | UI 側受信 |
@@ -1073,7 +1146,7 @@ class I18n:
 
 - [ ] §10.1 目的・スコープ明示（含む／含まない両方）
 - [ ] §10.2 共通レスポンス形式と HTTP ステータス定義
-- [ ] §10.3 SQLite 8 テーブル全て CREATE 文付き
+- [x] §10.3 SQLite 11 テーブル全て CREATE 文付き（v1.0.1 で §10.3.11〜13 追加）
 - [ ] §10.3 旧 ch11「Data Model」統合完了
 - [ ] §10.4 `strategy.json` 完全スキーマ + 範囲制約
 - [ ] §10.4 `yoruu.yaml` 完全スキーマ + 反映タイミング表
