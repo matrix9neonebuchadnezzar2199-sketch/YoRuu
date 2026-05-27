@@ -53,3 +53,5 @@
 ## レビュー基準
 
 各章は [REVIEW_CHECKLIST_ch01-07.md](./REVIEW_CHECKLIST_ch01-07.md) の12観点で評価する。
+
+**2026-05-27 補助レビュー反映**: 第3章 3.3（backtest ガード）、第7章 7.2.1（PERSISTENCE 案α）、第6章 StateMachine 参加者、第8章 UI 予約 → [`08_mockup_carryover.md`](./08_mockup_carryover.md)。

@@ -312,6 +312,12 @@ body.diary > footer {
         <td><span class="tag tag-warn">warn</span></td>
         <td><a href="#entry-0920">#entry-0920</a></td>
       </tr>
+      <tr>
+        <td>10:54</td>
+        <td>補助レビュー4点を反映（3.3ガード / 案α / StateMachine / 第8章予約）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1054">#entry-1054</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -952,6 +958,43 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>Commit: <code>7a1b9d4</code></p>
+</section>
+
+<section class="entry" id="entry-1054">
+  <h2>補助レビュー4点を設計書へ反映（第8章着手前）<a href="#entry-1054" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 10:54 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>マスター待ちの補助レビュー指摘に対し、推奨案（案α + StateMachine 経由 + 軽微修正）で第1・3・6・7章を更新。第8章 UI 向け予約は <code>08_mockup_carryover.md</code> に集約。</p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/design/01_overview.md（1.2 通知統合、1.6 persistence 用語分離）</li>
+    <li><span class="op op-mod">~</span> docs/design/03_state_diagram.md（3.3 IDLE→TRADING ガード + backtest 注記）</li>
+    <li><span class="op op-mod">~</span> docs/design/06_sequence.md（SM 参加者、6.3 PM 追加、6.5/6.6 も SM 経由）</li>
+    <li><span class="op op-mod">~</span> docs/design/07_io_diagram.md（PERSISTENCE 0.50〜0.90、§7.2.1 役割分担）</li>
+    <li><span class="op op-add">+</span> docs/design/08_mockup_carryover.md</li>
+  </ul>
+
+  <h3>設計判断</h3>
+  <ul>
+    <li><strong>PERSISTENCE_THRESHOLD</strong>: 案α（直近 N 本の同方向継続割合、デフォルト 0.70）。<strong>MIN_PROB</strong> は Markov 確率のまま</li>
+    <li>状態遷移は <strong>StateMachine</strong> が SSOT（OM/RG/EH/AP は notify/transition のみ）</li>
+    <li>backtest は状態機械の TRADING 経路外（BacktestExecutor 別経路）</li>
+  </ul>
+
+  <h3>残課題</h3>
+  <ul>
+    <li>マスター一次レビュー → <code>APPROVED</code> 後に第8章本文・HTML モック</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>

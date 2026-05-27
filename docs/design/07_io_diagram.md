@@ -49,7 +49,7 @@
 | Apply JSON: `MIN_PROB` | float | 0.80 ≤ x ≤ 0.95 | ✓ | `validate_min_prob` | "MIN_PROB は 0.80〜0.95 の範囲" |
 | Apply JSON: `MIN_EDGE` | float | 0.01 ≤ x ≤ 0.20 | ✓ | `validate_min_edge` | "MIN_EDGE は 0.01〜0.20 の範囲" |
 | Apply JSON: `KELLY_FRACTION` | float | 0 < x ≤ 0.80 | ✓ | `validate_kelly_fraction` | "KELLY_FRACTION は 0〜0.80 の範囲" |
-| Apply JSON: `PERSISTENCE_THRESHOLD` | float | 0.80 ≤ x ≤ 0.95 | ✓ | `validate_persistence_threshold` | "PERSISTENCE_THRESHOLD は 0.80〜0.95 の範囲" |
+| Apply JSON: `PERSISTENCE_THRESHOLD` | float | 0.50 ≤ x ≤ 0.90 | ✓ | `validate_persistence_threshold` | "PERSISTENCE_THRESHOLD は 0.50〜0.90（推奨デフォルト 0.70）" |
 | Apply JSON: `reason` | string | 1〜500文字 | ✓ | `validate_reason` | "理由は1〜500文字で必須" |
 | Apply: 変化率 | float | 各パラメータ ±10% 以内 | ✓ | `validate_change_rate` | "前回値からの変化が10%を超えています" |
 | 設定 `mode` | enum | {backtest, paper, simmer, live} | ✓ | `validate_mode` | "無効なモード" |
@@ -62,6 +62,15 @@
 | バックテスト期間 to | date | from 以降、未来不可 | ✓ | `validate_backtest_to` | "from 以降、未来不可" |
 
 サーバ側 (FastAPI Pydantic) で必ず再検証する。クライアント検証は UX のための即時フィードバックに留め、信頼しない。
+
+### 7.2.1 `PERSISTENCE_THRESHOLD` と `MIN_PROB` の役割分担
+
+| パラメータ | 意味 | 算出元 | 典型デフォルト |
+|---|---|---|---|
+| `MIN_PROB` | エントリー方向の最小モデル確率（Kelly の p） | Markov 遷移行列から導出 | 0.85 前後 |
+| `PERSISTENCE_THRESHOLD` | 直近 N 本の同方向継続割合の最小値 | 価格系列のローリング集計 | **0.70**（許容範囲 0.50〜0.90） |
+
+Bonereaper 画面の `persistence ≥ 0.87` は Markov 対角（案β）に相当するが、YoRuu では `MIN_PROB` と意味が重複するため、本設計では **案α（ローリング継続割合）** を採用する。Markov 対角の表示名は用語集の **Persistence**（分析用）と区別する (→ 第1章 1.6節)。
 
 ## 7.3 出力データのフォーマット
 

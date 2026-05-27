@@ -62,6 +62,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant SCH as Scheduler
+    participant SM as StateMachine
     participant PA as Price Aggregator
     participant ME as Markov Estimator
     participant KS as Kelly Sizer
@@ -72,15 +73,17 @@ sequenceDiagram
     participant AL as Audit Logger
 
     SCH->>OM: 5分境界イベント
-    OM->>OM: state == IDLE 確認
+    OM->>SM: require_state(IDLE)
     alt state != IDLE
+        SM-->>OM: reject
         OM-->>SCH: スキップ
     end
+    SM-->>OM: ok
     OM->>PA: 直近価格データ取得
     PA-->>OM: Price history
     OM->>ME: estimate(prices)
     ME-->>OM: transition_matrix + persistence
-    OM->>OM: persistence >= threshold ?
+    OM->>OM: rolling_persistence >= PERSISTENCE_THRESHOLD ?
     alt 閾値未達
         OM->>DB: 判定ログ (skip)
         OM-->>SCH: スキップ
@@ -100,19 +103,21 @@ sequenceDiagram
         OM->>AL: log invariant violation
         OM-->>SCH: スキップ (CRITICAL)
     end
-    OM->>OM: state IDLE → TRADING
+    OM->>SM: transition(IDLE, TRADING)
+    SM-->>OM: ack
     OM->>POLY: 注文送信
     alt 注文失敗
         POLY-->>OM: error
         OM->>OM: retry counter++
         alt retries >= 3
-            OM->>OM: state → EMERGENCY_STOP
+            OM->>SM: transition(any, EMERGENCY_STOP)
         end
     end
     POLY-->>OM: order_id
     OM->>DB: trade record (open)
     OM->>AL: log order
-    OM->>OM: state TRADING → MONITORING_POSITION
+    OM->>SM: transition(TRADING, MONITORING_POSITION)
+    SM-->>OM: ack
     OM-->>SCH: 完了
 ```
 
@@ -126,10 +131,12 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant OM as Order Manager
+    participant SM as StateMachine
     participant WSC as Polymarket WS
     participant PT as Position Tracker
     participant DB
     participant RM as Resolution Monitor
+    participant PM as Polymarket CLOB
 
     OM->>PT: register position
     PT->>WSC: subscribe market_id
@@ -139,6 +146,8 @@ sequenceDiagram
         alt 損失上限超過 (本ポジ単独)
             PT->>OM: trigger close
         end
+        RM->>PM: poll market status
+        PM-->>RM: status (Zone 3 検証後)
     end
     WSC->>RM: resolution event
     RM->>DB: read position
@@ -147,10 +156,11 @@ sequenceDiagram
     RM->>DB: update position (closed)
     RM->>DB: update daily_pnl
     alt daily_pnl <= -daily_loss_limit
-        RM->>OM: trigger EMERGENCY_STOP
+        RM->>SM: transition(any, EMERGENCY_STOP)
     end
     RM->>OM: position closed
-    OM->>OM: state MONITORING_POSITION → IDLE
+    OM->>SM: transition(MONITORING_POSITION, IDLE)
+    SM-->>OM: ack
 ```
 
 *図 6-3: 約定 → 決済監視 → クローズシーケンス*
@@ -163,6 +173,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant SCH as Scheduler
+    participant SM as StateMachine
     participant RG as Report Generator
     participant DB
     participant FS as Filesystem
@@ -170,11 +181,13 @@ sequenceDiagram
     actor U as ユーザー
 
     SCH->>RG: send_time イベント
-    RG->>RG: state == IDLE 確認
+    RG->>SM: require_state(IDLE)
     alt state != IDLE
+        SM-->>RG: reject
         RG-->>SCH: 次回再試行
     end
-    RG->>RG: state IDLE → GENERATING_REPORT
+    RG->>SM: transition(IDLE, GENERATING_REPORT)
+    SM-->>RG: ack
     RG->>DB: 当日の trades, decisions 取得
     DB-->>RG: records
     RG->>RG: state 別 集計
@@ -182,7 +195,8 @@ sequenceDiagram
     RG->>RG: JSON 整形 + プロンプト埋め込み
     RG->>FS: write reports/YYYY-MM-DD.json
     FS-->>RG: OK
-    RG->>RG: state → AWAITING_APPLY
+    RG->>SM: transition(GENERATING_REPORT, AWAITING_APPLY)
+    SM-->>RG: ack
     RG->>WS: SSE: review_available
     WS-->>U: UI 通知 (新しいレポート)
 ```
@@ -199,6 +213,7 @@ sequenceDiagram
     actor U as ユーザー
     participant UI as Web UI
     participant AP as API Endpoint
+    participant SM as StateMachine
     participant SV as Schema Validator
     participant RV as Range Validator
     participant DG as Diff Generator
@@ -234,7 +249,8 @@ sequenceDiagram
     UI-->>U: diff プレビュー + 確認ボタン
     U->>UI: 確認ボタンクリック (二重承認)
     UI->>AP: POST /api/apply/confirm
-    AP->>AP: state AWAITING_APPLY → APPLYING_STRATEGY
+    AP->>SM: transition(AWAITING_APPLY, APPLYING_STRATEGY)
+    SM-->>AP: ack
     AP->>BM: backup current strategy.json
     BM->>FS: write strategy_history/YYYY-MM-DD_HHMMSS.json
     FS-->>BM: OK
@@ -243,7 +259,8 @@ sequenceDiagram
     FS-->>SW: OK
     AP->>AL: log strategy change (full diff + reason)
     AL->>DB: insert audit_log
-    AP->>AP: state APPLYING_STRATEGY → IDLE
+    AP->>SM: transition(APPLYING_STRATEGY, IDLE)
+    SM-->>AP: ack
     AP-->>UI: 反映完了
     UI-->>U: 完了表示
 ```
@@ -260,6 +277,7 @@ sequenceDiagram
     actor U as ユーザー
     participant UI as Web UI
     participant AP as API Endpoint
+    participant SM as StateMachine
     participant CD as Confirm Dialog
     participant WL as Wallet Loader
     participant BC as Balance Checker
@@ -283,11 +301,13 @@ sequenceDiagram
     CD-->>U: 残高表示 + 「理解した」チェックボックス + 最終確定ボタン
     U->>CD: チェック ON + 最終ボタン
     CD->>AP: POST /api/mode/switch (target=live)
-    AP->>AP: 現在状態 == IDLE 確認
+    AP->>SM: require_state(IDLE)
     alt state != IDLE
+        SM-->>AP: reject
         AP-->>UI: 拒否 (取引中)
         UI-->>U: 拒否表示
     end
+    SM-->>AP: ok
     AP->>DB: update mode = live
     AP->>AL: log mode change
     AP->>AP: 再初期化 (取引パスの切替)
@@ -307,6 +327,7 @@ sequenceDiagram
     actor U as ユーザー
     participant T as 自動トリガー
     participant EH as Emergency Handler
+    participant SM as StateMachine
     participant OC as Order Canceller
     participant WD as WS Disconnector
     participant SP as State Persister
@@ -320,7 +341,8 @@ sequenceDiagram
     else 自動
         T->>EH: trigger (daily_loss / 連続失敗 / etc.)
     end
-    EH->>EH: 即座に state → EMERGENCY_STOP
+    EH->>SM: transition(any, EMERGENCY_STOP)
+    SM-->>EH: ack
     EH->>OC: cancel all open orders
     OC->>OC: 全注文に cancel リクエスト
     Note over OC: 失敗してもログのみ、続行

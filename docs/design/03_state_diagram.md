@@ -66,7 +66,7 @@ stateDiagram-v2
 |---|---|---|
 | `INITIALIZING → IDLE` | 全初期化処理の完了 | DB 接続成功 AND 設定検証成功 AND strategy.json 存在 |
 | `INITIALIZING → EMERGENCY_STOP` | 致命的初期化失敗 | (なし、即遷移) |
-| `IDLE → TRADING` | 5分境界到達 (00:00, 00:05, ... UTC) | `daily_loss < daily_loss_limit` AND `mode ∈ {paper, simmer, live}` AND Polymarket WS 接続中 AND Binance WS 接続中 |
+| `IDLE → TRADING` | 5分境界到達 (00:00, 00:05, ... UTC) | `mode ∈ {paper, simmer, live}` AND `websocket_connected` (Polymarket + Binance) AND `strategy_loaded` AND `daily_loss < daily_loss_limit` |
 | `IDLE → GENERATING_REPORT` | スケジューラがレビュー時刻到達検知 | `nightly_review.enabled = true` AND 当日未生成 |
 | `TRADING → MONITORING_POSITION` | 発注 API 成功応答受信 | 注文 ID 取得済 AND DB へ保存成功 |
 | `TRADING → IDLE` | 判定結果がエントリー条件未達 | 条件未達 (persistence < threshold など) |
@@ -82,6 +82,10 @@ stateDiagram-v2
 | `(任意) → EMERGENCY_STOP` | キル・スイッチ押下 | 常に許可 |
 | `EMERGENCY_STOP → INITIALIZING` | ユーザーが「再起動」を明示操作 | プロセス再起動のみ可、自動復帰なし |
 | `(任意) → SHUTDOWN` | SIGTERM OR UI 停止ボタン | 常に許可 |
+
+**備考 (`IDLE → TRADING`)**: backtest モードは `BacktestExecutor` が別経路で実行され、本状態機械は経由しない (→ 第3章 3.7節、第13章)。
+
+※ backtest は図 3-1 および本表の `IDLE → TRADING` のスコープ外である。backtest 実行中も `bot_state` は原則 `IDLE` を維持する。
 
 ## 3.4 遷移時の副作用
 

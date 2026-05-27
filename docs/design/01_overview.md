@@ -17,12 +17,11 @@ YoRuu は娯楽用ではなく実資金を扱う性質を持つ。したがっ�
 |---|---|---|---|
 | 取引判定 | Markov + Kelly (LLM不使用) | 同じ | 数式判定の本質を継承 |
 | 夜間レビュー実行 | Claude Opus 4.7 が自動実行 | 人間が Genspark 経由で Opus 4.7 に手動依頼 | コストゼロ + LLM の暴走防止 |
-| 通知 | Telegram Bot | なし、すべて Web UI で完結 | 依存削減・操作の一元化 |
+| 通知 | Telegram Bot | ローカルログ + Web UI バナー（SSE）のみ | 依存削減・操作の一元化 |
 | エージェント基盤 | Hermes Agent (NousResearch) | なし、Python 単体 | 不要な複雑性の排除 |
 | インフラ | Hetzner VPS | Hetzner VPS またはローカル PC | 開発・運用の柔軟性 |
 | 動作モード | live のみ | backtest / paper / simmer / live の4モード | テスト可能性の確保 |
 | パラメータ適用 | 完全自動 | 検証 + 二重承認を経て適用 | 暴走防止 |
-| 通知手段 | Telegram + ダッシュボード | Web UI のみ | シンプル化 |
 | ソースの公開状態 | 完全クローズド | 個人 private リポジトリ | 個人開発・自己責任 |
 
 ## 1.3 想定ユーザー
@@ -86,7 +85,7 @@ YoRuu はトレードオフが発生したとき、以下の5原則に従って�
 |---|---|---|
 | Markov連鎖 | Markov chain | 直近状態のみから次状態の確率を推定する確率モデル |
 | 持続状態 | persistent state | 上昇または下降が連続している状態 |
-| Persistence | persistence | 同一方向が連続する確率 (例: UP→UP の遷移確率) |
+| Persistence | persistence | Markov 推定の遷移確率（例: p(UP→UP)）。分析・表示用 |
 | Kelly基準 | Kelly criterion | f* = p - (1-p)/b で最適賭け金比率を求める公式 |
 | エッジ | edge | モデル推定確率 p とマーケット価格 q の差 (p - q) |
 | CLOB | Central Limit Order Book | 中央集権型指値注文板。Polymarket の取引方式 |
@@ -95,8 +94,8 @@ YoRuu はトレードオフが発生したとき、以下の5原則に従って�
 | Simmer | Simmer | Polymarket 向けペーパートレード提供サービス |
 | backtest モード | backtest mode | 過去データで戦略を高速再生するモード |
 | live モード | live mode | 実資金を投入する本番モード |
-| persistence_threshold | persistence threshold | エントリーを許可する最小持続確率 |
-| MIN_PROB | MIN_PROB | エントリーを許可する最小モデル確率 |
+| persistence_threshold | persistence threshold | 直近 N 本の同方向継続割合の最小値（エントリー許可）。`MIN_PROB` とは別尺度 (→ 第12章) |
+| MIN_PROB | MIN_PROB | エントリー方向の最小モデル確率（Kelly 入力の p） |
 | MIN_EDGE | MIN_EDGE | エントリーを許可する最小エッジ |
 | KELLY_FRACTION | KELLY_FRACTION | Kelly 基準の数値を実際にどれだけ使うかの係数 (0〜1) |
 | 不変条件 | invariant | 常に成立しなければならない条件 |
