@@ -375,6 +375,24 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-0802">#entry-0802</a></td>
       </tr>
+      <tr>
+        <td>08:11</td>
+        <td>並列チャットテンプレ正本化（§F / Q3-MOCK 分離）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0811">#entry-0811</a></td>
+      </tr>
+      <tr>
+        <td>08:25</td>
+        <td>Track 3 docs-sync（§F T3.1〜T3.9）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0825">#entry-0825</a></td>
+      </tr>
+      <tr>
+        <td>08:26</td>
+        <td>Q3-MOCK モック残高整合（phase2-fix）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0826">#entry-0826</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -408,6 +426,70 @@ body.diary > footer {
   <p>Track 3（README/INDEX/ROADMAP）、Track 4（モック SSE）、カバレッジ 80%、24h paper、INV 全件ユニットテストの追加。</p>
   <h3>検証</h3>
   <p><code>uv run pytest -q</code> 20 passed。Commit: <code>f499778</code></p>
+</section>
+
+<section class="entry" id="entry-0811">
+  <h2>並列チャット依頼テンプレ — §F 厳密対応・Q3-MOCK 分離<a href="#entry-0811" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 08:11 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    マスター調整案をリポジトリ正本化。<code>docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md</code> に
+    <code>docs-sync</code>（§F T3.1〜T3.9）と <code>phase2-fix</code>（<strong>Q3-MOCK</strong>、§F T4.1 SSE とは別）の貼り付けブロックを格納。
+    <code>PHASE3_QUALITY_AUDIT.md</code> は T3.5 を fail_under <strong>55→70→80</strong> に修正、§J.2/§J.3/§L/§G を正本リンクと並列運用表に更新（v1.2）。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md</li>
+    <li><span class="op op-mod">~</span> docs/design/PHASE3_QUALITY_AUDIT.md（§F T3.5, §G, §J.2, §J.3, §L, 変更履歴）</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>監査 ID 衝突回避: <code>phase2-fix</code> チャット名は維持しスコープ ID のみ <strong>Q3-MOCK</strong>。モックパスは <code>app.js</code> / <code>01_dashboard.html</code> 等に統一。INV-D-06 式をテンプレ 2 に明記。</p>
+  <h3>検証</h3>
+  <p>未コミット（<code>pending</code>）。次: テンプレ §1 を <code>docs-sync</code> チャットへ、§2 を <code>phase2-fix</code> へ並列投入。</p>
+</section>
+
+<section class="entry" id="entry-0825">
+  <h2>Track 3 — docs-sync（§F T3.1〜T3.9）<a href="#entry-0825" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 08:25 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>Track 1 完了（<code>f499778</code>）を README / INDEX / ROADMAP / CHECKLIST / KICKOFF / 監査書に反映。T3.4 日記新規はスキップ（本ファイル既存）。1 commit まとめ（§J.2 上書き）。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> README.md, INDEX.md, 00_ROADMAP.md, PHASE3_QUALITY_AUDIT.md</li>
+    <li><span class="op op-add">+</span> REVIEW_CHECKLIST_appendix_a.md, PHASE4_KICKOFF_TEMPLATE.md, PHASE3_PARALLEL_CHAT_TEMPLATES.md</li>
+    <li><span class="op op-mod">~</span> REVIEW_CHECKLIST_ch21/22/24.md, PHASE2_KICKOFF_TEMPLATE.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code>（docs-sync コミット後に hash 追記）</p>
+</section>
+
+<section class="entry" id="entry-0826">
+  <h2>Track 4 — Q3-MOCK（phase2-fix、§F T4.1 ではない）<a href="#entry-0826" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 08:26 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>モック残高を PaperExecutor 準拠に同期（open 減算 / close 加算、INV-D-06）。<code>mock-data.js</code> 台帳 + <code>mockSSE</code>、ダッシュボード・取引履歴に残高表示。<code>runQ3BalanceDemo()</code> で 3 open → 3 close 確認。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/mockups/shared/mock-data.js, app.js, 01_dashboard.html, 02_trade_log.html</li>
+    <li><span class="op op-add">+</span> docs/mockups/CHANGELOG.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>ブラウザ: <code>YoRuuMockData.runQ3BalanceDemo()</code>。Commit: <code>pending</code>。申し送り: §F T4.1 SSE は別チャット。</p>
 </section>
 </main>
 

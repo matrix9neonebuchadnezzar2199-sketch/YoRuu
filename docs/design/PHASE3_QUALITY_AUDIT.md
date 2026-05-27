@@ -185,7 +185,7 @@ A/B/C の根に共通する **設計書側を直すべき** 項目を抽出:
 | D8 | **ch6 / ch7 cross-ref** | 旧 `GENERATING_REPORT` 等の参照を `NIGHTLY_REVIEW` 統合後に更新 | A・D1 連動 |
 | D9 | **ch11 §11.7.2** | Evaluator 内 Risk 統合 / OM 層分離のどちらが SSOT か 1 段落明記 | A7 |
 | D10 | **ch14 §14.4.1** | `ja.bundle.js` の存在・ja.json 同期手順を SSOT 化 | B-MED |
-| D11 | **ch13 §13.2.5 新設** | PaperExecutor の `balance` 更新タイミング明文化（open 時減算、close 時加算）。INV-D-06 として ch16 への不変条件追加候補 | I1 確定（Q3=A） |
+| D11 | **ch13 §13.2.5 新設** | PaperExecutor の `balance` 更新タイミング明文化（open 時減算、close 時加算）。INV-D-06 として ch16 への不変条件追加候補 | **採用済** `f499778`（実装）。ch13 ローリングは Track 2C |
 
 ---
 
@@ -240,7 +240,7 @@ D1〜D10 を 4 つの Opus 設計チャットに分割。各チャットで章�
 | T3.2 | **INDEX.md 更新** — L6 ヘッダに PHASE 3 着手宣言、最終更新日 2026-05-28、ch13〜24 + 付録 A のコミット列を CHECKLIST から転記、関連リンクに ch16〜24 追加 | `INDEX.md` |
 | T3.3 | **00_ROADMAP.md 更新** — §6 変更履歴に M2.1/M2.2/M2.3/PHASE 3 scaffold/data fix の 5 行追加、§1 Gantt と §3 Mermaid の依存矛盾解消、PHASE 1/2 節見出しに「— 完了（2026-05-27）」、PHASE 3 Exit Criteria を「行カバレッジ ≥ 80% (ch23 §23.3)」「ペーパー 24h 連続稼働」「INV-* assertion 全件 pass」に具体化 | `00_ROADMAP.md` |
 | T3.4 | **2026-05-28_開発日記.html 新規作成** — `04-diary-workflow` テンプレ準拠、本日エントリ（監査結果サマリ、Track 1〜4 着手宣言）を時系列で記録 | `docs/2026-05-28_開発日記.html` |
-| T3.5 | **`fail_under` の段階引上げ計画書記** — README / ROADMAP に「現状 50（暫定）、Track 1 完了時 70、PHASE 3 Exit 時 80」と明記 | `README.md`, `00_ROADMAP.md` |
+| T3.5 | **`fail_under` の段階引上げ計画書記** — README / ROADMAP に「現状 **55**（Track 1 後暫定）、Track 1 完了時 70、PHASE 3 Exit 時 80」と明記（**50 表記は使用しない**） | `README.md`, `00_ROADMAP.md` |
 | T3.6 | **`REVIEW_CHECKLIST_appendix_a.md` 新規作成** — 付録 A 用語集の独立チェックリスト（承認日 2026-05-27、コミット `1117eca`、7 観点判定表）、INDEX からリンク | `docs/design/REVIEW_CHECKLIST_appendix_a.md` |
 | T3.7 | **ch21 / ch22 / ch24 のレビュー記録拡充** — 現状 1 行要約 → ch17 形式の 7 観点表 | `REVIEW_CHECKLIST_ch21/22/24.md` |
 | T3.8 | **`PHASE2_KICKOFF_TEMPLATE.md` 終了処理** — §1 に「2026-05-27 並行 (B) で実行済み」結論追記、冒頭に「PHASE 2 完了、§2/§3 は PHASE 4 転用時に差し替え」注記 | `PHASE2_KICKOFF_TEMPLATE.md` |
@@ -290,7 +290,7 @@ B-HIGH 3 件 + B-MED 主要を解消し、PHASE 4（FastAPI + SSE 接続）で�
 |---|------|------|
 | 7 | Composer 2.5 | T1.4 FillModel + T1.5 InvariantChecker 全件 + T1.6/T1.7 StateMachine 統合 |
 | 8 | Opus（`ch13-22-sync` / `ch18-ch8-ch14-fix` チャット） | Track 2C + 2D 並列 |
-| 9 | Composer 2.5（**新規 `phase2-fix` チャット**） | Track 4 T4.1 SSE フィクスチャ + T4.3 emergency 修正 |
+| 9 | Composer 2.5（**新規 `phase2-fix` チャット**） | **Q3-MOCK** 残高整合のみ（`PHASE3_PARALLEL_CHAT_TEMPLATES.md` §2）。**§F T4.1 SSE** は別投入（Q3-MOCK 完了後） |
 
 ### 4 日目（5/31）— PHASE 3 ブロッカー解消完了
 
@@ -346,8 +346,8 @@ Track 4 (PHASE 2 後修正) ─┬─ T4.1/3/4/5/6/7/8/9 並列可
 | I1 | A14: PaperExecutor の open 時 balance 更新タイミングが ch10/ch13 で SSOT 化されているか | 残高不整合の根本判定 | ch10 §10.10 / ch13 §13.6 全文読解 | **❌ SSOT 明示なし** → Q3=**A 案確定** (open 時即時減算 + close 時加算)。D11 追加 |
 | I2 | A15「ch13 vs ch22 FillModel 既定値」優先順位 | T1.x 着手前に方針確定必要 | ch13 §13.3.2 / ch22 §22.2 を Opus でレビュー | **⚠️ ch22 が SSOT 主張、ch13 と 10 倍差** → Q2=**A 案確定** (ch22 SSOT 化、ch13 従属化)。§13.9.2 保守的原則は対応 B 推奨 |
 | I3 | A3 の `W_NIGHTLY_001` が ch18 に正式掲載されているか | エラーコード整合 | ch18 全文 grep | **❌ ch18 未掲載**（`E_NIGHTLY_001`〜`014` のみ）→ Q1=**A 案確定** (`E_NIGHTLY_008` に統合、`W_` プレフィックス非導入) |
-| I4 | E1: PHASE 3 scaffold commit `005fdcd` が Composer 2.5 経由か Opus 経由か | 規約遵守判定 | git log の Co-authored-by 確認、または該当チャット履歴 | 未確認（Composer 引き渡し前に要マスター確認） |
-| I5 | A の cli.py `paper evaluate-once` 22 close ハードコードが「デモ専用」か「本番 evaluate パス」か | T1.x の優先度判定 | マスター意図確認 | 未確認 |
+| I4 | E1: PHASE 3 scaffold commit `005fdcd` が Composer 2.5 経由か Opus 経由か | 規約遵守判定 | git log の Co-authored-by 確認、または該当チャット履歴 | **Track 1 後保留**（LOW、Track 2 着手はブロックしない） |
+| I5 | A の cli.py `paper evaluate-once` 22 close ハードコードが「デモ専用」か「本番 evaluate パス」か | T1.x の優先度判定 | マスター意図確認 | **Track 1 後保留**（`--seed-ticks` opt-in 化は T1.9 候補） |
 
 ### 判定根拠サマリ（Opus 章読解、2026-05-28）
 
@@ -425,16 +425,13 @@ HIGH 8 件は分割 commit 推奨。
 
 ### J.2 Composer 2.5: Track 3（ドキュメント現状反映）
 
-```
-[配置] PHASE 3 着手後のドキュメント現状反映 (Track 3)。
-T3.1〜T3.9 を順次。各 T 単位で commit、最後にまとめて push。
-SSOT: @docs/design/PHASE3_QUALITY_AUDIT.md
-重要: 既存 APPROVED 章本文は触らない（ローリングは Track 2 で別途）。
-更新対象は INDEX / ROADMAP / README / 日記 / CHECKLIST のみ。
-完了基準: INDEX に PHASE 3 進捗反映、README に Quick Start、日記 5/28 作成。
-```
+> **貼り付け正本**: [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md) **§テンプレート 1**（`docs-sync`）。  
+> §F T3.1〜T3.9 と **1:1**。T3.4 日記新規は完了済のため **追記のみ**。commit は **1 本まとめ可**（§J.2 旧「各 T 単位 commit」をマスター上書き）。
 
 ### J.3 Composer 2.5: Track 4（PHASE 2 モック後修正）
+
+> **§F T4.1〜T4.9 一式**（SSE_PAYLOADS 含む）の貼り付けは従来どおり下記。  
+> **`phase2-fix` チャットを Q3 残高だけ先行する場合**は [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md) **§テンプレート 2（Q3-MOCK）** を使うこと。**監査 T4.1 と ID を混ぜない**。
 
 ```
 [実装] PHASE 2 モック後修正 (Track 4)。
@@ -649,10 +646,11 @@ SSOT:
 | 3 | Opus `ch13-22-D11` | §J.6 (Track 2C + D11) | ch13/ch22 SSOT 統一 + balance 更新タイミング新節 |
 | 4 | Opus `ch18-ch8-fix` | §J.7 (Track 2D) | W_NIGHTLY_001 統合 + 4 件まとめ |
 | 5 | Composer `PHASE3-fix` | §J.1 (Track 1) | PHASE 3 実装修正（Track 2 の章ローリング待たずに Q1〜Q3 反映で着手可） |
-| 6 | Composer `docs-sync` | §J.2 (Track 3) | INDEX/ROADMAP/README/日記同期 |
-| 7 | Composer `phase2-fix` | §J.3 (Track 4) | モック後修正（T4.2 は §J.7 完了待ち） |
+| 6 | Composer `docs-sync` | §J.2 → [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md) §1 | INDEX/ROADMAP/README/日記/CHECKLIST（§F T3.1〜T3.9） |
+| 7 | Composer `phase2-fix` | 同 §2 **Q3-MOCK のみ** | 残高 open/close 整合（**§F T4.1 SSE ではない**） |
+| 7b | Composer `phase2-fix` または新規 | §J.3 (Track 4 本番) | §F T4.1 SSE + T4.3 等（Q3-MOCK 完了後） |
 
-**並列実行可能**: 1〜4（Opus 章ごとに新チャット）と 5〜7（Composer 別チャット）は完全並列。マスターのレビュー帯域に応じて 3 チャット同時程度を推奨。
+**並列実行可能**: 1〜4（Opus）と 5（PHASE3-fix）は独立。**6（docs-sync）と 7（Q3-MOCK）は並列可**（INDEX 待ち不要）。Opus ch3-rolling 等は **6 の T3.2 完了後推奨**。3 チャット同時程度を推奨。
 
 ### Composer 着手前にマスター確認が残る項目
 
@@ -673,3 +671,4 @@ Track 2C §J.6 タスク 3「§13.9.2 保守的モデル原則の整合性確認
 |------|----------|------|
 | 2026-05-28 | v1.0 | 初版作成（3 並列 explore 監査、HIGH 17 件、4 トラック作業計画） |
 | 2026-05-28 | v1.1 | Q1〜Q3 確定（A 案 ×3）、D11 追加、§J 依頼テンプレ清書、§L 運用ガイド新設 |
+| 2026-05-28 | v1.2 | `PHASE3_PARALLEL_CHAT_TEMPLATES.md` 新設、§J.2/§J.3/§L 分離（Q3-MOCK vs §F T4.1）、T3.5 を fail_under 55 表記に修正 |

@@ -8,7 +8,8 @@
 
 <br>
 
-[![Status](https://img.shields.io/badge/status-design_ch1--7_review-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/INDEX.md)
+[![Status](https://img.shields.io/badge/status-PHASE_3_core-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/INDEX.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-ready-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.40+-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
@@ -19,8 +20,8 @@
 
 <br>
 
-[![Docs](https://img.shields.io/badge/docs-24_chapter_spec-7c3aed?style=flat-square&logo=readthedocs&logoColor=white)](docs/design/)
-[![Mockups](https://img.shields.io/badge/UI-HTML_mockups_(planned)-d68910?style=flat-square&logo=html5&logoColor=white)](docs/mockups/)
+[![Docs](https://img.shields.io/badge/docs-24_chapter_APPROVED-7c3aed?style=flat-square&logo=readthedocs&logoColor=white)](docs/design/)
+[![Mockups](https://img.shields.io/badge/UI-HTML_mockups_11%2F11-d68910?style=flat-square&logo=html5&logoColor=white)](docs/mockups/)
 [![Modes](https://img.shields.io/badge/modes-4_(backtest·paper·simmer·live)-2c5f8d?style=flat-square)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Infra](https://img.shields.io/badge/deploy-Hetzner_VPS_|_local-24292f?style=flat-square&logo=serverless&logoColor=white)](https://www.hetzner.com/)
 [![Review](https://img.shields.io/badge/nightly_review-human_+_Opus_4.7-a78bfa?style=flat-square&logo=anthropic&logoColor=white)](docs/design/00_INSTRUCTIONS_ch01-07.md)
@@ -29,6 +30,7 @@
 <br>
 
 [概要](#概要) ·
+[Quick Start](#quick-start) ·
 [特徴](#特徴) ·
 [アーキテクチャ](#アーキテクチャ) ·
 [動作モード](#動作モード) ·
@@ -59,7 +61,38 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **設計・ドキュメント整備**（実装前） |
+| **現フェーズ** | **PHASE 3** コア実装（Track 1 完了 `f499778`、Web UI は PHASE 4） |
+| **テスト** | `pytest` 20 passed、カバレッジ ≈65%、`fail_under` **55** → 70 → 80 |
+
+### Track 1 判定サマリ（Q1〜Q3）
+
+| ID | 判定 | 実装要点 |
+|:---|:---|:---|
+| Q1 | A | `W_NIGHTLY_001` → `E_NIGHTLY_008` 統合（夜間 Apply 警告） |
+| Q2 | A | `FillModel` 既定値は ch22 SSOT 維持 |
+| Q3 | A | open 時 `balance` 減算、close 時加算 + **INV-D-06** |
+
+---
+
+## Quick Start
+
+前提: Python 3.11+、[uv](https://github.com/astral-sh/uv) 推奨。
+
+```powershell
+cd YoRuu
+uv sync
+copy config\yoruu.yaml.example config\yoruu.yaml
+uv run yoruu config validate
+uv run yoruu db init
+uv run yoruu paper evaluate-once
+uv run yoruu nightly generate
+uv run yoruu strategy apply path\to\proposal.json --by USER
+uv run pytest -q
+```
+
+設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)、PHASE 3 監査: [`docs/design/PHASE3_QUALITY_AUDIT.md`](docs/design/PHASE3_QUALITY_AUDIT.md)。
+
+**カバレッジ `fail_under`**: 現状 **55**（Track 1 後暫定）→ **70**（安定化後）→ **80**（PHASE 3 Exit、ch23 §23.3）。**50 は使用しない。**
 
 ---
 
@@ -235,7 +268,9 @@ flowchart TB
 | レビュー用チェックリスト | [`docs/design/REVIEW_CHECKLIST_ch01-07.md`](docs/design/REVIEW_CHECKLIST_ch01-07.md) | 第1〜7章の人間レビュー基準 |
 | 開発日記 | [`docs/2026-05-27_開発日記.html`](docs/2026-05-27_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | 設計判断の時系列ログ |
 | UI モックアップ | `docs/mockups/` | 単一 HTML · オフライン動作（準備中） |
-| 正式設計書 | `docs/design/01_overview.md` 〜 | 24章構成（生成予定） |
+| 設計 INDEX | [`docs/design/INDEX.md`](docs/design/INDEX.md) | 24章 + 付録 A APPROVED |
+| PHASE 3 監査 | [`docs/design/PHASE3_QUALITY_AUDIT.md`](docs/design/PHASE3_QUALITY_AUDIT.md) | A-HIGH / 4 Track |
+| 開発日記 | [`docs/2026-05-28_開発日記.html`](docs/2026-05-28_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | Track 1 実装ログ |
 
 ### 設計書 24章（予定）
 
@@ -258,23 +293,24 @@ flowchart TB
 
 ---
 
-## リポジトリ構成（予定）
+## リポジトリ構成
 
 ```
 YoRuu/
-├── README.md                 ← 本ファイル
-├── pyproject.toml            （予定）
-├── yoruu.yaml.example        （予定）
-├── docs/
-│   ├── design/               # 設計書
-│   ├── mockups/              # HTML モックアップ
-│   └── YYYY-MM-DD_開発日記.html
-└── src/yoruu/                # 実装（予定）
-    ├── core/                 # 戦略・約定
-    ├── exchange/             # Polymarket クライアント
-    ├── modes/                # 4モード
-    ├── web/                  # FastAPI UI
-    └── safety/               # 不変条件・キルスイッチ
+├── README.md
+├── pyproject.toml            # v0.3.0, fail_under 55
+├── config/yoruu.yaml.example
+├── docs/design/              # 設計書 24章 + 付録 A
+├── docs/mockups/             # PHASE 2 モック 11画面
+├── src/yoruu/
+│   ├── cli.py
+│   ├── core/                 # StateMachine, EventBus
+│   ├── strategy/             # Markov, Kelly, Evaluator
+│   ├── execution/            # PaperExecutor, FillModel
+│   ├── data/                 # SQLite schema
+│   ├── review/               # Nightly, Apply
+│   └── safety/               # Invariants
+└── tests/
 ```
 
 ---
@@ -283,20 +319,24 @@ YoRuu/
 
 | フェーズ | 内容 | 状態 |
 |:---|:---|:---:|
-| **Phase 0** | 設計書第1〜7章 · モックアップ運用ルール | 🟣 進行中 |
-| **Phase 1** | 第8章 UI モック全画面 · 設計書第8〜24章 | ⚪ 予定 |
-| **Phase 2** | コア実装（Markov + Kelly · paper モード） | ⚪ 予定 |
-| **Phase 3** | Web UI · 夜間レビュー · apply パイプライン | ⚪ 予定 |
-| **Phase 4** | simmer / live · VPS デプロイ手順 | ⚪ 予定 |
+| **PHASE 0** | ch1〜7 基盤合意 | 完了 |
+| **PHASE 1** | 設計書 24章 + 付録 A | 完了（2026-05-27） |
+| **PHASE 2** | HTML モック 11画面 | 完了（2026-05-27） |
+| **PHASE 3** | コア CLI（paper / nightly / strategy） | 着手中（Track 1 完了） |
+| **PHASE 4** | FastAPI Web UI + SSE | 予定 |
+| **PHASE 5〜7** | 統合テスト · ペーパー運用 · live | 予定 |
+
+詳細: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
 
 ---
 
-## 技術スタック（予定）
+## 技術スタック
 
 | カテゴリ | 選定 |
 |:---|:---|
-| 言語 | Python 3.11+ |
-| API / UI | FastAPI · SSE |
+| 言語 | Python 3.11+ · [uv](https://github.com/astral-sh/uv) |
+| CLI | Click（`yoruu` エントリポイント） |
+| API / UI（PHASE 4） | FastAPI · SSE |
 | 取引所 | py-clob-client（Polymarket 公式） |
 | データ | SQLite · SQLAlchemy · alembic |
 | 設定 | pydantic-settings · `yoruu.yaml` |
@@ -329,6 +369,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · design phase · last updated 2026-05-27</sub>
+<sub>README · v0.3.0 · PHASE 3 · last updated 2026-05-28</sub>
 
 </div>

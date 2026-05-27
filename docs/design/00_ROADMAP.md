@@ -19,11 +19,11 @@ gantt
 
     section 設計
     PHASE 0 基盤合意       :done,    p0, 2026-05-25, 3d
-    PHASE 1 設計書執筆     :active,  p1, 2026-05-28, 10d
-    PHASE 2 UIモック実装   :         p2, after p1, 5d
+    PHASE 1 設計書執筆     :done,    p1, 2026-05-27, 4d
+    PHASE 2 UIモック実装   :done,    p2, 2026-05-27, 1d
 
     section 実装
-    PHASE 3 コア実装       :         p3, after p2, 14d
+    PHASE 3 コア実装       :active,  p3, 2026-05-28, 14d
     PHASE 4 UI実装         :         p4, after p3, 10d
     PHASE 5 統合テスト     :         p5, after p4, 7d
 
@@ -56,7 +56,7 @@ gantt
 - ch1〜7 補助レビュー反映完了（コミット `49fccec`）
 - ch1〜7 正式 `APPROVED`（コミット `2623330`）
 
-### PHASE 1: 設計書執筆（2026-05-28 〜 2026-05-31 目標、当初 10 日）
+### PHASE 1: 設計書執筆 — 完了（2026-05-27）
 
 **目的**: ch1〜24 すべての設計書を `APPROVED` 状態に到達させる（付録 A 用語集を含む）。
 
@@ -97,7 +97,7 @@ gantt
 - cross-ref（章番号参照）の全件整合確認完了
 - 章間矛盾レビュー完了
 
-### PHASE 2: UIモック実装（5日）
+### PHASE 2: UIモック実装 — 完了（2026-05-27）
 
 **目的**: 11画面の HTML モックを動作可能な状態で完成させる。
 
@@ -123,11 +123,22 @@ gantt
 - ブラウザ（Chrome / Firefox）でダブルクリック起動・動作確認済み
 - 外部CDN依存ゼロ確認
 
-### PHASE 3: コア実装（14日）
+### PHASE 3: コア実装（14日、2026-05-28 着手）
 
 **目的**: 取引ロジックの実装（UI なし、CLI で動作）。
 
-**成果物**: `yoruu/core/`、`yoruu/strategy/`、`yoruu/execution/`、`yoruu/data/`、`tests/unit/`
+**成果物**: `src/yoruu/`（`core/`、`strategy/`、`execution/`、`data/`、`review/`、`safety/`）、`tests/`
+
+### PHASE 3 品質トラック（監査書 §F）
+
+| Track | 内容 | 状態（2026-05-28） |
+|-------|------|-------------------|
+| 1 | A-HIGH 8 + Q1〜Q3 | **完了** `f499778` |
+| 2 | 設計書ローリング（Opus ch3〜） | 未着手 |
+| 3 | README / INDEX / ROADMAP / CHECKLIST | Track 3 docs-sync |
+| 4 | モック後修正（§F T4.1〜） | Q3-MOCK 先行可、SSE は別チャット |
+
+**カバレッジ `fail_under` 段階**: **55**（現状、`pyproject.toml`）→ **70**（Track 1 安定後）→ **80**（PHASE 3 Exit、ch23 §23.3）
 
 **マイルストーン**:
 
@@ -140,11 +151,12 @@ gantt
 | M3.5 | 夜間レポート生成（JSON 出力） | **完了**（`NightlyReporter` + CLI） |
 | M3.6 | 戦略 Apply ロジック（CLI から） | **完了**（`ApplyValidator` + `strategy apply`） |
 
-**Exit Criteria**:
+**Exit Criteria**（具体化）:
 
-- ペーパーモードで 24 時間連続稼働
-- ユニットテスト pass（カバレッジ目標は ch23 で確定）
-- 不変条件（ch16）assertion 全件通過
+- ペーパーモードで **24 時間連続稼働**
+- ユニットテスト pass、**行カバレッジ ≥ 80%**（`fail_under` 80、ch23 §23.3）
+- 不変条件（ch16）**INV-* assertion 全件** pass
+- `pytest` 現状: 20 passed、≈65%（`fail_under` 55 暫定）
 
 ### PHASE 4: UI実装（10日）
 
@@ -272,3 +284,9 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-27 | v1.0 | M1.3 中間レビュー合意（A-1・M1.5 分割・PHASE 2 タイミング） | `1a35cdb` |
 | 2026-05-27 | v1.0 | 案 Y: ch24=CLOB、付録 A=用語集、M1.5a/b/c、PHASE 1 5/31 目標 | `89d76d6` |
 | 2026-05-27 | v1.1 | **PHASE 1 完了**（24/24 + 付録 A、M1.5a/b/c） | `1117eca` |
+| 2026-05-27 | v1.1 | PHASE 2 M2.1 完了（shared + hub + dashboard + trade log） | `c4e20a4` |
+| 2026-05-27 | v1.1 | PHASE 2 M2.2 完了（nightly + strategy + markov live） | `9b4ce17` |
+| 2026-05-27 | v1.1 | PHASE 2 M2.3 完了（settings〜what-if、PHASE 2 Exit） | `4e2395b` |
+| 2026-05-27 | v1.2 | PHASE 3 scaffold（CLI + paper + nightly） | `005fdcd` |
+| 2026-05-27 | v1.2 | PHASE 3 `src/yoruu/data/` 追加 | `a040f41` |
+| 2026-05-28 | v1.3 | **Track 1 完了**（A-HIGH 8 + Q1〜Q3、fail_under 55） | `f499778` |

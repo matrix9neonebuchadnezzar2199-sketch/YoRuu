@@ -4,7 +4,11 @@
 > **作成**: 2026-05-27（ch15 APPROVED 直後、Opus 設計チャットから引き渡し）  
 > **適用ルール**: [`.cursor/rules/52-yoruu-model-routing.mdc`](../../.cursor/rules/52-yoruu-model-routing.mdc) §1, §M2.1〜M2.3, §PHASE ゲート
 
+> **PHASE 2 完了（2026-05-27）**: M2.1〜M2.3 完了（`c4e20a4` / `9b4ce17` / `4e2395b`）。本ファイル §2/§3 は **PHASE 4 転用時に差し替え** — 新規着手は [`PHASE4_KICKOFF_TEMPLATE.md`](./PHASE4_KICKOFF_TEMPLATE.md) を正本とする。
+
 ## 1. 着手前マスター判断（必須）
+
+**2026-05-27 実行結論**: マスター判断 **(B) 並行** — M1.5a と PHASE 2 M2.1 を別チャットで実施し、PHASE 2 は同日完了。
 
 Composer 2.5 への依頼前に、以下 2 点をマスターが明示すること:
 

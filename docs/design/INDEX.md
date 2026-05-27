@@ -2,19 +2,21 @@
 
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
-**最終更新**: 2026-05-27  
-**現在 PHASE**: **PHASE 1 完了**（24/24 + 付録 A）／**PHASE 2 完了**（UI モック 11/11）  
-**M1.5**: a/b/c すべて完了（2026-05-27）
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch15.md`](./REVIEW_CHECKLIST_ch15.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**最終更新**: 2026-05-28  
+**現在 PHASE**: **PHASE 3 着手** — Track 1 A-HIGH 8 件完了（`f499778`）／PHASE 1・2 は **完了（2026-05-27）**  
+**M1.5**: a/b/c すべて完了（2026-05-27）  
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE3_QUALITY_AUDIT.md`](./PHASE3_QUALITY_AUDIT.md)、[`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch24.md`](./REVIEW_CHECKLIST_ch24.md)、[`REVIEW_CHECKLIST_appendix_a.md`](./REVIEW_CHECKLIST_appendix_a.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
-### PHASE 1 進捗（設計書 APPROVED 章数）
+### PHASE 3 進捗（2026-05-28）
 
 | 指標 | 値 |
 |------|-----|
-| APPROVED | **24 / 24** 章 + **付録 A** |
-| M1.5 進捗 | **完了**（a: ch17-19, b: ch20→16→23, c: ch21-22-24） |
-| 現在マイルストーン | **PHASE 3** コア実装（M3.1 live WS 残） |
-| 次の Exit | PHASE 3: 24h paper 稼働 + カバレッジ 80% + INV テスト全件 |
+| 設計書 APPROVED | **24 / 24** 章 + **付録 A** |
+| UI モック | **11 / 11**（PHASE 2 完了） |
+| Track 1（A-HIGH） | **8 / 8** 完了 → `f499778` |
+| pytest | 20 passed、カバレッジ ≈65% |
+| `fail_under` | **55**（暫定）→ 70 → 80（Exit） |
+| 次の Exit | 24h paper + カバレッジ 80% + INV 全件 |
 
 ---
 
@@ -63,43 +65,43 @@
 | 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | `1bdb84c` |
 | 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `d405f0c` |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
-| 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED |
-| 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED |
+| 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | `1117eca` |
+| 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED | `3e16689` |
 
 </details>
 
 <details>
 <summary>第5部 安全設計（ch15〜19）</summary>
 
-| # | タイトル | ファイル | ステータス |
-|---|----------|----------|-----------|
-| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED |
-| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED |
-| 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED |
-| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED |
-| 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED |
+| # | タイトル | ファイル | ステータス | コミット |
+|---|----------|----------|-----------|----------|
+| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED | `5212e3a` |
+| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | `7ef71ba` |
+| 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED | `ec08886` |
+| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | `ec08886` |
+| 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED | `ec08886` |
 
 </details>
 
 <details>
 <summary>第6部 運用設計（ch20〜24）</summary>
 
-| # | タイトル | ファイル | ステータス |
-|---|----------|----------|-----------|
-| 20 | 監査ログ | [`20_audit_log.md`](./20_audit_log.md) | APPROVED |
-| 21 | 設定影響マトリクス | [`21_config_impact.md`](./21_config_impact.md) | APPROVED |
-| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED |
-| 23 | テスト戦略（デプロイ・ロールバック統合） | [`23_test_strategy.md`](./23_test_strategy.md) | APPROVED |
-| 24 | Polymarket CLOB クライアント詳細 | [`24_polymarket_clob.md`](./24_polymarket_clob.md) | APPROVED |
+| # | タイトル | ファイル | ステータス | コミット |
+|---|----------|----------|-----------|----------|
+| 20 | 監査ログ | [`20_audit_log.md`](./20_audit_log.md) | APPROVED | `7ef71ba` |
+| 21 | 設定影響マトリクス | [`21_config_impact.md`](./21_config_impact.md) | APPROVED | `1117eca` |
+| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED | `1117eca` |
+| 23 | テスト戦略（デプロイ・ロールバック統合） | [`23_test_strategy.md`](./23_test_strategy.md) | APPROVED | `7ef71ba` |
+| 24 | Polymarket CLOB クライアント詳細 | [`24_polymarket_clob.md`](./24_polymarket_clob.md) | APPROVED | `1117eca` |
 
 </details>
 
 <details>
 <summary>付録</summary>
 
-| 付録 | タイトル | ファイル | ステータス |
-|------|----------|----------|-----------|
-| A | 用語集 | [`appendix_a_glossary.md`](./appendix_a_glossary.md) | APPROVED |
+| 付録 | タイトル | ファイル | ステータス | コミット |
+|------|----------|----------|-----------|----------|
+| A | 用語集 | [`appendix_a_glossary.md`](./appendix_a_glossary.md) | APPROVED | `1117eca` |
 
 > ch1 §1.6 は要約。用語の SSOT は付録 A（中間レビュー案 Y、2026-05-27）。
 
@@ -140,9 +142,12 @@
 ## レビュー基準
 
 - ch1〜7: [`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)
-- ch8: [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)
-- ch9: [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md)
+- ch8〜15: [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) 〜 [`REVIEW_CHECKLIST_ch15.md`](./REVIEW_CHECKLIST_ch15.md)
+- ch16〜20: 各章末尾 + M1.5 コミット列（上表）
+- ch21 / ch22 / ch24: [`REVIEW_CHECKLIST_ch21.md`](./REVIEW_CHECKLIST_ch21.md)、[`REVIEW_CHECKLIST_ch22.md`](./REVIEW_CHECKLIST_ch22.md)、[`REVIEW_CHECKLIST_ch24.md`](./REVIEW_CHECKLIST_ch24.md)
+- 付録 A: [`REVIEW_CHECKLIST_appendix_a.md`](./REVIEW_CHECKLIST_appendix_a.md)
 - ロードマップ: [`00_ROADMAP.md`](./00_ROADMAP.md)
+- PHASE 3 監査: [`PHASE3_QUALITY_AUDIT.md`](./PHASE3_QUALITY_AUDIT.md)
 
 **2026-05-27 補助レビュー反映**（ch1〜7 本文）: 第3章 3.3、第7章 7.2.1、第6章 StateMachine → コミット `49fccec`  
 **2026-05-27 一次レビュー**: ch1〜7 `APPROVED` → コミット `2623330`  
