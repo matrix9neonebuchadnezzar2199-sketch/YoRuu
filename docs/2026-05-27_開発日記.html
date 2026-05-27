@@ -492,6 +492,18 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1632">#entry-1632</a></td>
       </tr>
+      <tr>
+        <td>16:38</td>
+        <td>PHASE 1 M1.5b — ch20 監査 / ch16 不変条件 / ch23 テスト+デプロイ APPROVED</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1638">#entry-1638</a></td>
+      </tr>
+      <tr>
+        <td>16:45</td>
+        <td>PHASE 1 M1.5c + Exit — ch21-22-24・付録A・24/24 APPROVED</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1645">#entry-1645</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1896,7 +1908,53 @@ body.diary > footer {
     <li><span class="op op-mod">~</span> docs/design/INDEX.md</li>
   </ul>
   <h3>検証</h3>
-  <p>各章 §*.8.2 の 7 観点チェックリスト合格。Commit: pending（push 予定）</p>
+  <p>各章 §*.8.2 の 7 観点チェックリスト合格。Commit: <code>ec08886</code>（push 済）</p>
+</section>
+
+<section class="entry" id="entry-1638">
+  <h2>PHASE 1 M1.5b — ch20→16→23 APPROVED<a href="#entry-1638" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 16:38 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    監査ログ（§20.6 起動整合）、不変条件 INV-S/D/R/M、テスト戦略と旧 ch24 デプロイ・ロールバック（§23.8-9）を執筆。
+    INDEX 21/24 章。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> 20_audit_log.md, 16_invariants.md, 23_test_strategy.md</li>
+    <li><span class="op op-add">+</span> REVIEW_CHECKLIST_ch16/20/23.md</li>
+    <li><span class="op op-mod">~</span> INDEX.md, 00_ROADMAP.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>Commit: pending（push 予定）</p>
+</section>
+
+<section class="entry" id="entry-1645">
+  <h2>PHASE 1 完了 — M1.5c + 全24章 APPROVED<a href="#entry-1645" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 16:45 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    M1.5c: <code>21_config_impact.md</code>、<code>22_config_spec.md</code>（yoruu.yaml SSOT）、
+    <code>24_polymarket_clob.md</code>（案 Y）。付録 A を v1.0.0 APPROVED。
+    INDEX/ROADMAP で PHASE 1 Exit（24/24 + 付録 A）を記録。PHASE 3 着手判断可能。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> 21_config_impact.md, 22_config_spec.md, 24_polymarket_clob.md</li>
+    <li><span class="op op-mod">~</span> appendix_a_glossary.md, INDEX.md, 00_ROADMAP.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>PHASE 1 Exit Criteria: 全章 APPROVED、INDEX 更新済。Commit: pending（push 予定）</p>
 </section>
 
 </main>

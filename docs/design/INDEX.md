@@ -3,19 +3,18 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1（M1.5 設計）＋ **PHASE 2 完了**（UI モック 11/11 画面）  
-**M1.5a**: ch17〜19 APPROVED（2026-05-27）
+**現在 PHASE**: **PHASE 1 完了**（24/24 + 付録 A）／**PHASE 2 完了**（UI モック 11/11）  
+**M1.5**: a/b/c すべて完了（2026-05-27）
 **関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch15.md`](./REVIEW_CHECKLIST_ch15.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
 
 | 指標 | 値 |
 |------|-----|
-| APPROVED | **18 / 24** 章（ch1〜15, ch17〜19） |
-| M1.3 進捗 | **6 / 6 完了**（ch9〜14） |
-| M1.4 進捗 | **1 / 1 完了**（ch15 APPROVED） |
-| 現在マイルストーン | **M1.5**（ch16〜24 + 付録 A）／PHASE 2 **100%** → PHASE 3 着手判断 |
-| 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
+| APPROVED | **24 / 24** 章 + **付録 A** |
+| M1.5 進捗 | **完了**（a: ch17-19, b: ch20→16→23, c: ch21-22-24） |
+| 現在マイルストーン | **PHASE 3** 着手判断（コア実装） |
+| 次の Exit | PHASE 3: `src/yoruu/` コア + pytest（ch23 目標） |
 
 ---
 
@@ -75,7 +74,7 @@
 | # | タイトル | ファイル | ステータス |
 |---|----------|----------|-----------|
 | 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED |
-| 16 | 不変条件 | `16_invariants.md` | PENDING |
+| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED |
 | 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED |
 | 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED |
 | 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED |
@@ -87,11 +86,11 @@
 
 | # | タイトル | ファイル | ステータス |
 |---|----------|----------|-----------|
-| 20 | 監査ログ | `20_audit_log.md` | PENDING |
-| 21 | 設定影響マトリクス | `21_config_impact.md` | PENDING |
-| 22 | 設定仕様（yoruu.yaml） | `22_config_spec.md` | PENDING |
-| 23 | テスト戦略（デプロイ・ロールバック統合予定） | `23_test_strategy.md` | PENDING |
-| 24 | Polymarket CLOB クライアント詳細 | `24_polymarket_clob.md` | PENDING |
+| 20 | 監査ログ | [`20_audit_log.md`](./20_audit_log.md) | APPROVED |
+| 21 | 設定影響マトリクス | [`21_config_impact.md`](./21_config_impact.md) | APPROVED |
+| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED |
+| 23 | テスト戦略（デプロイ・ロールバック統合） | [`23_test_strategy.md`](./23_test_strategy.md) | APPROVED |
+| 24 | Polymarket CLOB クライアント詳細 | [`24_polymarket_clob.md`](./24_polymarket_clob.md) | APPROVED |
 
 </details>
 
@@ -100,7 +99,7 @@
 
 | 付録 | タイトル | ファイル | ステータス |
 |------|----------|----------|-----------|
-| A | 用語集 | [`appendix_a_glossary.md`](./appendix_a_glossary.md) | PENDING |
+| A | 用語集 | [`appendix_a_glossary.md`](./appendix_a_glossary.md) | APPROVED |
 
 > ch1 §1.6 は要約。用語の SSOT は付録 A（中間レビュー案 Y、2026-05-27）。
 
