@@ -3,7 +3,7 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` および後続のチェックリストで管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — M1.0 完了、M1.2（第8章設計）着手予定  
+**現在 PHASE**: PHASE 1 — M1.2 第8章設計書 `REVIEW_PENDING`、HTML は PHASE 2  
 **関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ---
@@ -40,7 +40,7 @@
 
 | # | タイトル | ファイル | ステータス |
 |---|----------|----------|-----------|
-| 8 | UIモックアップ（11画面） | `08_ui_mockup.md` | PENDING |
+| 8 | UIモックアップ（11画面） | [`08_ui_mockup.md`](./08_ui_mockup.md) | REVIEW_PENDING |
 
 </details>
 
