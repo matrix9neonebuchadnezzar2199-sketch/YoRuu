@@ -42,6 +42,7 @@ class CloseReason(StrEnum):
     EXPIRATION = "EXPIRATION"
     EMERGENCY_STOP = "EMERGENCY_STOP"
     MANUAL = "MANUAL"
+    SYSTEM_INVARIANT = "SYSTEM_INVARIANT"
 
 
 WaitReason = Literal[
@@ -50,7 +51,7 @@ WaitReason = Literal[
     "prob",
     "liquidity",
     "risk_budget",
-] | str
+]
 
 
 @dataclass(frozen=True)

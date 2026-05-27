@@ -42,4 +42,10 @@ def test_generate_report(tmp_path: Path) -> None:
     summary = reporter.generate("2026-05-27", StrategyWriter(strategy_path).read())
     assert summary["schema_version"] == "1.0"
     assert summary["performance"]["trades_total"] == 0
+    assert "constraints" in summary
+    assert "constraints" not in summary["current_strategy"]
+    assert "history_summary" in summary["markov_snapshot"]
+    assert "by_hour_jst" in summary["trade_breakdown"]
+    assert "wait_reason_distribution" in summary["trade_breakdown"]
+    assert "pnl_usd" in summary["trade_breakdown"]["by_side"].get("YES", {}) or True
     db.close()

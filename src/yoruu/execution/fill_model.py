@@ -31,13 +31,17 @@ class FillModel:
         value = int(self._rng.gauss(mean, std))
         return max(value, 0)
 
+    def detect_liquidity_failure(self, *, book: OrderBook, size_usd: float) -> bool:
+        """True when ask depth cannot cover full size (ch13 §13.8.1)."""
+
+        return book.ask_size_usd < size_usd
+
     def compute_open_fill(self, *, book: OrderBook, size_usd: float) -> FillComputation:
         spread = book.spread
         if spread > 0.05:
             raise ValueError("spread too wide")
 
-        available = book.ask_size_usd
-        if size_usd > available * 0.5:
+        if self.detect_liquidity_failure(book=book, size_usd=size_usd):
             raise ValueError("insufficient liquidity")
 
         base = book.best_ask
@@ -73,7 +77,9 @@ class FillModel:
 
         base = book.best_bid
         slippage = min(size_usd * self._settings.slippage_coeff, self._settings.slippage_max)
-        fill_price = max(base - slippage, 0.01)
+        fill_price = base - slippage
+        if fill_price < 0.01:
+            raise ValueError("fill price below minimum (E_FILL_004)")
         return FillComputation(
             base_price=base,
             slippage=slippage,

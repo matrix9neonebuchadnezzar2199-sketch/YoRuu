@@ -5,9 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from typing import TYPE_CHECKING
+
 from yoruu.data.database import Database
 from yoruu.execution.fill_model import FillComputation, FillModel
 from yoruu.types import CloseReason, ErrorPayload, Mode, OrderBook, Side
+
+if TYPE_CHECKING:
+    from yoruu.safety.invariants import InvariantChecker
 
 
 @dataclass(frozen=True)
@@ -48,11 +53,28 @@ class FillResult:
 class PaperExecutor:
     """Virtual fills with FillModel (ch13 §13.3)."""
 
-    def __init__(self, db: Database, fill_model: FillModel) -> None:
+    def __init__(
+        self,
+        db: Database,
+        fill_model: FillModel,
+        *,
+        invariant_checker: InvariantChecker | None = None,
+        max_trade_size_usd: float | None = None,
+        daily_loss_limit: float | None = None,
+    ) -> None:
         self._db = db
         self._fill_model = fill_model
+        self._invariants = invariant_checker
+        self._max_trade_size = max_trade_size_usd
+        self._daily_loss_limit = daily_loss_limit
 
     def open(self, request: OpenRequest) -> FillResult:
+        if self._invariants is not None and self._max_trade_size is not None:
+            self._invariants.check_pre_trade(
+                size_usd=request.size_usd,
+                max_trade_size=self._max_trade_size,
+                daily_loss_limit=self._daily_loss_limit,
+            )
         try:
             comp = self._fill_model.compute_open_fill(
                 book=request.book,
@@ -90,6 +112,10 @@ class PaperExecutor:
             opened_at=now.isoformat(),
             expires_at=expires.isoformat(),
         )
+        balance = self._db.get_balance() - request.size_usd
+        self._db.update_balance(balance)
+        if self._invariants is not None:
+            self._invariants.check_post_open(size_usd=request.size_usd)
         self._db.commit()
         return FillResult(
             success=True,
@@ -156,9 +182,11 @@ class PaperExecutor:
             pnl=pnl,
             closed_at=now,
         )
-        balance = self._db.get_balance() + pnl
+        balance = self._db.get_balance() + size_usd + pnl
         daily_pnl = self._db.get_daily_pnl() + pnl
         self._db.update_balance_and_pnl(balance, daily_pnl)
+        if self._invariants is not None:
+            self._invariants.check_post_close()
         self._db.commit()
         return FillResult(
             success=True,

@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
 from yoruu.data.database import Database
 from yoruu.strategy.models import StrategyConfig
 from yoruu.types import Mode
+
+_JST = timezone(timedelta(hours=9))
+_WAIT_REASON_KEYS = ("persistence", "edge", "prob", "liquidity", "risk_budget")
 
 
 class NightlyReporter:
@@ -26,11 +29,13 @@ class NightlyReporter:
         wins = sum(1 for r in rows if r["win"] == 1)
         losses = sum(1 for r in rows if r["win"] == 0)
         total = len(rows)
-        pnl = sum(float(r["pnl"] or 0) for r in rows if r["status"] == "CLOSED")
+        closed_rows = [r for r in rows if r["status"] == "CLOSED"]
+        pnl = sum(float(r["pnl"] or 0) for r in closed_rows)
         balance_end = self._db.get_balance()
         balance_start = balance_end - pnl
 
         markov = self._db.latest_markov_row()
+        history = self._db.markov_persistence_stats_24h()
         markov_snapshot: dict[str, Any]
         if markov:
             markov_snapshot = {
@@ -44,6 +49,7 @@ class NightlyReporter:
                 },
                 "rolling_persistence": markov["rolling_persistence"],
                 "last_direction": markov["last_direction"],
+                "history_summary": history,
             }
         else:
             markov_snapshot = {
@@ -52,6 +58,7 @@ class NightlyReporter:
                 "matrix": {},
                 "rolling_persistence": None,
                 "last_direction": None,
+                "history_summary": history,
             }
 
         notes: list[str] = []
@@ -59,7 +66,14 @@ class NightlyReporter:
             notes.append("no_trades_today")
 
         win_rate = wins / (wins + losses) if (wins + losses) > 0 else None
-        performance = {
+        by_state: dict[str, dict[str, int]] | None = None
+        if total > 0:
+            by_state = {
+                "TRADING": {"count": total, "win": wins},
+                "MONITORING_POSITION": {"count": total, "win": wins},
+            }
+
+        performance: dict[str, Any] = {
             "trades_total": total,
             "trades_win": wins,
             "trades_loss": losses,
@@ -69,9 +83,10 @@ class NightlyReporter:
             "pnl_pct": (pnl / balance_start * 100) if balance_start else None,
             "balance_start_usd": balance_start,
             "balance_end_usd": balance_end,
-            "max_drawdown_usd": None,
+            "max_drawdown_usd": _max_drawdown(closed_rows),
             "avg_edge_at_entry": _avg(rows, "edge_at_entry"),
             "avg_persistence_at_entry": _avg(rows, "persistence_at_entry"),
+            "by_state": by_state,
         }
 
         constraints = {
@@ -82,12 +97,16 @@ class NightlyReporter:
         summary: dict[str, Any] = {
             "schema_version": "1.0",
             "report_date": target_date,
-            "generated_at": datetime.now(UTC).astimezone().isoformat(),
+            "generated_at": datetime.now(_JST).isoformat(),
             "mode": mode.value,
-            "current_strategy": strategy.to_json_dict(),
+            "current_strategy": strategy.to_report_strategy_dict(),
             "performance": performance,
             "markov_snapshot": markov_snapshot,
-            "trade_breakdown": {"by_side": _by_side(rows)},
+            "trade_breakdown": {
+                "by_side": _by_side(rows),
+                "by_hour_jst": _by_hour_jst(rows),
+                "wait_reason_distribution": {k: 0 for k in _WAIT_REASON_KEYS},
+            },
             "constraints": constraints,
             "notes": notes,
         }
@@ -112,11 +131,48 @@ def _avg(rows: list[Any], field: str) -> float | None:
     return sum(values) / len(values)
 
 
-def _by_side(rows: list[Any]) -> dict[str, dict[str, int]]:
-    result: dict[str, dict[str, int]] = {}
+def _max_drawdown(closed_rows: list[Any]) -> float | None:
+    if not closed_rows:
+        return None
+    ordered = sorted(closed_rows, key=lambda r: str(r["closed_at"] or r["opened_at"]))
+    cumulative = 0.0
+    peak = 0.0
+    max_dd = 0.0
+    for row in ordered:
+        cumulative += float(row["pnl"] or 0)
+        peak = max(peak, cumulative)
+        max_dd = min(max_dd, cumulative - peak)
+    return max_dd if max_dd != 0.0 else None
+
+
+def _by_side(rows: list[Any]) -> dict[str, dict[str, float | int]]:
+    result: dict[str, dict[str, float | int]] = {}
     for row in rows:
         side = str(row["side"])
-        bucket = result.setdefault(side, {"count": 0, "win": 0})
+        bucket = result.setdefault(side, {"count": 0, "win": 0, "pnl_usd": 0.0})
+        bucket["count"] = int(bucket["count"]) + 1
+        if row["win"] == 1:
+            bucket["win"] = int(bucket["win"]) + 1
+        if row["status"] == "CLOSED" and row["pnl"] is not None:
+            bucket["pnl_usd"] = float(bucket["pnl_usd"]) + float(row["pnl"])
+    return result
+
+
+def _by_hour_jst(rows: list[Any]) -> dict[str, dict[str, int]]:
+    result: dict[str, dict[str, int]] = {}
+    for row in rows:
+        opened = str(row["opened_at"])
+        try:
+            if opened.endswith("Z"):
+                dt = datetime.fromisoformat(opened.replace("Z", "+00:00"))
+            else:
+                dt = datetime.fromisoformat(opened)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=UTC)
+            hour = dt.astimezone(_JST).strftime("%H")
+        except ValueError:
+            hour = "00"
+        bucket = result.setdefault(hour, {"count": 0, "win": 0})
         bucket["count"] += 1
         if row["win"] == 1:
             bucket["win"] += 1

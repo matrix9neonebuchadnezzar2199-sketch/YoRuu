@@ -26,6 +26,22 @@ def test_open_fill_success() -> None:
     assert comp.fill_price > comp.base_price
 
 
+def test_open_fill_rejects_insufficient_liquidity() -> None:
+    model = FillModel(PaperSettings(), seed=1)
+    book = OrderBook(
+        market="m",
+        best_bid=0.79,
+        best_ask=0.81,
+        bid_size_usd=100.0,
+        ask_size_usd=3.0,
+        spread=0.02,
+        captured_at_iso="t",
+        source="MOCK",
+    )
+    with pytest.raises(ValueError, match="liquidity"):
+        model.compute_open_fill(book=book, size_usd=5.0)
+
+
 def test_open_fill_rejects_wide_spread() -> None:
     model = FillModel(PaperSettings(), seed=1)
     book = OrderBook(

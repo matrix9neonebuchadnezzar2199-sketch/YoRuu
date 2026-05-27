@@ -39,6 +39,13 @@ class StrategyConfig(BaseModel):
     def to_json_dict(self) -> dict[str, Any]:
         return self.model_dump(mode="json")
 
+    def to_report_strategy_dict(self) -> dict[str, Any]:
+        """strategy.json subset for nightly summary (ch15 §15.4.3, no constraints)."""
+
+        data = self.model_dump(mode="json")
+        data.pop("constraints", None)
+        return data
+
     def validate_parameters_in_constraints(self) -> list[str]:
         """Return list of keys out of range."""
 

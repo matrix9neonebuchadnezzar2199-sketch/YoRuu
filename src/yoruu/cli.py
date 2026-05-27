@@ -12,25 +12,24 @@ import click
 from yoruu.config.settings import load_settings
 from yoruu.core.state_machine import StateMachine
 from yoruu.data.database import Database
-from yoruu.errors import ConfigValidationError, YoRuuError
+from yoruu.errors import ConfigValidationError, StrategyApplyError, YoRuuError
 from yoruu.execution.fill_model import FillModel
 from yoruu.execution.paper_executor import OpenRequest, PaperExecutor
 from yoruu.execution.risk_guard import RiskGuard
 from yoruu.infra.mock_market import MockMarketProvider
-from yoruu.review.apply_validator import ApplyValidator
 from yoruu.review.nightly_reporter import NightlyReporter
+from yoruu.review.strategy_applier import StrategyApplier
 from yoruu.review.strategy_writer import StrategyWriter
+from yoruu.safety.invariants import InvariantChecker
 from yoruu.strategy.evaluator import StrategyEvaluator
 from yoruu.strategy.markov import MarkovEngine
-from yoruu.types import Mode, State, TradeSignal
+from yoruu.types import Mode, State
+
+MARKOV_WINDOW = 20
 
 
 def _default_config() -> Path:
     return Path("config/yoruu.yaml")
-
-
-def _default_strategy() -> Path:
-    return Path("config/strategy.json")
 
 
 @click.group()
@@ -70,7 +69,13 @@ def db_cmd(action: str, config_path: Path) -> None:
         daily_loss_limit=settings.risk.daily_loss_limit_usd,
         strategy_version=strategy.version,
     )
-    sm = StateMachine(db)
+    db.ensure_strategy_version_seed(
+        json.dumps(strategy.to_json_dict(), ensure_ascii=False),
+        strategy_version=strategy.version,
+    )
+    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    invariants.check_startup(strategy, strategy.version)
+    sm = StateMachine(db, invariant_checker=invariants)
     if sm.current() == State.INITIALIZING:
         sm.transition(State.IDLE, "db init complete", actor="USER")
     db.close()
@@ -98,15 +103,20 @@ def paper_cmd(action: str, config_path: Path) -> None:
         daily_loss_limit=settings.risk.daily_loss_limit_usd,
         strategy_version=strategy.version,
     )
-    sm = StateMachine(db)
+    db.ensure_strategy_version_seed(
+        json.dumps(strategy.to_json_dict(), ensure_ascii=False),
+        strategy_version=strategy.version,
+    )
+    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    invariants.check_startup(strategy, strategy.version)
+    sm = StateMachine(db, invariant_checker=invariants)
     if sm.current() == State.INITIALIZING:
         sm.transition(State.IDLE, "paper evaluate bootstrap")
 
-    markov = MarkovEngine(window_size=20)
+    markov = MarkovEngine(window_size=MARKOV_WINDOW)
     market = MockMarketProvider()
-    # 上昇クローズを投入して persistence を満たしやすくする
     price = 100.0
-    for i in range(22):
+    for _ in range(22):
         markov.add_close(price)
         price += 1.0
 
@@ -124,6 +134,7 @@ def paper_cmd(action: str, config_path: Path) -> None:
         last_direction=snap.last_direction.value if snap.last_direction else None,
     )
 
+    risk = RiskGuard(settings.risk, db)
     evaluator = StrategyEvaluator(markov, strategy)
     mstate = market.market_state(yes_ask=0.81)
     result = evaluator.evaluate(
@@ -131,26 +142,19 @@ def paper_cmd(action: str, config_path: Path) -> None:
         balance=db.get_balance(),
         max_trade_size_usd=settings.risk.max_trade_size_usd,
         snapshot=snap,
+        risk_guard=risk,
     )
     click.echo(json.dumps(result.__dict__, default=str, indent=2))
 
-    risk = RiskGuard(settings.risk, db)
     if result.should_enter and result.side is not None:
-        signal = TradeSignal(
-            side=result.side,
-            size_usd=result.size_usd,
-            edge=result.edge,
-            persistence=result.persistence,
-            predicted_prob=result.predicted_prob,
-            market_price=result.market_price,
-        )
-        check = risk.check_pre_trade(signal)
-        if not check.ok:
-            click.echo(f"Risk blocked: {check.reason}")
-            db.close()
-            return
         sm.transition(State.TRADING, "paper evaluate-once")
-        executor = PaperExecutor(db, FillModel(settings.paper, seed=42))
+        executor = PaperExecutor(
+            db,
+            FillModel(settings.paper, seed=42),
+            invariant_checker=invariants,
+            max_trade_size_usd=settings.risk.max_trade_size_usd,
+            daily_loss_limit=settings.risk.daily_loss_limit_usd,
+        )
         fill = executor.open(
             OpenRequest(
                 market=settings.market.id,
@@ -180,11 +184,32 @@ def nightly_cmd(action: str, report_date: str, config_path: Path) -> None:
     strategy = StrategyWriter(Path(settings.paths.strategy)).read()
     db = Database(settings.paths.db)
     db.initialize_schema()
-    reporter = NightlyReporter(db)
-    summary = reporter.generate(report_date, strategy)
-    path = reporter.write_report_file(report_date, summary, settings.paths.reports)
-    db.close()
-    click.echo(f"OK: {path}")
+    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    sm = StateMachine(db, invariant_checker=invariants)
+    try:
+        if sm.current() == State.IDLE:
+            sm.transition(State.NIGHTLY_REVIEW, "nightly generate", actor="NIGHTLY_REVIEW")
+        reporter = NightlyReporter(db)
+        summary = reporter.generate(report_date, strategy)
+        path = reporter.write_report_file(report_date, summary, settings.paths.reports)
+        sm.transition(State.IDLE, "nightly generate complete", actor="NIGHTLY_REVIEW")
+        click.echo(f"OK: {path}")
+    except Exception as exc:
+        db.insert_audit(
+            actor="NIGHTLY_REVIEW",
+            action="NIGHTLY_GENERATE",
+            resource="daily_reports",
+            resource_id=report_date,
+            details={"error": str(exc)},
+            result="FAILURE",
+        )
+        db.commit()
+        if sm.current() == State.NIGHTLY_REVIEW:
+            sm.transition(State.IDLE, "nightly generate failed", actor="NIGHTLY_REVIEW")
+        click.echo(f"FAIL: {exc}", err=True)
+        sys.exit(1)
+    finally:
+        db.close()
 
 
 @main.command("strategy")
@@ -192,43 +217,49 @@ def nightly_cmd(action: str, report_date: str, config_path: Path) -> None:
 @click.argument("proposal_file", type=click.Path(path_type=Path, exists=True))
 @click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
 @click.option("--by", "applied_by", default="USER")
-def strategy_cmd(action: str, proposal_file: Path, config_path: Path, applied_by: str) -> None:
+@click.option("--report-date", default=None, help="daily_reports.report_date for linkage")
+def strategy_cmd(
+    action: str,
+    proposal_file: Path,
+    config_path: Path,
+    applied_by: str,
+    report_date: str | None,
+) -> None:
     """Apply validated strategy proposal JSON."""
 
     settings = load_settings(config_path)
     writer = StrategyWriter(Path(settings.paths.strategy))
     current = writer.read()
     proposal = json.loads(proposal_file.read_text(encoding="utf-8"))
-    validator = ApplyValidator()
-    validation = validator.validate(proposal, current)
-    if not validation.valid:
-        click.echo(json.dumps({"errors": validation.errors}, indent=2), err=True)
-        sys.exit(1)
+    if "applied_by" not in proposal:
+        proposal["applied_by"] = applied_by
 
-    assert validation.normalized_parameters is not None
-    new_config = validator.build_strategy_config(
-        current,
-        validation.normalized_parameters,
-        applied_by=applied_by,
-    )
     db = Database(settings.paths.db)
     db.initialize_schema()
-    with db.transaction():
-        db.insert_strategy_version(
-            json.dumps(new_config.to_json_dict(), ensure_ascii=False),
-            applied_by=applied_by,
+    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    sm = StateMachine(db, invariant_checker=invariants)
+
+    try:
+        applier = StrategyApplier(
+            db,
+            writer,
+            history_dir=Path(settings.paths.strategy).parent / "strategy_history",
         )
-        db.insert_audit(
-            actor=applied_by,
-            action="STRATEGY_APPLY",
-            resource="strategy",
-            resource_id=str(new_config.version),
-            details={"diff": validation.normalized_parameters},
-            result="SUCCESS",
+        result = applier.apply(
+            proposal,
+            current,
+            state_machine=sm,
+            report_date=report_date,
         )
-    writer.apply(new_config)
-    db.close()
-    click.echo(f"OK: strategy version {new_config.version}")
+        click.echo(f"OK: strategy version {result.new_version}")
+    except StrategyApplyError as exc:
+        click.echo(json.dumps({"code": exc.code, "message": str(exc)}, indent=2), err=True)
+        sys.exit(1)
+    except YoRuuError as exc:
+        click.echo(json.dumps({"code": exc.code, "message": str(exc)}, indent=2), err=True)
+        sys.exit(1)
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

@@ -67,4 +67,4 @@ source = ["yoruu"]
 omit = ["*/tests/*"]
 
 [tool.coverage.report]
-fail_under = 50
+fail_under = 55

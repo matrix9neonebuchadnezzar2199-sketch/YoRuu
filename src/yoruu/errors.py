@@ -27,10 +27,26 @@ class ConfigValidationError(YoRuuError):
     code = "E_SETTINGS_001"
 
 
+class DatabaseNotInitializedError(YoRuuError):
+    """bot_state or required DB row missing."""
+
+    code = "E_DB_001"
+
+
 class InvariantViolationError(YoRuuError):
     """Runtime invariant check failed (ch16)."""
 
-    code = "E_STATE_001"
+    def __init__(
+        self,
+        message: str,
+        *,
+        inv_id: str,
+        severity: str = "ERROR",
+        details: dict | None = None,
+    ) -> None:
+        super().__init__(message, code=f"E_INV_{inv_id.replace('-', '_')}", details=details)
+        self.inv_id = inv_id
+        self.severity = severity
 
 
 class StrategyApplyError(YoRuuError):

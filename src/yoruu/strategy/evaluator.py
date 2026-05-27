@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from yoruu.strategy.kelly import size_usd_from_kelly
 from yoruu.strategy.markov import MarkovEngine, MarkovSnapshot
 from yoruu.strategy.models import StrategyConfig
-from yoruu.types import Direction, EvaluationResult, MarketState, Side
+from yoruu.types import Direction, EvaluationResult, MarketState, Side, TradeSignal
+
+if TYPE_CHECKING:
+    from yoruu.execution.risk_guard import RiskGuard
 
 
 class StrategyEvaluator:
@@ -29,8 +34,9 @@ class StrategyEvaluator:
         balance: float,
         max_trade_size_usd: float,
         snapshot: MarkovSnapshot | None = None,
+        risk_guard: RiskGuard | None = None,
     ) -> EvaluationResult:
-        """Run four AND conditions from ch11 §11.7.2."""
+        """Run entry gates C1–C3; optional C4 via RiskGuard (ch11 §11.7.2)."""
 
         snap = snapshot or self._markov.snapshot()
         params = self._strategy.parameters
@@ -108,6 +114,26 @@ class StrategyEvaluator:
                 wait_reason="edge",
                 msg="Kelly size too small",
             )
+
+        if risk_guard is not None:
+            signal = TradeSignal(
+                side=side,
+                size_usd=size_usd,
+                edge=edge,
+                persistence=persistence,
+                predicted_prob=predicted_prob,
+                market_price=market_price,
+            )
+            check = risk_guard.check_pre_trade(signal)
+            if not check.ok:
+                return self._wait(
+                    persistence=persistence,
+                    predicted_prob=predicted_prob,
+                    market_price=market_price,
+                    edge=edge,
+                    wait_reason="risk_budget",
+                    msg=check.reason or "risk guard blocked",
+                )
 
         return EvaluationResult(
             should_enter=True,

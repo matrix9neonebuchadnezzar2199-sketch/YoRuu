@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from yoruu.data.schema import SCHEMA_SQL
+from yoruu.errors import DatabaseNotInitializedError
 from yoruu.types import Mode, State
 
 
@@ -72,10 +73,14 @@ class Database:
             )
             self._conn.commit()
 
-    def get_state(self) -> State:
-        row = self._conn.execute("SELECT state FROM bot_state WHERE id = 1").fetchone()
+    def _require_bot_row(self) -> sqlite3.Row:
+        row = self._conn.execute("SELECT * FROM bot_state WHERE id = 1").fetchone()
         if row is None:
-            raise RuntimeError("bot_state not initialized")
+            raise DatabaseNotInitializedError("bot_state not initialized")
+        return row
+
+    def get_state(self) -> State:
+        row = self._require_bot_row()
         return State(row["state"])
 
     def set_state(self, state: State) -> None:
@@ -87,28 +92,33 @@ class Database:
         self._conn.commit()
 
     def get_balance(self) -> float:
-        row = self._conn.execute("SELECT balance FROM bot_state WHERE id = 1").fetchone()
-        if row is None:
-            raise RuntimeError("bot_state not initialized")
+        row = self._require_bot_row()
         return float(row["balance"])
 
     def get_mode(self) -> Mode:
-        row = self._conn.execute("SELECT mode FROM bot_state WHERE id = 1").fetchone()
-        if row is None:
-            raise RuntimeError("bot_state not initialized")
+        row = self._require_bot_row()
         return Mode(row["mode"])
+
+    def get_daily_loss_limit(self) -> float:
+        row = self._require_bot_row()
+        return float(row["daily_loss_limit"])
 
     def get_daily_pnl(self) -> float:
         row = self._conn.execute("SELECT daily_pnl FROM bot_state WHERE id = 1").fetchone()
         return float(row["daily_pnl"]) if row else 0.0
 
     def get_strategy_version(self) -> int:
-        row = self._conn.execute(
-            "SELECT current_strategy_version FROM bot_state WHERE id = 1"
-        ).fetchone()
-        if row is None:
-            raise RuntimeError("bot_state not initialized")
+        row = self._require_bot_row()
         return int(row["current_strategy_version"])
+
+    def update_balance(self, balance: float) -> None:
+        """Set balance only (open/close partial updates)."""
+
+        now = datetime.now(UTC).isoformat()
+        self._conn.execute(
+            "UPDATE bot_state SET balance = ?, last_updated = ? WHERE id = 1",
+            (balance, now),
+        )
 
     def update_balance_and_pnl(self, balance: float, daily_pnl: float) -> None:
         now = datetime.now(UTC).isoformat()
@@ -160,6 +170,72 @@ class Database:
         ).fetchone()
         return dict(row) if row else None
 
+    def markov_persistence_stats_24h(self) -> dict[str, float | None]:
+        """Aggregate rolling_persistence over last 24h (ch15 §15.4.5)."""
+
+        rows = self._conn.execute(
+            """
+            SELECT rolling_persistence FROM markov_state
+            WHERE computed_at >= datetime('now', '-24 hours')
+            ORDER BY computed_at
+            """
+        ).fetchall()
+        if not rows:
+            return {
+                "avg_persistence_24h": None,
+                "min_persistence_24h": None,
+                "max_persistence_24h": None,
+            }
+        values = [float(r["rolling_persistence"]) for r in rows]
+        return {
+            "avg_persistence_24h": sum(values) / len(values),
+            "min_persistence_24h": min(values),
+            "max_persistence_24h": max(values),
+        }
+
+    def open_positions_total_size(self) -> float:
+        row = self._conn.execute(
+            "SELECT COALESCE(SUM(size_usd), 0) AS total FROM positions WHERE status = 'OPEN'"
+        ).fetchone()
+        return float(row["total"]) if row else 0.0
+
+    def count_open_positions(self) -> int:
+        row = self._conn.execute(
+            "SELECT COUNT(*) AS c FROM positions WHERE status = 'OPEN'"
+        ).fetchone()
+        return int(row["c"]) if row else 0
+
+    def count_bot_state_rows(self) -> int:
+        row = self._conn.execute("SELECT COUNT(*) AS c FROM bot_state").fetchone()
+        return int(row["c"]) if row else 0
+
+    def count_open_positions_mode_mismatch(self, mode: Mode) -> int:
+        row = self._conn.execute(
+            """
+            SELECT COUNT(*) AS c FROM positions p
+            JOIN trades t ON t.id = p.trade_id
+            WHERE p.status = 'OPEN' AND t.mode != ?
+            """,
+            (mode.value,),
+        ).fetchone()
+        return int(row["c"]) if row else 0
+
+    def sum_closed_trade_pnl(self) -> float:
+        row = self._conn.execute(
+            "SELECT COALESCE(SUM(pnl), 0) AS s FROM trades WHERE status = 'CLOSED'"
+        ).fetchone()
+        return float(row["s"]) if row else 0.0
+
+    def count_emergency_stops_last_24h_unrecovered(self) -> int:
+        row = self._conn.execute(
+            """
+            SELECT COUNT(*) AS c FROM emergency_stops
+            WHERE triggered_at >= datetime('now', '-24 hours')
+              AND recovered_at IS NULL
+            """
+        ).fetchone()
+        return int(row["c"]) if row else 0
+
     def insert_audit(
         self,
         *,
@@ -206,13 +282,15 @@ class Database:
         persistence: float,
         opened_at: str,
         expires_at: str,
+        markov_state_at_entry: str | None = None,
     ) -> int:
         cur = self._conn.execute(
             """
             INSERT INTO trades (
               market, side, size_usd, entry_price, mode, strategy_version,
-              edge_at_entry, persistence_at_entry, opened_at, expires_at, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')
+              markov_state_at_entry, edge_at_entry, persistence_at_entry,
+              opened_at, expires_at, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')
             """,
             (
                 market,
@@ -221,6 +299,7 @@ class Database:
                 entry_price,
                 mode.value,
                 strategy_version,
+                markov_state_at_entry,
                 edge,
                 persistence,
                 opened_at,
@@ -269,9 +348,9 @@ class Database:
             )
         )
 
-    def insert_daily_report(self, report_date: str, summary: dict[str, Any]) -> None:
+    def insert_daily_report(self, report_date: str, summary: dict[str, Any]) -> int:
         now = datetime.now(UTC).isoformat()
-        self._conn.execute(
+        cur = self._conn.execute(
             """
             INSERT INTO daily_reports (report_date, summary_json, created_at)
             VALUES (?, ?, ?)
@@ -281,20 +360,72 @@ class Database:
             """,
             (report_date, json.dumps(summary, ensure_ascii=False), now),
         )
+        row = self._conn.execute(
+            "SELECT id FROM daily_reports WHERE report_date = ?",
+            (report_date,),
+        ).fetchone()
+        return int(row["id"]) if row else int(cur.lastrowid)
+
+    def update_daily_report_proposed(
+        self,
+        report_date: str,
+        proposed: dict[str, Any],
+        *,
+        applied_strategy_version: int | None = None,
+    ) -> None:
+        payload = json.dumps(proposed, ensure_ascii=False)
+        if applied_strategy_version is not None:
+            self._conn.execute(
+                """
+                UPDATE daily_reports
+                SET proposed_strategy_json = ?, applied_strategy_version = ?
+                WHERE report_date = ?
+                """,
+                (payload, applied_strategy_version, report_date),
+            )
+        else:
+            self._conn.execute(
+                """
+                UPDATE daily_reports SET proposed_strategy_json = ?
+                WHERE report_date = ?
+                """,
+                (payload, report_date),
+            )
+
+    def daily_report_id_for_date(self, report_date: str) -> int | None:
+        row = self._conn.execute(
+            "SELECT id FROM daily_reports WHERE report_date = ?",
+            (report_date,),
+        ).fetchone()
+        return int(row["id"]) if row else None
+
+    def ensure_strategy_version_seed(self, config_json: str, *, strategy_version: int) -> None:
+        """Insert INITIAL strategy_versions row when table is empty (ch10 §10.3.9)."""
+
+        row = self._conn.execute("SELECT COUNT(*) AS c FROM strategy_versions").fetchone()
+        if row and int(row["c"]) == 0:
+            self.insert_strategy_version(config_json, applied_by="INITIAL")
+            self._conn.execute(
+                "UPDATE bot_state SET current_strategy_version = ?, last_updated = ? WHERE id = 1",
+                (strategy_version, datetime.now(UTC).isoformat()),
+            )
+            self._conn.commit()
 
     def insert_strategy_version(
         self,
         parameters_json: str,
         *,
         applied_by: str,
+        performance_summary_json: str | None = None,
     ) -> int:
         now = datetime.now(UTC).isoformat()
         cur = self._conn.execute(
             """
-            INSERT INTO strategy_versions (parameters_json, applied_at, applied_by)
-            VALUES (?, ?, ?)
+            INSERT INTO strategy_versions (
+              parameters_json, applied_at, applied_by, performance_summary_json
+            ) VALUES (?, ?, ?, ?)
             """,
-            (parameters_json, now, applied_by),
+            (parameters_json, now, applied_by, performance_summary_json),
         )
         version = int(cur.lastrowid)
         self._conn.execute(

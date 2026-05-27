@@ -58,8 +58,15 @@ class MarkovEngine:
     def _recompute(self) -> MarkovSnapshot:
         prices = self._closes[-(self._window_size + 1) :]
         directions: list[Direction] = []
+        prev_dir: Direction | None = None
         for i in range(1, len(prices)):
-            directions.append(Direction.UP if prices[i] > prices[i - 1] else Direction.DOWN)
+            if prices[i] > prices[i - 1]:
+                prev_dir = Direction.UP
+            elif prices[i] < prices[i - 1]:
+                prev_dir = Direction.DOWN
+            elif prev_dir is None:
+                prev_dir = Direction.DOWN
+            directions.append(prev_dir)
 
         counts = {
             (Direction.UP, Direction.UP): 0,
