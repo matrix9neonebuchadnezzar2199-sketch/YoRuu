@@ -2,7 +2,7 @@
 
 > **目的**: YoRuu の Web UI 全画面（ハブ + 10画面）の設計仕様を確定する。本章は第7章 §7.6 の画面一覧を**正式に上書き**し、PHASE 2 で実装する HTML モックおよび PHASE 4 で実装する本実装 UI の SSOT となる。
 
-**バージョン**: v1.0  
+**バージョン**: v1.1  
 **作成日**: 2026-05-27  
 **ステータス**: REVIEW_PENDING  
 **関連章**: 第3章（状態遷移）、第6章（シーケンス）、第7章（入出力）、第14章（i18n）、第19章（キルスイッチ）  
@@ -288,40 +288,76 @@ function mockSSE(eventName, payload, delayMs = 0) {
 
 ### 8.11.1 用途
 
-全モックへの入口。Bot 状態・モード・当日 P&L のサマリを表示。
+全画面へのリンクと、現在のシステム状態のサマリを一画面で確認できるエントリーポイント。デモ・レビュー時の起点として機能する。ハブは**共通サイドバーなしのフル幅レイアウト**とする（他画面は §8.5）。
 
-### 8.11.2 ワイヤー
+### 8.11.2 ワイヤー記述
 
-```text
-[ヘッダー] YoRuu | PAPER | ⌘K
-[カード] 状態: IDLE | WS: OK/OK | 当日 P&L: +$8.42
-[グリッド] 各画面へのリンクカード（10枚）
-[フッター] 最終更新時刻
+```
+┌─────────────────────────────────────────────────────────┐
+│  YoRuu v0.1.0                       PAPER MODE            │
+├─────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐               │
+│  │ 当日損益         │  │ 累積損益         │               │
+│  │ +$8.42 (+0.84%)  │  │ +$42.18 (+4.22%) │               │
+│  └─────────────────┘  └─────────────────┘               │
+│  ┌─────────────────┐  ┌─────────────────┐               │
+│  │ 勝率             │  │ 現在状態         │               │
+│  │ 54.3% (38W/32L)  │  │ TRADING          │               │
+│  └─────────────────┘  └─────────────────┘               │
+│  画面一覧（10項目 + 補足）                               │
+│                                          [緊急停止]       │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### 8.11.3 主要UI要素
 
-リンクカード10枚、状態サマリ、モードバッジ。
+- システム状態サマリカード（4枚）: 当日損益、累積損益、勝率、現在状態
+- 画面一覧リスト（10項目）: 各画面へのリンク + 補足情報
+- 緊急停止ボタン（右下、§8.10 二重配置のうちハブ側。ダッシュボード側 FAB も併用）
 
 ### 8.11.4 データソース
 
-`mock-data.js` の `MOCK.summary`。
+| 表示項目 | データソース |
+|----------|--------------|
+| 当日損益 | `trades` テーブルから当日分集計 |
+| 累積損益 | `trades` テーブル全期間集計 |
+| 勝率 | `trades` テーブルから集計 |
+| 現在状態 | `bot_state` テーブル最新行 |
+| 取引履歴件数 | `trades` `COUNT(*)` |
+| 夜間レビュー未消化 | `reports/` + `strategy_history` 比較 |
+| 戦略バージョン | `strategy_history` 最新行 |
+| Markov P(UP→UP) | `markov_state` 最新行 |
+| アラート未読数 | `alerts` `WHERE read=false` |
+| 現在モード | `bot_state.mode` |
 
-### 8.11.5 SSE
+### 8.11.5 SSE イベント
 
-`state_changed`, `markov_update`, `health_degraded`。
+| イベント | 動作 |
+|----------|------|
+| `state_changed` | 「現在状態」カード更新 |
+| `position_closed` | 損益・勝率カード更新 |
+| `markov_update` | Markov 行更新 |
+| `nightly_report_ready` | 夜間レビュー行に未消化バッジ |
+| `strategy_applied` | 戦略履歴行のバージョン更新 |
+| `alert_added` | アラート未読数更新 |
+| `mode_changed` | ヘッダーモード表示更新 |
 
-### 8.11.6 操作
+### 8.11.6 操作可能アクション
 
-各画面へ遷移、コマンドパレット。
+| アクション | 動作 |
+|------------|------|
+| カード/リスト項目クリック | 対応画面へ遷移 |
+| 緊急停止ボタン | 即時発火、`08_emergency_stop.html` 遷移 |
+| `Cmd/Ctrl+K` | コマンドパレット起動 |
+| 言語切替 | ja ⇄ en |
 
-### 8.11.7 i18n キー
+### 8.11.7 i18n キー一覧
 
-`nav.hub`, `page.hub.title`, `metric.daily_pnl`, `state.*`
+`page.hub.title`, `metric.daily_pnl`, `metric.cumulative_pnl`, `metric.win_rate`, `metric.current_state`, `nav.*`, `action.emergency_stop`, `alert.unread_count`, `nightly.unconsumed`
 
 ### 8.11.8 関連章
 
-第7章 I/O #25、第3章状態名。
+第3章（状態）、第7章（入出力）、第15章（夜間レビュー）、第19章（キルスイッチ）
 
 ---
 
@@ -329,41 +365,64 @@ function mockSSE(eventName, payload, delayMs = 0) {
 
 ### 8.12.1 用途
 
-稼働中の一次監視画面。ポジション・P&L・Markov サマリ・緊急停止（右下）。
+リアルタイム監視のメイン画面。ポジション、当日P&L、最近の取引、Markov 状態を一画面で確認。緊急停止 FAB の主要配置場所（§8.10）。
 
-### 8.12.2 ワイヤー
+### 8.12.2 ワイヤー記述
 
-```text
-[モードバー固定] paper=灰
-[2列] 左: 状態+WS / 右: 当日P&L + 勝率
-[ポジションカード] YES @ $0.62 size $7.10 expires 03:24
-[Markovミニ] P(UP→UP)=0.578  rolling persistence=0.71
-[右下浮動] 緊急停止（小さめ・40px余白）
+```
+┌─────────────────────────────────────────────────────────┐
+│ [サイドバー] │ ダッシュボード          PAPER MODE        │
+│              │  [状態][当日P&L][勝率]                      │
+│              │  現在ポジション: YES @0.62 size $7.10      │
+│              │  Markov 直近20本 + P(UP→UP)=0.578         │
+│              │  最近の取引 5件                           │
+│              │                          [緊急停止]       │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ### 8.12.3 主要UI要素
 
-モードバー、状態 pill、P&L（色: 正=success / 負=danger）、ポジション1件（複数時はリスト）、Markov サマリ、緊急停止 FAB。
+- 状態カード3枚、現在ポジション（最大1、→ 第11章）
+- Markov ミニビュー（N=20、詳細は §8.20）
+- 最近の取引5件
+- 緊急停止 FAB（右下、70%、40px 余白）
 
 ### 8.12.4 データソース
 
-REST `/api/status`（本番）、モックは `MOCK.dashboard`。
+| 表示項目 | データソース |
+|----------|--------------|
+| 現在状態 | `bot_state` |
+| 当日損益・勝率 | `trades` 当日 |
+| 現在ポジション | `positions` `status='open'` |
+| Markov 直近20本 | `markov_state` 直近20行 |
+| 最近の取引 | `trades` `ORDER BY closed_at DESC LIMIT 5` |
 
-### 8.12.5 SSE
+### 8.12.5 SSE イベント
 
-`position_opened`, `position_closed`, `state_changed`, `markov_update`, `daily_pnl`（第7章互換）。
+| イベント | 動作 |
+|----------|------|
+| `state_changed` | 状態カード更新 |
+| `markov_update` | Markov ミニビュー更新 |
+| `position_opened` | ポジションパネル表示 |
+| `position_closed` | ポジション非表示、取引リスト・損益更新 |
+| `health_degraded` | ヘルスバナー表示 |
 
-### 8.12.6 操作
+### 8.12.6 操作可能アクション
 
-ポジション詳細→取引履歴、緊急停止、サイドバー遷移。
+| アクション | 動作 |
+|------------|------|
+| Markov ミニビュークリック | `09_markov_live.html` |
+| 取引リストクリック | `02_trade_log.html` |
+| 緊急停止 | 即時発火 |
+| ポジションパネル | 詳細モーダル（任意） |
 
-### 8.12.7 i18n
+### 8.12.7 i18n キー一覧
 
-`page.dashboard.title`, `metric.daily_pnl`, `metric.win_rate`, `action.emergency_stop`
+`page.dashboard.title`, `metric.state`, `metric.daily_pnl`, `metric.win_rate`, `page.dashboard.current_position`, `page.dashboard.markov_state`, `page.dashboard.recent_trades`, `metric.expires_in`, `metric.edge`, `metric.kelly`, `metric.persistence`, `action.emergency_stop`
 
 ### 8.12.8 関連章
 
-第6章 6.2、第7章 #3/#25、§8.10。
+第3章、第6章 §6.2-6.3、第11章、第19章
 
 ---
 
@@ -371,35 +430,51 @@ REST `/api/status`（本番）、モックは `MOCK.dashboard`。
 
 ### 8.13.1 用途
 
-過去取引の一覧・フィルタ・エクスポート（△将来は本実装）。
+全取引履歴の閲覧、フィルタ、CSV/JSON エクスポート（△将来本実装、モックは UI のみ）。
 
-### 8.13.2 ワイヤー
+### 8.13.2 ワイヤー記述
 
-フィルタ行（日付・結果・モード）+ テーブル + ページング。
+フィルタ（期間・結果・方向・モード）+ テーブル + ページネーション（50件/頁）+ サマリ行。
 
 ### 8.13.3 主要UI要素
 
-テーブル列: 時刻、市場、方向、サイズ、価格、結果、PnL。エクスポートボタン（モックは disabled + tooltip）。
+- フィルタパネル、CSV/JSON エクスポートボタン
+- 列: 時刻、方向、サイズ、Entry、結果、P&L、Strategy 版
 
 ### 8.13.4 データソース
 
-SQLite `trades`（本番）、`MOCK.trades[]`。
+| 表示項目 | データソース |
+|----------|--------------|
+| 取引一覧 | `trades`（フィルタ適用） |
+| サマリ | フィルタ後集計 |
 
-### 8.13.5 SSE
+### 8.13.5 SSE イベント
 
-`position_closed` で行追加。
+| イベント | 動作 |
+|----------|------|
+| `position_closed` | テーブル先頭追加、サマリ更新 |
 
-### 8.13.6 操作
+### 8.13.6 操作可能アクション
 
-フィルタ適用、行クリックで詳細（モックはアラート表示のみ可）。
+フィルタ変更、CSV/JSON エクスポート、行クリックで詳細モーダル（任意）、ページ切替。
 
-### 8.13.7 i18n
+### 8.13.7 エクスポートフォーマット
 
-`page.trade_log.title`, `col.time`, `col.pnl`, `action.export_csv`
+CSV ヘッダー:
 
-### 8.13.8 関連章
+```
+trade_id,opened_at,closed_at,side,size_usd,entry_price,exit_price,result,pnl_usd,strategy_version,mode
+```
 
-第7章 #4〜7、第10章データモデル。
+JSON 形式は第10章で確定。
+
+### 8.13.8 i18n キー一覧
+
+`page.trade_log.title`, `filter.period`, `filter.result`, `filter.direction`, `filter.mode`, `action.export_csv`, `action.export_json`, `table.*`, `result.won`, `result.lost`, `summary.total_trades`
+
+### 8.13.9 関連章
+
+第10章（§10.3 `trades`）、第11章
 
 ---
 
@@ -407,42 +482,63 @@ SQLite `trades`（本番）、`MOCK.trades[]`。
 
 ### 8.14.1 用途
 
-日次レポート表示、Opus 提案 JSON の検証・差分確認・Apply（二重承認）。
+日次レポート確認、Opus 出力 JSON のペースト、差分確認、Apply（検証 → 差分 → 確認ダイアログ → 適用）。
 
-### 8.14.2 ワイヤー
+### 8.14.2 ワイヤー記述
 
-```text
-[左] レポートサマリ（日付・勝率・損益）
-[右] JSON 貼付テキストエリア
-[下] 差分テーブル: キー | 旧 | 新 | 変化率% | 判定色
-[ボタン] 検証 → 確認 → Apply（段階活性）
-```
+レポートサマリ、AI プロンプト+JSON コピー領域、JSON 貼付、差分プレビュー表（色分け）、Apply/破棄。
 
 ### 8.14.3 主要UI要素
 
-レポートプレビュー、`POST /api/apply/validate` 結果表示、差分表（範囲外=赤、±10%超=黄）、Apply / Skip。
+- レポートサマリ（状態別パフォーマンス含む）
+- プロンプト全文コピー
+- 差分プレビュー（旧→新、変化率%、赤/黄）
+- Apply / 破棄
 
 ### 8.14.4 データソース
 
-`reports/YYYY-MM-DD.json`、現行 `strategy.json`。
+| 表示項目 | データソース |
+|----------|--------------|
+| レポート | `reports/report_YYYY-MM-DD.json` |
+| 現行戦略 | `strategy.json` |
 
-### 8.14.5 SSE
+### 8.14.5 差分検証ロジック
 
-`nightly_report_ready`。
+| 検証 | 動作 |
+|------|------|
+| 必須キー | `MIN_PROB`, `MIN_EDGE`, `KELLY_FRACTION`, `PERSISTENCE_THRESHOLD` |
+| 範囲 | 第7章 §7.2（`PERSISTENCE_THRESHOLD` は §7.2.1: 0.50〜0.90） |
+| 変化率 | ±10% 超は警告（Apply は有効、ユーザー判断） |
+| Apply 活性 | 差分確認成功後 |
 
-### 8.14.6 操作
+### 8.14.6 SSE イベント
 
-JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
+| イベント | 動作 |
+|----------|------|
+| `nightly_report_ready` | レポート自動読込 |
+| `strategy_applied` | Apply 完了メッセージ |
 
-### 8.14.7 i18n
+### 8.14.7 操作可能アクション
 
-`page.nightly_review.title`, `action.validate`, `action.apply`, `diff.out_of_range`
+プロンプトコピー、JSON 貼付、差分確認、Apply、破棄。
 
-### 8.14.8 関連章
+### 8.14.8 Apply 確認フロー
 
-第7章 #8〜14、第15章、第7章 7.2 検証マトリクス。
+1. JSON 貼付
+2. 差分確認 → 範囲外なら Apply **無効**
+3. ±10% 超は警告表示
+4. Apply → 確認ダイアログ（例: v3→v4）
+5. OK → `strategy.json` 更新、`strategy_applied` 発火
 
-**差分表示例**: `MIN_PROB: 0.85 → 0.87 (+2.4%)`
+（API 層の二重承認は第6章 6.5: validate → confirm エンドポイント）
+
+### 8.14.9 i18n キー一覧
+
+`page.nightly_review.title`, `nightly.*`, `action.copy_all`, `action.diff_check`, `action.apply`, `action.discard`, `diff.preview`, `error.missing_key`, `error.out_of_range`, `warning.large_change`
+
+### 8.14.10 関連章
+
+第6章 §6.4、第10章、第15章、第20章
 
 ---
 
@@ -450,31 +546,47 @@ JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
 
 ### 8.15.1 用途
 
-`yoruu.yaml` の編集（Zone 3 入力、サーバ再検証）。
+`yoruu.yaml` の閲覧・編集。変更影響を可視化（第21章）。
 
-### 8.15.2 主要UI要素
+### 8.15.2 ワイヤー記述
 
-フォーム: `mode`（表示のみまたはリンク）、`send_time`, `timezone`, `max_trade_size_usd`, `daily_loss_limit_usd`。保存前確認モーダル。
+基本設定フォーム、戦略パラメータ（読み取り専用→戦略履歴へ）、夜間レビュー設定、YAML 直接編集、保存/キャンセル。
 
-### 8.15.3 データソース
+### 8.15.3 主要UI要素
 
-`yoruu.yaml`、第22章スキーマ。
+フォーム編集、YAML エリア、再起動必要バナー、保存・キャンセル。
 
-### 8.15.4 SSE
+### 8.15.4 データソース
 
-`health_degraded`（保存失敗時）。
+`yoruu.yaml`（編集）、`strategy.json`（表示のみ）。
 
-### 8.15.5 操作
+### 8.15.5 設定変更の影響区分
 
-保存、リセット、backtest 入口リンク（別画面へ、第12章）。
+| 設定 | 影響 |
+|------|------|
+| mode, initial_balance_usd | 再起動必要 |
+| max_trade_size_usd | 次回取引から |
+| daily_loss_limit_usd, nightly_review.* | 即時 |
 
-### 8.15.6 i18n
+### 8.15.6 SSE イベント
 
-`page.settings.title`, `field.daily_loss_limit`
+なし（API のみ）。
 
-### 8.15.7 関連章
+### 8.15.7 操作可能アクション
 
-第7章 #15、第5章 Zone 3、第21章影響マトリクス。
+フォーム/YAML 編集、保存（バリデーション後）、キャンセル、戦略履歴へ遷移。
+
+### 8.15.8 バリデーション
+
+数値 > 0、`send_time` が `HH:MM`、IANA タイムゾーン、YAML 構文。
+
+### 8.15.9 i18n キー一覧
+
+`page.settings.title`, `settings.*`, `action.save`, `action.cancel`, `warning.restart_required`
+
+### 8.15.10 関連章
+
+第21章、第22章、第11章
 
 ---
 
@@ -482,31 +594,39 @@ JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
 
 ### 8.16.1 用途
 
-`strategy.json` の変更履歴・ロールバック（確認モーダルあり）。
+`strategy.json` 変更履歴、適用後パフォーマンス、ロールバック。
 
-### 8.16.2 主要UI要素
+### 8.16.2 ワイヤー記述
 
-時系列リスト、diff 展開、ロールバックボタン。
+バージョンカード降順（v3, v2, v1…）。各カード: 差分、パフォーマンス、理由、詳細/ロールバック。
 
-### 8.16.3 データソース
+### 8.16.3 主要UI要素
 
-`strategy_history/`、監査ログ（第20章）。
+履歴カード、詳細モーダル、ロールバック（確認あり）。
 
-### 8.16.4 SSE
+### 8.16.4 データソース
 
-`strategy_applied`。
+`strategy_history` テーブル、`trades`（version 別集計）。
 
-### 8.16.5 操作
+### 8.16.5 SSE イベント
 
-履歴選択、ロールバック確認。
+`strategy_applied` で先頭に新バージョン追加。
 
-### 8.16.6 i18n
+### 8.16.6 操作可能アクション
 
-`page.strategy_history.title`, `action.rollback`
+詳細表示、ロールバック。
 
-### 8.16.7 関連章
+### 8.16.7 ロールバック仕様
 
-第7章 #20/#21、第6章 6.5。
+過去版を**新規バージョン**として適用（履歴改竄なし）。例: v1→v4 として記録。
+
+### 8.16.8 i18n キー一覧
+
+`page.strategy_history.title`, `strategy.*`, `action.details`, `action.rollback`, `confirm.rollback`
+
+### 8.16.9 関連章
+
+第10章、第15章、第20章
 
 ---
 
@@ -514,31 +634,43 @@ JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
 
 ### 8.17.1 用途
 
-アラート・ERROR/CRITICAL ログの一覧。
+エラー・警告・情報の一覧と既読管理。
 
-### 8.17.2 主要UI要素
+### 8.17.2 ワイヤー記述
 
-重大度フィルタ、未読/既読、メッセージ、タイムスタンプ。
+重大度フィルタ、未読フィルタ、カード一覧（コード・メッセージ・関数位置）、ページネーション。
 
-### 8.17.3 データソース
+### 8.17.3 主要UI要素
 
-`audit_log` / ログファイル（本番）、`MOCK.alerts[]`。
+フィルタ、カード、既読/一括既読。
 
-### 8.17.4 SSE
+### 8.17.4 データソース
 
-`alert_added`, `error`（第7章互換）。
+`alerts` テーブル。
 
-### 8.17.5 操作
+### 8.17.5 重要度区分
 
-既読化、詳細展開。
+CRITICAL / ERROR / WARN / INFO（第18章、色は §8.4）。
 
-### 8.17.6 i18n
+### 8.17.6 SSE イベント
 
-`page.alerts.title`, `alert.severity.*`
+`alert_added`。
 
-### 8.17.7 関連章
+### 8.17.7 操作可能アクション
 
-第7章 #22/#23、第18章。
+既読化、一括既読、詳細モーダル、エラーコード参照（オフライン doc リンク可）。
+
+### 8.17.8 エラーコード体系
+
+`E_*` / `W_*` / `I_*` / `C_*` + モジュール + 連番（第18章詳細）。
+
+### 8.17.9 i18n キー一覧
+
+`page.alerts.title`, `filter.*`, `action.mark_all_read`, `severity.*`
+
+### 8.17.10 関連章
+
+第18章、第20章
 
 ---
 
@@ -546,31 +678,43 @@ JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
 
 ### 8.18.1 用途
 
-`paper` / `simmer` / `live` / `backtest` の切替。live は二重確認（→ 第6章 6.6）。
+backtest / paper / simmer / live 切替。live は2段階確認（第6章 6.6）。
 
-### 8.18.2 主要UI要素
+### 8.18.2 ワイヤー記述
 
-現在モード表示、ターゲット選択、live 時: テキスト `LIVE` 一致、残高表示、チェックボックス、確定。
+4モードカード、現在モード・残高表示。live 時は2段階モーダル（`LIVE` 入力 + 最終確認）。
 
-### 8.18.3 データソース
+### 8.18.3 主要UI要素
 
-`bot_runtime.mode`、ウォレット残高 API。
+モードカード、切替ボタン、live 確認フロー。
 
-### 8.18.4 SSE
+### 8.18.4 LIVE 2段階確認
+
+ステップ1: 警告 + `LIVE` 完全一致入力。ステップ2: ウォレット・残高・損失上限・緊急停止確認チェックリスト。
+
+### 8.18.5 backtest の分離
+
+backtest は別タブ/別画面。StateMachine は変更しない（→ 第12章）。
+
+### 8.18.6 データソース
+
+`bot_state`、モード別残高、ヘルスチェック。
+
+### 8.18.7 SSE イベント
 
 `mode_changed`。
 
-### 8.18.5 操作
+### 8.18.8 操作可能アクション
 
-切替申請、live 三段階確認、拒否（state != IDLE）。
+backtest「別タブ」、paper/simmer 即時（1段確認）、live 2段階。
 
-### 8.18.6 i18n
+### 8.18.9 i18n キー一覧
 
-`page.mode_switch.title`, `mode.paper`, `mode.live`, `confirm.live_type`
+`page.mode_switch.title`, `mode.*`, `confirm.live_step1`, `confirm.live_step2`, `warning.live_real_money`
 
-### 8.18.7 関連章
+### 8.18.10 関連章
 
-第12章、第7章 #16〜18、第3章 3.3。
+第3章、第6章 §6.6、第12章、第13章、第19章
 
 ---
 
@@ -578,31 +722,39 @@ JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
 
 ### 8.19.1 用途
 
-停止後の状態表示、トリガー理由、手動復帰。
+停止後の状態確認、ログ表示、復帰。
 
-### 8.19.2 主要UI要素
+### 8.19.2 ワイヤー記述
 
-`EMERGENCY_STOP` 強調表示、トリガー（手動/自動）、未約定キャンセル結果、復帰ボタン（確認あり）。
+停止時刻・理由・トリガ、状態スナップショット、処理チェックリスト、最終ログ、zip ダウンロード、復帰ボタン。
 
-### 8.19.3 データソース
+### 8.19.3 主要UI要素
 
-`bot_state`、直近 `audit_log`。
+停止情報ヘッダー、スナップショット、ログビュー、復帰（確認あり）。
 
-### 8.19.4 SSE
+### 8.19.4 データソース
 
-`emergency_stop_triggered` 受信で本画面へ遷移済み想定。
+`emergency_stops` 最新行、スナップショット JSON、`logs/`。
 
-### 8.19.5 操作
+### 8.19.5 復帰フロー
 
-復帰（→ INITIALIZING 経由は第3章）、ログ参照リンク。
+復帰ボタン → 確認ダイアログ → `EMERGENCY_STOP → IDLE`（第3章）→ ダッシュボード遷移。
 
-### 8.19.6 i18n
+### 8.19.6 SSE イベント
 
-`page.emergency_stop.title`, `action.recover`, `state.EMERGENCY_STOP`
+なし（停止後静的画面）。
 
-### 8.19.7 関連章
+### 8.19.7 操作可能アクション
 
-第6章 6.7、第19章。
+ログ zip ダウンロード（△モックはボタンのみ可）、復帰。
+
+### 8.19.8 i18n キー一覧
+
+`page.emergency_stop.title`, `emergency.*`, `action.download_logs`, `action.recover`, `confirm.recover`
+
+### 8.19.9 関連章
+
+第3章 §3.6、第6章 §6.7、第19章、第20章
 
 ---
 
@@ -610,41 +762,43 @@ JSON 貼付、検証、二重承認 Apply、Skip（→ 第6章 6.5）。
 
 ### 8.20.1 用途
 
-「なぜ今エントリーしないか」を可視化。Bonereaper 差別化機能。
+遷移確率・直近 N 本・Rolling Persistence・Edge を可視化。「なぜエントリーしないか」を表示。
 
-### 8.20.2 ワイヤー
+### 8.20.2 ワイヤー記述
 
-```text
-[大表示] P(UP→UP)  P(DOWN→DOWN)  rolling persistence
-[ヒートマップ/チェーン] 直近 N=20 本の UP/DOWN 列
-[閾値線] MIN_PROB, PERSISTENCE_THRESHOLD との比較
-```
+2×2 遷移行列、直近 N=20 系列、Persistence 時系列グラフ（閾値線）、Edge パネル、総合判定バナー。
 
 ### 8.20.3 主要UI要素
 
-確率カード、N 本状態列、スキップ理由テキスト（閾値未達時）。
+行列表、系列表示、グラフ、Edge 計算、判定バナー（緑/黄/灰）。
 
 ### 8.20.4 データソース
 
-Markov 推定器出力、第11章。
+`markov_state`、`strategy.json`、Polymarket CLOB 価格。
 
-### 8.20.5 SSE
+### 8.20.5 計算ロジック
 
-`markov_update`。
+詳細は第11章。Persistence 表示 = `(P(UP→UP)+P(DOWN→DOWN))/2`。Rolling Persistence = 案α（§7.2.1）。
 
-### 8.20.6 操作
+### 8.20.6 SSE イベント
 
-N の表示切替（20/50、モックは固定20）、ダッシュボードへ戻る。
+`markov_update`（高頻度）。
 
-### 8.20.7 i18n
+### 8.20.7 操作可能アクション
 
-`page.markov.title`, `metric.p_uu`, `metric.p_dd`, `metric.rolling_persistence`
+ホバーツールチップ、N 切替（10/20/50）。
 
-### 8.20.8 関連章
+### 8.20.8 判定バナー色
 
-第11章、第7章 7.2.1、第6章 6.2。
+エントリー可=success、待機=attention、データ不足=secondary。
 
-**モック数値例**: `P(UP→UP)=0.578`, `P(DOWN→DOWN)=0.612`
+### 8.20.9 i18n キー一覧
+
+`page.markov_live.title`, `markov.*`, `judgment.*`
+
+### 8.20.10 関連章
+
+第10章（`markov_state`）、第11章
 
 ---
 
@@ -652,33 +806,53 @@ N の表示切替（20/50、モックは固定20）、ダッシュボードへ�
 
 ### 8.21.1 用途
 
-パラメータ変更の影響を過去7日で試算（**モックは静的シナリオのみ**）。
+パラメータ変更の過去再計算で夜間レビュー判断を支援。
 
-### 8.21.2 主要UI要素
+### 8.21.2 PHASE 区分
 
-スライダー: `MIN_PROB`, `PERSISTENCE_THRESHOLD` 等。結果: 仮想勝率・PnL（固定計算済み表示）。
+- **PHASE 2**: 静的シナリオ（`mock-data.js` に3〜5パターン）
+- **PHASE 4 M4.5**: SQLite から実再計算（第11章）
 
-### 8.21.3 データソース
+### 8.21.3 ワイヤー記述
 
-モック: 事前計算シナリオ。本番: SQLite 履歴（PHASE 4 M4.5、第11章）。
+期間ピッカー、スライダー4キー、再計算、現在 vs シミュレーション表、累積P&Lグラフ、シナリオ保存。
 
-### 8.21.4 SSE
+### 8.21.4 主要UI要素
 
-なし（モック）。
+スライダー、比較表、グラフ、保存フォーム。
 
-### 8.21.5 操作
+### 8.21.5 PHASE 2 モック
 
-シナリオ切替、夜間レビューへリンク。
+スライダー操作可だが再計算は事前シナリオ切替のみ。
 
-### 8.21.6 i18n
+### 8.21.6 PHASE 4 実計算
 
-`page.what_if.title`, `action.run_simulation`
+`price_ticks` + 戦略再評価 + ペーパー約定シミュレーション（別スレッド推奨）。
 
-### 8.21.7 関連章
+### 8.21.7 データソース
 
-第11章、PHASE 4 M4.5。
+`strategy.json`, `price_ticks`, `trades`, `what_if_scenarios`（第10章）
 
----
+### 8.21.8 SSE イベント
+
+なし。
+
+### 8.21.9 操作可能アクション
+
+期間変更、スライダー、再計算、シナリオ保存。
+
+### 8.21.10 制限事項
+
+最大30日、計算中は取引判定と分離。
+
+### 8.21.11 i18n キー一覧
+
+`page.what_if.title`, `whatif.*`, `action.recalculate`, `action.save`
+
+### 8.21.12 関連章
+
+第10章、第11章、第13章
+
 
 ## 8.22 アクセシビリティ・キーボードショートカット
 
@@ -749,3 +923,4 @@ N の表示切替（20/50、モックは固定20）、ダッシュボードへ�
 - [x] HTML 実装は PHASE 2 に分離しスコープ外とした
 - [x] 出力ファイル名: `08_ui_mockup.md`
 - [x] 各画面仕様に 8.X.1〜8.X.8（または同等）のサブ構造を設けた
+- [x] §8.11〜8.21 を詳細仕様に拡張（v1.1、データソース・SSE・Apply フロー明記）
