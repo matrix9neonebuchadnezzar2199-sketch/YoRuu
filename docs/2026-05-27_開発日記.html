@@ -510,6 +510,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1647">#entry-1647</a></td>
       </tr>
+      <tr>
+        <td>16:51</td>
+        <td>PHASE 3 追補 — 漏洩していた src/yoruu/data パッケージを git 追加</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1651">#entry-1651</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1985,6 +1991,29 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p><code>uv run pytest</code> 11 passed。CLI: <code>yoruu config validate</code>, <code>yoruu db init</code> OK。Commit: <code>005fdcd</code>（push 済）</p>
+</section>
+
+<section class="entry" id="entry-1651">
+  <h2>PHASE 3 追補 — data パッケージの git 漏れ修正<a href="#entry-1651" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 16:51 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-warn">warn</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    <code>005fdcd</code> 時点で一時的な <code>.gitignore</code> の <code>data/</code> 行により
+    <code>src/yoruu/data/</code>（<code>database.py</code>, <code>schema.py</code>）がリポジトリに含まれていなかった。
+    追跡追加し <code>.gitignore</code> の重複行を整理。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> src/yoruu/data/__init__.py, database.py, schema.py</li>
+    <li><span class="op op-mod">~</span> .gitignore</li>
+  </ul>
+  <h3>検証</h3>
+  <p><code>uv run pytest</code> 11 passed（変更後も同結果）。Commit: pending</p>
 </section>
 
 </main>

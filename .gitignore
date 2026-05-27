@@ -36,9 +36,6 @@ logs/
 config/backups/
 strategy_history/
 config/yoruu.yaml
-data/
-reports/*.json
-!reports/.gitkeep
 
 # Binaries
 *.exe
