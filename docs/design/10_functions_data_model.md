@@ -1,8 +1,8 @@
 # 第10章 関数・データモデル
 
-- **バージョン**: v1.0（Part 1/2 ドラフト）
+- **バージョン**: v1.0
 - **作成日**: 2026-05-27
-- **ステータス**: DRAFT（Part 2 統合後に REVIEW_PENDING へ）
+- **ステータス**: REVIEW_PENDING
 - **関連章**: 2（アーキテクチャ）, 4（データフロー）, 6（シーケンス）, 7（I/O 図）, 11（戦略ロジック）, 12（モード仕様）, 13（ペーパー約定）, 14（i18n）, 15（夜間レビュー）, 18（エラーハンドリング）, 19（キルスイッチ）
 - **旧章統合**: 旧 ch11「Data Model」を §10.3（SQLite）／§10.4（`strategy.json`）に統合
 
@@ -121,7 +121,7 @@ YoRuu の関数シグネチャ、REST API エンドポイント、SSE ペイロ�
 CREATE TABLE bot_state (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   state TEXT NOT NULL CHECK (state IN (
-    'INIT', 'IDLE', 'TRADING', 'MONITORING_POSITION',
+    'INITIALIZING', 'IDLE', 'TRADING', 'MONITORING_POSITION',
     'NIGHTLY_REVIEW', 'EMERGENCY_STOP', 'ERROR', 'SHUTDOWN', 'BACKTEST'
   )),
   mode TEXT NOT NULL CHECK (mode IN ('BACKTEST', 'PAPER', 'SIMMER', 'LIVE')),
@@ -631,16 +631,484 @@ data: {"new_version":4,"previous_version":3,"applied_by":"NIGHTLY_REVIEW","diff"
 
 ---
 
-**Part 1/2 完了**。本パートでは API 共通仕様（§10.2）、SQLite 8 テーブル（§10.3）、設定ファイルスキーマ（§10.4）、SSE 11 イベント（§10.5）、REST 全 28 エンドポイント（§10.6）を確定しました。総量約 620 行相当。
+## 10.7 内部関数シグネチャ
 
-**Part 2/2 で扱う内容**:
-- §10.7 内部関数シグネチャ（StateMachine、OrderManager、StrategyEvaluator、PaperExecutor 等）
-- §10.8 WebSocket クライアント関数
-- §10.9 Markov エンジン関数
-- §10.10 夜間レビュー関数
-- §10.11 バリデーション・ユーティリティ関数
-- §10.12 データライフサイクル・保持期間まとめ
-- §10.13 章間相互参照表
-- §10.14 品質チェック
+### 10.7.1 命名・配置規約
 
-Part 2 はこの後に渡します。
+- モジュール配置: `src/yoruu/<layer>/<module>.py`（layer 例: `core`, `strategy`, `execution`, `data`, `ui`, `infra`）
+- Python 3.11+、型ヒント必須、`from __future__ import annotations` を全モジュールで使用
+- 例外は `src/yoruu/errors.py` に集約（`YoRuuError` を基底）
+- 日時は全て `datetime`（UTC 内部保持、UI 表示時に JST 変換）
+
+### 10.7.2 StateMachine（`src/yoruu/core/state_machine.py`）
+
+第6章で合意した 3 メソッド体系。状態遷移の単一の真実。
+
+```python
+class State(str, Enum):
+    INITIALIZING = "INITIALIZING"
+    IDLE = "IDLE"
+    TRADING = "TRADING"
+    MONITORING_POSITION = "MONITORING_POSITION"
+    NIGHTLY_REVIEW = "NIGHTLY_REVIEW"
+    EMERGENCY_STOP = "EMERGENCY_STOP"
+    ERROR = "ERROR"
+    SHUTDOWN = "SHUTDOWN"
+    BACKTEST = "BACKTEST"
+
+class StateMachine:
+    def __init__(self, db: Database, event_bus: EventBus) -> None: ...
+
+    def current(self) -> State:
+        """現在状態を取得（bot_state テーブルから読込）"""
+
+    def require_state(self, *allowed: State) -> None:
+        """許可状態でなければ StateViolationError を送出"""
+
+    def transition(
+        self,
+        to: State,
+        reason: str,
+        actor: str = "system",
+    ) -> StateTransition:
+        """状態遷移実行。bot_state 更新 + state_changed イベント発火"""
+
+    def ack(self, transition_id: str) -> None:
+        """OM 等の呼び出し元へ遷移完了を確認応答"""
+
+    def allowed_transitions(self, from_state: State) -> list[State]:
+        """第3章 §3.2 の遷移表に基づく許可遷移リスト"""
+```
+
+`StateViolationError` は `severity=ERROR` のアラートを生成し、第18章 `E_STATE_001` に対応。
+
+### 10.7.3 OrderManager（`src/yoruu/execution/order_manager.py`）
+
+第6章 §6.2 で StateMachine 経由に変更済。`OM` は状態保持しない。
+
+```python
+class OrderManager:
+    def __init__(
+        self,
+        sm: StateMachine,
+        executor: Executor,           # PaperExecutor | LiveExecutor
+        risk: RiskGuard,
+        db: Database,
+    ) -> None: ...
+
+    def evaluate_and_open(
+        self,
+        signal: TradeSignal,
+    ) -> OrderResult:
+        """シグナルを受け取り、リスクチェック後に約定試行"""
+
+    def close_position(
+        self,
+        position_id: int,
+        reason: CloseReason,
+    ) -> OrderResult:
+        """ポジション決済（成行 or 満期）"""
+
+    def cancel_all_open(self) -> int:
+        """全オープン注文キャンセル（緊急停止時）。戻り値: キャンセル件数"""
+
+    def force_close_all(self) -> int:
+        """全ポジション成行クローズ（緊急停止時）。戻り値: クローズ件数"""
+```
+
+戻り値の `OrderResult` は `success: bool`, `trade_id: int | None`, `error: ErrorPayload | None` を含む。
+
+### 10.7.4 StrategyEvaluator（`src/yoruu/strategy/evaluator.py`）
+
+第11章で詳細化、本章ではシグネチャのみ。
+
+```python
+class StrategyEvaluator:
+    def __init__(
+        self,
+        markov: MarkovEngine,
+        strategy: StrategyConfig,
+    ) -> None: ...
+
+    def evaluate(
+        self,
+        market_state: MarketState,
+    ) -> EvaluationResult:
+        """エントリー判定。シグナル生成 or 待機"""
+
+    def reload(self, new_version: int) -> None:
+        """strategy.json リロード（Apply 直後）"""
+```
+
+`EvaluationResult` は `should_enter: bool`, `side: Side | None`, `size_usd: float`, `edge: float`, `persistence: float`, `reason: str` を含む。
+
+### 10.7.5 RiskGuard（`src/yoruu/execution/risk_guard.py`）
+
+```python
+class RiskGuard:
+    def __init__(self, config: RiskConfig, db: Database) -> None: ...
+
+    def check_pre_trade(
+        self,
+        signal: TradeSignal,
+    ) -> RiskCheckResult:
+        """事前チェック: 日次損失上限、最大取引サイズ、残高"""
+
+    def daily_pnl(self) -> float:
+        """当日損益（JST 00:00 リセット）"""
+
+    def daily_loss_exceeded(self) -> bool:
+        """日次損失上限超過判定"""
+
+    def remaining_budget(self) -> float:
+        """残予算（日次損失上限 - 既存損失）"""
+```
+
+### 10.7.6 PaperExecutor（`src/yoruu/execution/paper_executor.py`）
+
+第13章で詳細化、本章ではシグネチャのみ。
+
+```python
+class PaperExecutor(Executor):
+    def __init__(self, db: Database, fill_model: FillModel) -> None: ...
+
+    def open(self, request: OpenRequest) -> FillResult:
+        """ペーパー約定（スプレッド/スリッページモデル適用）"""
+
+    def close(self, request: CloseRequest) -> FillResult:
+        """ペーパー決済（満期 or 成行）"""
+```
+
+### 10.7.7 LiveExecutor（`src/yoruu/execution/live_executor.py`）
+
+```python
+class LiveExecutor(Executor):
+    def __init__(self, polymarket: PolymarketClient, db: Database) -> None: ...
+
+    def open(self, request: OpenRequest) -> FillResult: ...
+    def close(self, request: CloseRequest) -> FillResult: ...
+```
+
+`Executor` プロトコル経由で OrderManager は Paper/Live を等価に扱う。
+
+### 10.7.8 BacktestExecutor（`src/yoruu/execution/backtest_executor.py`）
+
+```python
+class BacktestExecutor:
+    def __init__(
+        self,
+        historical_loader: HistoricalLoader,
+        strategy: StrategyConfig,
+    ) -> None: ...
+
+    def run(
+        self,
+        period: DateRange,
+        parameters: dict[str, float] | None = None,
+    ) -> BacktestResult:
+        """過去データで戦略を再実行。状態機械は使用しない"""
+```
+
+第3章 §3.3 で確定通り、`StateMachine` の外側で完結。
+
+## 10.8 WebSocket クライアント関数
+
+### 10.8.1 PolymarketClient（`src/yoruu/infra/polymarket_ws.py`）
+
+```python
+class PolymarketClient:
+    def __init__(self, url: str, event_bus: EventBus) -> None: ...
+
+    async def connect(self) -> None:
+        """接続 + 自動再接続ループ起動"""
+
+    async def disconnect(self) -> None: ...
+
+    async def subscribe(self, market_id: str) -> None: ...
+
+    def is_connected(self) -> bool: ...
+
+    def on_message(self, callback: Callable[[PolymarketTick], None]) -> None: ...
+```
+
+再接続: 指数バックオフ（1s, 2s, 4s, 8s, 最大 30s）、10 回連続失敗で `health_degraded` を発火し `ERROR` 状態へ遷移。
+
+### 10.8.2 BinanceClient（`src/yoruu/infra/binance_ws.py`）
+
+```python
+class BinanceClient:
+    def __init__(self, url: str, symbol: str, event_bus: EventBus) -> None: ...
+
+    async def connect(self) -> None: ...
+    async def disconnect(self) -> None: ...
+    def is_connected(self) -> bool: ...
+    def on_tick(self, callback: Callable[[PriceTick], None]) -> None: ...
+```
+
+## 10.9 Markov エンジン関数
+
+### 10.9.1 MarkovEngine（`src/yoruu/strategy/markov.py`）
+
+```python
+class MarkovEngine:
+    def __init__(self, window_size: int = 20, db: Database = ...) -> None: ...
+
+    def update(self, tick: PriceTick) -> None:
+        """新ティック受信時に行列再計算（5 分足クローズ時のみ）"""
+
+    def current_matrix(self) -> TransitionMatrix:
+        """直近行列を取得"""
+
+    def rolling_persistence(self) -> float:
+        """min(P(UP→UP), P(DOWN→DOWN))"""
+
+    def predict_next(self, current_direction: Direction) -> Prediction:
+        """次方向の確率分布"""
+
+    def history(self, limit: int = 100) -> list[MarkovSnapshot]: ...
+```
+
+`TransitionMatrix` は `p_up_up`, `p_up_down`, `p_down_up`, `p_down_down` を持つ frozen dataclass。
+
+### 10.9.2 Persistence 計算
+
+```python
+def compute_persistence(matrix: TransitionMatrix) -> float:
+    """min(P(UP→UP), P(DOWN→DOWN)) を返す。0.50〜0.90 想定"""
+```
+
+第7章 §7.2.1 で確定した方式（α 案）。第11章 §11.4 で詳細。
+
+## 10.10 夜間レビュー関数
+
+### 10.10.1 NightlyReporter（`src/yoruu/core/nightly_reporter.py`）
+
+```python
+class NightlyReporter:
+    def __init__(self, db: Database, sm: StateMachine, event_bus: EventBus) -> None: ...
+
+    def generate(self, target_date: date) -> NightlyReport:
+        """指定日のレポート生成（DB 集計のみ、LLM は呼ばない）"""
+
+    def schedule_daily(self, time: str = "04:00", tz: str = "Asia/Tokyo") -> None:
+        """毎日定刻に generate() を呼ぶスケジューラ登録"""
+
+    def latest(self) -> NightlyReport | None: ...
+```
+
+LLM 連携はユーザー手動（コピペ）で行い、ボット側は受信のみ。詳細は第15章。
+
+### 10.10.2 StrategyApplier（`src/yoruu/strategy/applier.py`）
+
+```python
+class StrategyApplier:
+    def __init__(self, db: Database, validator: StrategyValidator) -> None: ...
+
+    def preview_diff(
+        self,
+        current: dict[str, float],
+        proposed: dict[str, float],
+    ) -> StrategyDiff:
+        """差分プレビュー（変化率、警告フラグ含む）"""
+
+    def apply(
+        self,
+        proposed: dict[str, float],
+        applied_by: ApplySource,
+        force_large_change: bool = False,
+    ) -> int:
+        """新バージョン作成。戻り値: 新 version 番号"""
+
+    def rollback(
+        self,
+        target_version: int,
+        reason: str,
+        force_repeated: bool = False,
+    ) -> int: ...
+```
+
+## 10.11 バリデーション・ユーティリティ関数
+
+### 10.11.1 StrategyValidator（`src/yoruu/strategy/validator.py`）
+
+```python
+class StrategyValidator:
+    def __init__(self, constraints: dict[str, Range]) -> None: ...
+
+    def validate(self, parameters: dict[str, float]) -> ValidationResult:
+        """必須キー4件、範囲チェック、±10% 警告判定"""
+
+    def is_within_range(self, key: str, value: float) -> bool: ...
+    def is_large_change(self, key: str, old: float, new: float) -> bool:
+        """変化率 ±10% 超で True"""
+```
+
+### 10.11.2 EventBus（`src/yoruu/core/event_bus.py`）
+
+```python
+class EventBus:
+    def subscribe(self, event_name: str, handler: Callable) -> SubscriptionId: ...
+    def unsubscribe(self, sub_id: SubscriptionId) -> None: ...
+    def publish(self, event_name: str, payload: dict) -> None:
+        """SSE エンドポイントと内部リスナー双方に配信"""
+```
+
+### 10.11.3 Database（`src/yoruu/data/database.py`）
+
+```python
+class Database:
+    def __init__(self, path: Path) -> None: ...
+
+    def connect(self) -> None: ...
+    def migrate(self) -> None:
+        """スキーマ migration（§10.3 のテーブル作成）"""
+
+    def execute(self, sql: str, params: tuple = ()) -> Cursor: ...
+    def fetch_one(self, sql: str, params: tuple = ()) -> dict | None: ...
+    def fetch_all(self, sql: str, params: tuple = ()) -> list[dict]: ...
+
+    @contextmanager
+    def transaction(self) -> Iterator[Connection]: ...
+
+    def backup(self, target: Path) -> None:
+        """SQLite Online Backup API 使用、04:00 JST に実行"""
+```
+
+### 10.11.4 ConfigLoader（`src/yoruu/infra/config.py`）
+
+```python
+class ConfigLoader:
+    @staticmethod
+    def load_yaml(path: Path) -> YoRuuConfig:
+        """yoruu.yaml 読込 + スキーマ検証"""
+
+    @staticmethod
+    def load_strategy(path: Path) -> StrategyConfig:
+        """strategy.json 読込 + 制約検証"""
+
+    @staticmethod
+    def save_yaml(path: Path, config: YoRuuConfig) -> None: ...
+```
+
+### 10.11.5 I18n（`src/yoruu/ui/i18n.py`）
+
+```python
+class I18n:
+    def __init__(self, default_lang: str = "ja") -> None: ...
+
+    def load(self, lang: str) -> dict[str, str]:
+        """src/yoruu/ui/locales/<lang>.json を読込"""
+
+    def t(self, key: str, lang: str | None = None, **vars: Any) -> str:
+        """翻訳取得。フォールバック: ja → en → key そのまま"""
+
+    def available_languages(self) -> list[str]: ...
+```
+
+第14章で詳細化。サーバー側は API レスポンスを言語非依存に保ち、表示変換は UI 側で行う。
+
+## 10.12 データライフサイクル・保持期間
+
+### 10.12.1 保持期間まとめ
+
+| データ種別 | 保持期間 | 削除方式 | 備考 |
+|----------|---------|---------|------|
+| `bot_state` | 永続 | 削除なし | 単一行 |
+| `trades` | 永続 | 削除なし | エクスポート可 |
+| `positions` | クローズ即時削除 | アプリ側 | `trades` に集約 |
+| `markov_state` | 24 時間 | cron（毎時 00 分） | 履歴は集計済のため |
+| `price_ticks` | 7 日 | cron（04:00 JST） | バックテスト用は別管理 |
+| `alerts` | 90 日 | cron（04:00 JST） | 重大は別エクスポート可 |
+| `strategy_versions` | 永続 | 削除なし | 監査用 |
+| `daily_reports` | 永続 | 削除なし | LLM 提案含む |
+| `data/backup/*.db` | 30 日 | cron（04:30 JST） | ローテーション |
+| ログファイル | `logging.retain_days`（既定 30 日） | logrotate 相当 | 50MB ローテート |
+
+### 10.12.2 ライフサイクル状態遷移
+
+各レコードの基本状態：
+
+- **`trades`**: `OPEN` → `CLOSED`（決済成立）または `EXPIRED`（満期）または `CANCELLED`（緊急停止時）
+- **`positions`**: `OPEN` → `CLOSING` → 削除
+- **`alerts`**: 作成（`read=0`）→ 既読（`read=1`）→ 90 日後削除
+- **`strategy_versions`**: `applied_by` で起源を識別、削除なし
+
+### 10.12.3 バックアップ・リストア手順
+
+- バックアップ: `Database.backup()` を 04:00 JST 直後に実行（夜間レビュー生成後）
+- リストア: ボット停止 → `data/yoruu.db` を退避 → バックアップを配置 → 再起動
+- 詳細手順は第22章（運用）で規定
+
+### 10.12.4 タイムゾーン規約
+
+- DB 保存: 全て ISO 8601 + `+09:00`（JST）
+- 集計境界: 「日次」= JST 00:00〜23:59:59（夜間レビューは 04:00 JST の 1 サイクル）
+- UI 表示: 既定 JST、`yoruu.yaml` に `display_timezone` を追加する場合は v1.1 で検討
+
+## 10.13 章間相互参照表
+
+| 本章節 | 参照先 | 内容 |
+|-------|--------|------|
+| §10.2.4 認証 | 第5章 §5.2 | SSH トンネル前提 |
+| §10.3 SQLite | 第2章 §2.4 | データ層配置 |
+| §10.3.3 `bot_state` | 第3章 §3.1 | 9 状態定義 |
+| §10.4.1 `strategy.json` | 第7章 §7.2, 第11章 §11.4 | パラメータ範囲 |
+| §10.4.3 反映タイミング | 第9章 §9.9 | 設定画面操作 |
+| §10.5 SSE | 第8章 §8.9 | UI 側受信 |
+| §10.6.5 mode/switch | 第9章 §9.7, 第12章 | LIVE 2 段階確認 |
+| §10.6.6 emergency | 第9章 §9.8, 第6章 §6.7 | 非対称設計 |
+| §10.6.9 What-If | 第8章 §8.21, 第11章 §11.7 | PHASE 4 で実計算 |
+| §10.7.2 StateMachine | 第6章 §6.2-§6.7 | require_state/transition/ack |
+| §10.7.4 Evaluator | 第11章 §11.4-§11.5 | アルゴリズム |
+| §10.7.6 PaperExecutor | 第13章 | 約定モデル |
+| §10.9 Markov | 第7章 §7.2.1, 第11章 §11.4 | Persistence α 案 |
+| §10.10 夜間レポート | 第15章 | LLM 連携手順 |
+| §10.11.5 I18n | 第14章 | 翻訳キー体系 |
+| §10.12 ライフサイクル | 第22章 | 運用手順 |
+| §10.13 エラー | 第18章 | エラーコード体系 |
+
+## 10.14 品質チェック
+
+### 10.14.1 章末チェックリスト
+
+- [ ] §10.1 目的・スコープ明示（含む／含まない両方）
+- [ ] §10.2 共通レスポンス形式と HTTP ステータス定義
+- [ ] §10.3 SQLite 8 テーブル全て CREATE 文付き
+- [ ] §10.3 旧 ch11「Data Model」統合完了
+- [ ] §10.4 `strategy.json` 完全スキーマ + 範囲制約
+- [ ] §10.4 `yoruu.yaml` 完全スキーマ + 反映タイミング表
+- [ ] §10.5 SSE イベント 11 件全てペイロード例付き
+- [ ] §10.6 REST エンドポイント 28 件揃う（11 グループ）
+- [ ] §10.7 StateMachine 3 メソッド体系（require_state/transition/ack）
+- [ ] §10.7 BacktestExecutor が StateMachine 外側であることを明示
+- [ ] §10.8 WebSocket 再接続戦略明記
+- [ ] §10.9 Markov Persistence が α 案（0.50〜0.90、既定 0.70）
+- [ ] §10.10 夜間レビューが LLM 非連携（ユーザー手動コピペ）
+- [ ] §10.11 バリデーション・ユーティリティ揃う
+- [ ] §10.12 保持期間まとめ + タイムゾーン規約
+- [ ] §10.13 相互参照表に新章番号で整合
+- [ ] Mermaid コードフェンス全て閉じている（本章は SQL/JSON のみ、Mermaid なし）
+
+### 10.14.2 一次レビュー観点（7 項目）
+
+1. API 共通仕様（§10.2）が PHASE 4 実装で迷いなく適用できるか
+2. SQLite スキーマ（§10.3）が旧 ch11 を完全に包含し、整合性制約が網羅されているか
+3. 設定ファイルスキーマ（§10.4）の反映タイミング表が運用に十分か
+4. SSE 11 イベント（§10.5）が第8章 §8.9 と完全一致するか
+5. REST 28 エンドポイント（§10.6）が UI 11 画面の全操作を満たすか
+6. 関数シグネチャ（§10.7〜§10.11）が第6章のシーケンスと整合するか
+7. データライフサイクル・保持期間（§10.12）が運用章（第22章）の前提と矛盾しないか
+
+### 10.14.3 既知の未確定事項
+
+- `display_timezone` の `yoruu.yaml` 追加は v1.1 で検討
+- バックアップの暗号化（オフサイト送信時）は第22章で検討
+- What-If 計算ロジック（§10.6.9）は第11章 §11.7 で詳細化
+- LLM 連携の完全自動化（§10.10）は将来機能（PHASE 7 以降）
+
+### 10.14.4 PHASE 引き継ぎ
+
+- **PHASE 2（UI モック）**: §10.5 SSE ペイロード例・§10.6 レスポンス例を `mock-data.js` の固定値ソースとして使用
+- **PHASE 3（コア実装）**: §10.3 マイグレーション、§10.7〜§10.11 関数を実装
+- **PHASE 4（UI 実装）**: §10.5・§10.6 を REST/SSE クライアントの仕様として使用
+- **PHASE 5（統合テスト）**: §10.14.2 の 7 観点をテスト設計の基礎とする
