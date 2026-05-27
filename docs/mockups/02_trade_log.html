@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Trade Log (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="app-layout" data-page="trade_log">
+<!--
+  YoRuu Mockup: Trade Log
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.13
+  Related Mockups: 01_dashboard.html, index.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.trade_log.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.trade_log.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filter-period" data-i18n="filter.period"></label>
+          <select id="filter-period">
+            <option value="all" data-i18n="filter.all"></option>
+            <option value="today" data-i18n="filter.period.today"></option>
+            <option value="7d" data-i18n="filter.period.7d"></option>
+            <option value="30d" data-i18n="filter.period.30d"></option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-result" data-i18n="filter.result"></label>
+          <select id="filter-result">
+            <option value="all" data-i18n="filter.all"></option>
+            <option value="WON" data-i18n="result.won"></option>
+            <option value="LOST" data-i18n="result.lost"></option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-side" data-i18n="filter.direction"></label>
+          <select id="filter-side">
+            <option value="all" data-i18n="filter.all"></option>
+            <option value="YES">YES</option>
+            <option value="NO">NO</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-mode" data-i18n="filter.mode"></label>
+          <select id="filter-mode">
+            <option value="all" data-i18n="filter.all"></option>
+            <option value="paper" data-i18n="mode.paper"></option>
+          </select>
+        </div>
+        <button type="button" class="btn" id="apply-filter" data-i18n="action.apply_filter"></button>
+        <button type="button" class="btn" id="export-csv" data-i18n="action.export_csv"></button>
+        <button type="button" class="btn" id="export-json" data-i18n="action.export_json"></button>
+      </div>
+
+      <p id="export-notice" style="font-size:12px;color:var(--text-secondary);margin:0 0 12px" data-i18n="mock.export_notice"></p>
+
+      <section class="panel">
+        <div class="panel-body" style="padding:0">
+          <table class="data-table" role="table" aria-label="Trade log">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="table.time"></th>
+                <th scope="col" data-i18n="table.side"></th>
+                <th scope="col" data-i18n="table.size"></th>
+                <th scope="col" data-i18n="table.entry"></th>
+                <th scope="col" data-i18n="table.result"></th>
+                <th scope="col" data-i18n="table.pnl"></th>
+                <th scope="col" data-i18n="table.strategy"></th>
+              </tr>
+            </thead>
+            <tbody id="trade-log-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="pagination">
+        <span id="page-info"></span>
+        <div class="pagination-btns">
+          <button type="button" class="btn btn-sm" id="prev-page" data-i18n="action.prev_page"></button>
+          <button type="button" class="btn btn-sm" id="next-page" data-i18n="action.next_page"></button>
+        </div>
+      </div>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/sidebar.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var PAGE_SIZE = 50;
+      var currentPage = 1;
+      var filteredTrades = [];
+
+      function applyFilters() {
+        var trades = md.getData().all_trades.slice();
+        var period = document.getElementById("filter-period").value;
+        var result = document.getElementById("filter-result").value;
+        var side = document.getElementById("filter-side").value;
+        var mode = document.getElementById("filter-mode").value;
+
+        filteredTrades = trades.filter(function (t) {
+          if (result !== "all" && t.result !== result) return false;
+          if (side !== "all" && t.side !== side) return false;
+          if (mode !== "all" && t.mode !== mode) return false;
+          if (period === "today") {
+            return t.closed_at.indexOf("2026-05-27") === 0;
+          }
+          return true;
+        });
+        currentPage = 1;
+        renderTable();
+      }
+
+      function renderTable() {
+        var total = filteredTrades.length;
+        var pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        if (currentPage > pages) currentPage = pages;
+        var start = (currentPage - 1) * PAGE_SIZE;
+        var slice = filteredTrades.slice(start, start + PAGE_SIZE);
+        var sumPnl = filteredTrades.reduce(function (a, t) {
+          return a + t.pnl_usd;
+        }, 0);
+
+        var rows = "";
+        slice.forEach(function (t) {
+          var cls = t.pnl_usd >= 0 ? "pnl-positive" : "pnl-negative";
+          rows +=
+            "<tr><td class=\"mono\" role=\"cell\">" +
+            t.time_display +
+            "</td><td role=\"cell\">" +
+            t.side +
+            "</td><td class=\"mono\" role=\"cell\">$" +
+            t.size_usd.toFixed(2) +
+            "</td><td class=\"mono\" role=\"cell\">" +
+            t.entry_price.toFixed(2) +
+            "</td><td role=\"cell\">" +
+            i18n.t(t.result === "WON" ? "result.won" : "result.lost") +
+            '</td><td class="mono ' +
+            cls +
+            '" role="cell">' +
+            md.formatPnl(t.pnl_usd) +
+            "</td><td class=\"mono\" role=\"cell\">" +
+            t.strategy_version +
+            "</td></tr>";
+        });
+        document.getElementById("trade-log-body").innerHTML = rows;
+
+        document.getElementById("page-info").textContent =
+          i18n.t("summary.total_trades") +
+          ": " +
+          total +
+          " · " +
+          i18n.t("summary.filtered_pnl") +
+          ": " +
+          md.formatPnl(sumPnl) +
+          " · " +
+          currentPage +
+          "/" +
+          pages;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({
+          sidebar: true,
+          activePage: "trade_log",
+          langToggleId: "lang-toggle",
+        });
+        filteredTrades = md.getData().all_trades.slice();
+        renderTable();
+
+        document.getElementById("apply-filter").addEventListener("click", applyFilters);
+        document.getElementById("prev-page").addEventListener("click", function () {
+          if (currentPage > 1) {
+            currentPage -= 1;
+            renderTable();
+          }
+        });
+        document.getElementById("next-page").addEventListener("click", function () {
+          var pages = Math.ceil(filteredTrades.length / PAGE_SIZE);
+          if (currentPage < pages) {
+            currentPage += 1;
+            renderTable();
+          }
+        });
+        document.getElementById("export-csv").addEventListener("click", function () {
+          window.alert(i18n.t("mock.export_notice"));
+        });
+        document.getElementById("export-json").addEventListener("click", function () {
+          window.alert(i18n.t("mock.export_notice"));
+        });
+
+        document.addEventListener("scenario_changed", function () {
+          filteredTrades = md.getData().all_trades.slice();
+          renderTable();
+        });
+        document.addEventListener("position_closed", function () {
+          applyFilters();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

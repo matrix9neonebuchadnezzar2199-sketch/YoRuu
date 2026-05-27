@@ -468,6 +468,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1539">#entry-1539</a></td>
       </tr>
+      <tr>
+        <td>15:43</td>
+        <td>PHASE 2 M2.1 — 共通基盤 + ハブ + Dashboard + 取引履歴</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1543">#entry-1543</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1758,6 +1764,37 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>Commit: <code>5676928</code>（push 済）</p>
+</section>
+
+<section class="entry" id="entry-1543">
+  <h2>PHASE 2 M2.1 — UI モック共通基盤 + 主要3画面<a href="#entry-1543" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 15:43 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-scope">ui</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    <code>PHASE2_KICKOFF_TEMPLATE.md</code> §3.1 に従い、<code>docs/mockups/</code> に GitHub Dark ベースの共通基盤とハブ・ダッシュボード・取引履歴を実装。
+    Vanilla JS/CSS、外部 CDN なし、<code>data-i18n</code> + <code>locales/ja.json</code>（en は空）、<code>mock-data.js</code> は <code>normal</code> 既定・他シナリオ枠のみ。
+    §8.25.3 検証チェックリスト 10 項目をローカル確認済み。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/mockups/index.html, 01_dashboard.html, 02_trade_log.html</li>
+    <li><span class="op op-add">+</span> docs/mockups/shared/{style.css,i18n.js,mock-data.js,sidebar.js,palette.js,app.js}</li>
+    <li><span class="op op-add">+</span> docs/mockups/shared/locales/{ja.json,en.json,ja.bundle.js}</li>
+    <li><span class="op op-mod">~</span> docs/design/00_ROADMAP.md, INDEX.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <ul>
+    <li><code>file://</code> オフライン起動のため辞書は <code>ja.bundle.js</code> で読込、<code>ja.json</code> は ch14 SSOT として併置</li>
+    <li><code>palette.js</code> = コマンドパレット（§8.7）。緊急停止はパレット検索から除外（§8.7.4）</li>
+  </ul>
+  <h3>検証</h3>
+  <p>§8.25.3 10/10 pass（ダブルクリック・⌘K・?・緊急停止・言語切替・シナリオ切替・フォーカスリング・ヘッダコメント）。Commit: <code>pending</code></p>
 </section>
 
 </main>
