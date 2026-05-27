@@ -19,7 +19,7 @@ YoRuu Bot は以下の9状態のいずれかに常に位置する。複数状態
 | `EMERGENCY_STOP` | キル・スイッチ発動、全停止状態 | キル・スイッチ・損失超過・連続失敗等 | 手動復帰まで |
 | `SHUTDOWN` | 正常終了処理中 | SIGTERM 受信または UI 停止操作 | 数秒〜30秒以内 |
 
-注: 滞在時間はいずれも設計時の概算であり、実測値ではない。実測は第14章 (ペーパー約定エンジン仕様) および本番稼働後に確認する。
+注: 滞在時間はいずれも設計時の概算であり、実測値ではない。実測は第13章 (ペーパー約定エンジン仕様) および本番稼働後に確認する。
 
 ## 3.2 状態遷移図
 
@@ -83,7 +83,7 @@ stateDiagram-v2
 | `EMERGENCY_STOP → INITIALIZING` | ユーザーが「再起動」を明示操作 | プロセス再起動のみ可、自動復帰なし |
 | `(任意) → SHUTDOWN` | SIGTERM OR UI 停止ボタン | 常に許可 |
 
-**備考 (`IDLE → TRADING`)**: backtest モードは `BacktestExecutor` が別経路で実行され、本状態機械は経由しない (→ 第3章 3.7節、第13章)。
+**備考 (`IDLE → TRADING`)**: backtest モードは `BacktestExecutor` が別経路で実行され、本状態機械は経由しない (→ 第3章 3.7節、第12章)。
 
 ※ backtest は図 3-1 および本表の `IDLE → TRADING` のスコープ外である。backtest 実行中も `bot_state` は原則 `IDLE` を維持する。
 
@@ -143,7 +143,7 @@ stateDiagram-v2
 
 ## 3.7 状態とモードの直交性
 
-`bot_state` (本章) と `mode` (backtest/paper/simmer/live、→ 第13章) は直交する概念である。任意の組み合わせが理論上存在するが、以下は実用上意味を持たない。
+`bot_state` (本章) と `mode` (backtest/paper/simmer/live、→ 第12章) は直交する概念である。任意の組み合わせが理論上存在するが、以下は実用上意味を持たない。
 
 - `backtest` モード × `MONITORING_POSITION`: backtest では決済まで瞬時に完了するため通常通過する状態
 - `backtest` モード × `AWAITING_APPLY`: backtest 中は夜間レビュー機構を無効化することを推奨

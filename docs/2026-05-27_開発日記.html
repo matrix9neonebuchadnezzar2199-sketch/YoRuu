@@ -324,6 +324,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1117">#entry-1117</a></td>
       </tr>
+      <tr>
+        <td>11:25</td>
+        <td>M1.0 ロードマップ整備（00_ROADMAP・24章再編・cross-ref）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1125">#entry-1125</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1030,6 +1036,38 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>Commit: <code>2623330</code></p>
+</section>
+
+<section class="entry" id="entry-1125">
+  <h2>M1.0 ロードマップ整備（ステップ2完了）<a href="#entry-1125" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 11:25 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>PHASE 1 M1.0: <code>00_ROADMAP.md</code> 新設、INDEX/§1.7 の24章再編、ch1〜7 cross-ref 4箇所更新、<code>08_mockup_carryover.md</code> 全面更新（GitHub Dark・11画面・緊急停止二重配置）。</p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/00_ROADMAP.md</li>
+    <li><span class="op op-mod">~</span> docs/design/INDEX.md</li>
+    <li><span class="op op-mod">~</span> docs/design/01_overview.md（§1.7、用語集 cross-ref）</li>
+    <li><span class="op op-mod">~</span> docs/design/03_state_diagram.md（ch12/13 参照）</li>
+    <li><span class="op op-mod">~</span> docs/design/08_mockup_carryover.md</li>
+  </ul>
+
+  <h3>設計判断</h3>
+  <ul>
+    <li>旧 ch11 データモデル → ch10 統合（ファイル名は M1.3 で作成）</li>
+    <li>走査で cross-ref 追加2件（03 の mode/backtest を第12章へ）</li>
+    <li>次: M1.2 第8章設計書のみ（HTML は PHASE 2）</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>
