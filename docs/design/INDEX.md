@@ -3,7 +3,7 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — **M1.3** ch11 執筆（ch10 完了 2/6）；HTML モックは PHASE 2  
+**現在 PHASE**: PHASE 1 — **M1.3** ch11 レビュー待ち（ch10 まで APPROVED 2/6）；HTML モックは PHASE 2  
 **関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)、[`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md)、[`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
@@ -11,8 +11,8 @@
 | 指標 | 値 |
 |------|-----|
 | APPROVED | **10 / 24** 章（ch1〜10） |
-| M1.3 進捗 | **2 / 6** 章完了（ch9〜10） |
-| 現在マイルストーン | **M1.3**（ch11 戦略ロジック 執筆） |
+| M1.3 進捗 | **2 / 6** APPROVED（ch9〜10）、ch11 執筆完了（`REVIEW_PENDING`） |
+| 現在マイルストーン | **M1.3**（ch11 一次レビュー §11.12.2） |
 | 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
@@ -60,7 +60,7 @@
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
 | 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | `1bdb84c` |
-| 11 | 戦略ロジック（Markov + Kelly） | `11_strategy.md` | PENDING |
+| 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | REVIEW_PENDING |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
 | 13 | ペーパー約定エンジン | `13_paper_execution.md` | PENDING |
 | 14 | i18n 設計 | `14_i18n.md` | PENDING |
