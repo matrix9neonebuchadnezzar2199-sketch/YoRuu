@@ -193,6 +193,7 @@ class FillModel:
     def detect_liquidity_failure(
         self,
         book: OrderBook,
+        side: Literal["YES", "NO"],
         size_usd: float,
     ) -> LiquidityCheck: ...
 ```
