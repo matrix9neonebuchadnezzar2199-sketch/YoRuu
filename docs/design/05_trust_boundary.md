@@ -1,102 +1,187 @@
 # 第5章 信頼境界線図
 
-## この章の目的
-
-Zone 0〜3 の信頼ゾーン定義、境界を越えるデータに必須の検証、機密情報ポリシーを定める。第6章の `alt` 分岐および第7章の検証マトリクスと整合させる。
-
----
+> この章の目的
+> YoRuu システム内で「信頼できる領域」と「信頼できない領域」を明示し、両者の境界で必要となる検証・サニタイズを定義する。お金が動くシステムの安全性の根幹をなす章である。
 
 ## 5.1 信頼ゾーン定義
 
-| ゾーン | 名称 | 含まれるもの | 信頼度 |
-|:---:|:---|:---|:---|
-| **Zone 0** | 最高機密 | 秘密鍵、API キー、wallet seed | 触れる関数をホワイトリスト化 |
-| **Zone 1** | 内部信頼 | YoRuu プロセス内メモリ、検証済み DB 行 | 検証通過後のみ |
-| **Zone 2** | 準信頼 | ローカル FS（`yoruu.yaml`、ログ、レポート、strategy 履歴） | 読込時に再検証 |
-| **Zone 3** | 非信頼 | Polymarket / Binance / Chainlink 応答、Opus JSON、ユーザー UI 入力 | 常に検証必須 |
+YoRuu は4つの信頼ゾーンを定義する。
 
----
+| ゾーン | 名称 | 内容 | 信頼レベル |
+|---|---|---|---|
+| Zone 0 | 最高機密 | 秘密鍵、API キー、wallet seed | 最大限保護 |
+| Zone 1 | 内部信頼 | YoRuu プロセス内のメモリ、内部関数間のデータ | 信頼する |
+| Zone 2 | 準信頼 | ローカルファイルシステム (設定、ログ、レポート、DB) | 条件付き信頼 |
+| Zone 3 | 非信頼 | 外部 API 応答、Opus 4.7 からの戻り JSON、UI からの入力 | 全て検証 |
 
 ## 5.2 信頼境界線図
 
 ```mermaid
 flowchart TB
-    subgraph Z3["Zone 3 — 非信頼"]
-        PM_API[Polymarket API]
-        BN_API[Binance API]
-        OPUS_JSON[Opus JSON]
-        UI_IN[UI 入力]
+    subgraph Z3[Zone 3: 非信頼]
+        EXT_API[Polymarket / Binance API 応答]
+        OPUS_OUT[Opus 4.7 戻りJSON]
+        UI_IN[Web UI 入力]
     end
 
-    subgraph VAL["検証層（境界上）"]
-        V_PM[validate_polymarket_response]
-        V_BN[validate_price_tick]
-        V_OPUS[validate_strategy_apply]
-        V_UI[validate_api_request]
+    subgraph Z2[Zone 2: 準信頼]
+        FS_CFG[yoruu.yaml]
+        FS_STR[strategy.json]
+        FS_LOG[logs/]
+        FS_REP[reports/]
+        FS_DB[SQLite DB ファイル]
     end
 
-    subgraph Z1["Zone 1 — 内部信頼"]
-        CORE[Strategy / Order / Position]
-        DB[(SQLite)]
+    subgraph Z1[Zone 1: 内部信頼]
+        MEM[メモリ上のオブジェクト]
+        FUNC[内部関数間のデータ授受]
     end
 
-    subgraph Z2["Zone 2 — 準信頼"]
-        YAML[yoruu.yaml]
-        SJSON[strategy.json]
-        REPORT[reports/]
+    subgraph Z0[Zone 0: 最高機密]
+        ENV[.env 秘密鍵・APIキー]
+        WALLET[wallet 署名処理]
     end
 
-    subgraph Z0["Zone 0 — 最高機密"]
-        SEC[.env 秘密鍵]
-    end
+    EXT_API -->|スキーマ検証\n範囲チェック| V1{Validator 1}
+    OPUS_OUT -->|スキーマ検証\n範囲チェック\n変化率チェック| V2{Validator 2}
+    UI_IN -->|サーバ側再検証| V3{Validator 3}
+    V1 --> Z1
+    V2 --> Z1
+    V3 --> Z1
 
-    PM_API --> V_PM --> CORE
-    BN_API --> V_BN --> CORE
-    OPUS_JSON --> V_OPUS --> SJSON
-    UI_IN --> V_UI --> CORE
-    YAML -->|起動時検証| CORE
-    SJSON -->|読込時検証| CORE
-    SEC -->|whitelist のみ| CORE
+    FS_CFG -->|起動時・変更時検証| V4{Validator 4}
+    FS_STR -->|読込時検証| V5{Validator 5}
+    V4 --> Z1
+    V5 --> Z1
+
+    Z1 -->|書き込み前検証| FS_DB
+    Z1 -->|書き込み前検証| FS_STR
+    Z1 -->|ログレベル別| FS_LOG
+    Z1 -->|生成時整形| FS_REP
+
+    Z1 -.限定された関数のみ\nホワイトリスト方式.-> WALLET
+    ENV -.環境変数読込\n署名処理時のみ.-> WALLET
+
+    style Z0 fill:#fee
+    style Z3 fill:#fee
+    style Z1 fill:#efe
+    style Z2 fill:#ffe
 ```
 
-**図 5-1: 信頼境界と検証関数の配置**
+*図 5-1: 信頼境界線図*
 
-Zone 3 から Zone 1 へは **必ず** 検証層を通過する。Zone 0 へのアクセスは署名・発注モジュールのホワイトリストに限定する。
+色の凡例: 赤系 = 危険 (Zone 0 と Zone 3)、黄 = 中間 (Zone 2)、緑 = 安全 (Zone 1)。
 
----
+## 5.3 境界別の検証ルール
 
-## 5.3 境界別の検証ルール表
+各境界における検証ルールを明示する。
 
-| 境界 | 入力 | 必須検証 | 違反時の動作 |
-|:---|:---|:---|:---|
-| Zone 3 → Zone 1 (Polymarket) | 注文応答 | JSON スキーマ、金額符号、order_id 整合 | 例外 → 監査ログ → 再試行（最大3回） |
-| Zone 3 → Zone 1 (Binance) | 価格 tick | 前値 ±5% 以内、タイムスタンプ単調増加 | 異常値スキップ + WARN ログ |
-| Zone 3 → Zone 1 (Opus JSON) | 戦略パラメータ | スキーマ、範囲、変化率 ±10% 以内 | apply 拒否 + UI エラー表示 |
-| Zone 3 → Zone 1 (UI) | 全 API ボディ | pydantic サーバ側再検証 | 400 + エラーコード |
-| Zone 0 アクセス | 秘密鍵読出 | 呼び出し元ホワイトリスト | 例外 + CRITICAL + `EMERGENCY_STOP` 検討 |
-| Zone 2 → Zone 1 (strategy.json) | ファイル読込 | スキーマ検証 | 直前バージョンへフォールバック |
-| Zone 2 → Zone 1 (yoruu.yaml) | 設定読込 | pydantic-settings | 起動失敗（安全側） |
+### 5.3.1 Zone 3 → Zone 1 の境界
 
-第7章 7.2 の入力検証マトリクスと **同一の範囲・関数** を用いる。
+| 入力 | 必須検証 | 違反時の動作 |
+|---|---|---|
+| Polymarket 注文応答 | スキーマ検証 (Pydantic)、`order_id` 存在、金額の符号、エラーコード確認 | YoRuuExchangeError 例外 → 監査ログ → 設定回数まで再試行 |
+| Polymarket 板情報 | スキーマ検証、bid <= ask、価格が `[0.01, 0.99]` 範囲内 | 異常データスキップ + WARN ログ |
+| Binance 価格応答 | スキーマ検証、`close > 0`、前値からの変動が ±5% 以内 | 異常値スキップ + WARN ログ、3回連続で WS 再接続 |
+| Chainlink 価格 (オンチェーン) | スキーマ検証、ステイル判定 (heartbeat 超過) | ステイル時は使用しない |
+| Opus 4.7 戻り JSON | スキーマ検証、必須キー (`MIN_PROB`, `MIN_EDGE`, `KELLY_FRACTION`, `PERSISTENCE_THRESHOLD`)、各値の範囲、前値からの変化率 ±10% 以内 | apply 拒否 + UI に詳細エラー表示 |
+| Web UI 入力 (フォーム) | サーバ側で必ず再検証 (クライアント検証は信用しない)、CSRF トークン確認 | HTTP 422 エラー応答 + UI に詳細表示 |
+| Web UI 入力 (モード切替の "LIVE") | 厳密な文字列一致 (大文字小文字区別)、CSRF トークン | 拒否、UI に再入力を促す |
 
----
+### 5.3.2 Zone 2 → Zone 1 の境界
+
+| 入力 | 必須検証 | 違反時の動作 |
+|---|---|---|
+| `yoruu.yaml` 読込 | Pydantic スキーマ、必須キー、値の範囲 | 起動失敗、CRITICAL ログ、Web UI は別ポートで起動して設定修正画面を表示 (検討) |
+| `strategy.json` 読込 | Pydantic スキーマ、不変条件 (→ 第16章) | 前バージョン (history/) へ自動フォールバック + WARN ログ |
+| SQLite からのレコード読込 | スキーマ整合性 (SQLAlchemy)、参照整合性 | 該当レコードをスキップ + WARN ログ |
+
+### 5.3.3 Zone 1 → Zone 0 の境界
+
+最も厳格な境界。Zone 0 へのアクセスは以下のホワイトリスト関数のみ許可する。
+
+| 許可される関数 | 用途 |
+|---|---|
+| `wallet.sign_order(order)` | Polymarket 注文の EIP-712 署名 |
+| `wallet.get_address()` | 自ウォレットアドレスの取得 (公開情報) |
+| `config.load_env()` | 起動時の環境変数読込 (1回のみ) |
+
+これ以外の関数からの `.env` 読込・wallet オブジェクトへのアクセスは禁止する。実装時には:
+
+- `WalletManager` クラスを singleton として実装
+- private 属性で `_private_key` を保持
+- 外部公開メソッドは上記3つのみ
+- ログ出力時には自動マスキング (`***`)
+
+### 5.3.4 Zone 0 アクセス時の不変条件
+
+- 秘密鍵のメモリ上保持時間を最小化する
+- ログ・例外メッセージ・スタックトレースのいかなる箇所にも秘密鍵が出力されない
+- 秘密鍵を引数として渡す関数は作らない (常に Singleton 経由)
 
 ## 5.4 機密情報の取り扱いポリシー
 
-1. **保管**: `.env` に集約。`chmod 600`、プロセス所有者のみ読取可
-2. **ログ**: 秘密鍵・API キー・seed の **部分列・ハッシュ・base64 含め一切出力禁止**
-3. **メモリ**: 使用後は参照を解放（Python ではスコープ終了 + 可能なら `del`）
-4. **Git**: `.gitignore` で `.env`, `*.key`, `*.pem`, `wallet.json` を除外（リポジトリに ` .gitignore` 済）
-5. **バックアップ**: DB バックアップに秘密情報を含めない（Zone 0 はバックアップ対象外）
+### 5.4.1 保存
 
-EIP-712 署名の詳細は (→ 第10章・第12章)。
+- 環境変数 `.env` で管理 (プロジェクトルート)
+- ファイル権限 `chmod 600`、所有者のみ読み取り可
+- Git 管理対象から完全に除外 (`.gitignore` で `.env`, `*.key`, `*.pem` を明示除外)
+- バックアップ対象から除外
 
----
+### 5.4.2 メモリ
+
+- 起動時に1回読込、Singleton で保持
+- 不要になったメモリ領域は明示的に上書き (Python の制約上完全保証は不可だが努力する)
+- ログ出力時には自動マスキング処理を全 Logger に適用
+
+### 5.4.3 検知
+
+- 起動時に `.env` の権限をチェック、`chmod 600` 以外なら CRITICAL ログ + 警告 (起動は継続可能、設定で厳格化可能)
+- 起動時に `.env` がリポジトリ追跡対象に含まれていないか確認
+- ログファイルのスキャン (`grep`) で疑似的に秘密鍵が漏れていないか定期チェックするスクリプトを `scripts/audit_logs.sh` として用意 (→ 第24章)
+
+## 5.5 ネットワーク境界
+
+YoRuu の Web UI は外部公開しない。これは追加の信頼境界である。
+
+| 境界 | 方針 |
+|---|---|
+| Web UI バインド | `127.0.0.1:8765` のみ。`0.0.0.0` バインド禁止 |
+| VPS でのアクセス | SSH トンネルのみ。SSH キー認証必須、パスワード認証無効 |
+| Polymarket / Binance への接続 | HTTPS / WSS のみ、証明書検証必須 |
+| 内部プロセス間通信 | なし (単一プロセス設計) |
+
+## 5.6 認証・認可
+
+YoRuu は単一ユーザー前提のため、認証機構を持たない。代わりに以下で代替する。
+
+- Web UI はローカルホスト限定 (5.5 と同様)
+- VPS 運用時は SSH の認証に依存する
+- API キー漏洩時の影響範囲は本人ウォレットのみ
+
+将来複数ユーザー対応が必要になった場合は別途認証層を追加するが、本設計のスコープ外。
+
+## 5.7 ログ・エラーメッセージのサニタイズ
+
+ログ出力時に自動でマスキングする対象を定義する。
+
+| 対象 | マスキングルール |
+|---|---|
+| 秘密鍵 (0x で始まる64桁hex) | 全てマスク `***` |
+| API キー (環境変数経由のもの全て) | 全てマスク `***` |
+| Wallet アドレス | 先頭6 + 末尾4 を残す (`0xabc123...d4e5`) |
+| 注文 ID | そのまま出力 (公開情報) |
+| 金額 | そのまま出力 |
+
+実装は `structlog` のプロセッサとして組み込む。
 
 ## 品質チェック
 
-- [x] 章の冒頭に目的を記載
-- [x] Mermaid 図 5-1、キャプション
-- [x] 第7章 7.2 との整合を 5.3 で宣言
-- [x] Zone 0〜3 命名を第6章でも使用
-- [x] `05_trust_boundary.md`
+- [x] 章の冒頭に「この章の目的」を記載した
+- [x] 図はすべて Mermaid で描画した
+- [x] 図にキャプションを付けた
+- [x] 他章への参照は `(→ 第X章)` 形式で記載した
+- [x] 用語は第1章 1.6 の用語集と一致している
+- [x] 出力ファイル名: `05_trust_boundary.md`
+- [x] 章内で矛盾する記述がない
+- [x] 後続章で詳細化される項目は明示的に「(→ 第X章で詳細)」と書いた

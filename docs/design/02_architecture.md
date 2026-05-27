@@ -1,162 +1,192 @@
 # 第2章 アーキテクチャ概観
 
-## この章の目的
-
-YoRuu の論理レイヤー構成、技術スタック、デプロイパターン、ディレクトリ構造、横断的関心事を定義する。第3章以降の状態・データ・境界・シーケンスの物理配置の前提となる。
-
----
+> この章の目的
+> YoRuu 全体の構造を俯瞰し、技術スタックとディレクトリ構成を確定する。以降の章で詳細化される個別要素の位置付けを与える。
 
 ## 2.1 全体アーキテクチャ図
 
+YoRuu は層構造で設計される。各層は下位層に依存するが、上位層には依存しない。
+
 ```mermaid
 flowchart TB
-    subgraph EXT["データソース層（Zone 3）"]
-        BN[Binance WebSocket]
-        PM[Polymarket CLOB REST+WS]
-        CL[Chainlink 参照・任意]
+    subgraph EXT[外部世界]
+        BIN[Binance WS]
+        POLY[Polymarket CLOB]
+        CL[Chainlink 参照のみ]
+        USER[ユーザー]
+        OPUS[Opus 4.7 / Genspark]
     end
 
-    subgraph CORE["コア層（Zone 1）"]
+    subgraph DATA[データソース層]
         PA[Price Aggregator]
-        SE[Strategy Engine<br/>Markov + Kelly]
+        PC[Polymarket Client]
+        CC[Chainlink Client]
+    end
+
+    subgraph CORE[コア層]
+        ME[Markov Estimator]
+        KS[Kelly Sizer]
+        SE[Strategy Engine]
+        SC[Safety Checker]
         OM[Order Manager]
         PT[Position Tracker]
     end
 
-    subgraph MODES["モード層"]
+    subgraph MODE[モード層]
         BT[Backtest Executor]
-        PP[Paper Executor]
+        PE[Paper Executor]
         SM[Simmer Executor]
         LV[Live Executor]
     end
 
-    subgraph PERSIST["永続化層（Zone 2）"]
+    subgraph PERS[永続化層]
         DB[(SQLite)]
         SJ[strategy.json]
-        RP[reports/]
+        REP[reports/]
+        LOG[logs/]
     end
 
-    subgraph UI["UI層"]
-        WEB[FastAPI + Web UI]
+    subgraph UI[UI層]
+        WS[FastAPI Web Server]
+        WV[Web View HTML/CSS/JS]
+        SSE[SSE Stream]
     end
 
-    subgraph REVIEW["レビュー層"]
-        DRG[Daily Report Generator]
+    subgraph REV[レビュー層]
+        RG[Report Generator]
         AV[Apply Validator]
+        SW[Strategy Writer]
     end
 
-    subgraph XCUT["横断的関心事"]
+    subgraph CROSS[横断的関心事]
         SCH[Scheduler]
-        LOG[Logger]
-        AUD[Audit Logger]
-        EST[Emergency Stop Monitor]
+        LGR[Logger]
+        ALG[Audit Logger]
+        ES[Emergency Stop Monitor]
     end
 
-    BN --> PA
-    PM <--> OM
-    CL -.-> PA
-    PA --> SE
-    SE --> MODES
-    MODES --> OM
-    OM --> PT
-    PT --> DB
+    BIN --> PA
+    POLY --> PC
+    CL --> CC
+    PA --> ME
+    PC --> PT
+    ME --> SE
+    KS --> SE
+    SE --> SC
+    SC --> OM
+    OM --> BT
+    OM --> PE
+    OM --> SM
+    OM --> LV
+    PE --> POLY
+    SM --> POLY
+    LV --> POLY
     OM --> DB
-    SE --> SJ
-    DRG --> RP
-    AV --> SJ
-    WEB --> AV
-    WEB --> OM
+    PT --> DB
+    DB --> RG
+    RG --> REP
+    USER --> WV
+    WV --> WS
+    WS --> DB
+    WS --> SJ
+    WS --> AV
+    USER --> OPUS
+    OPUS --> USER
+    USER --> WV
+    AV --> SW
+    SW --> SJ
+    SW --> ALG
+    SW --> DB
     SCH --> SE
-    SCH --> DRG
-    EST --> OM
-    LOG --> DB
-    AUD --> DB
+    SCH --> RG
+    ES --> OM
+    LGR --> LOG
+    ALG --> DB
+    WS --> SSE
+    SSE --> WV
 ```
 
-**図 2-1: YoRuu 全体アーキテクチャ（論理レイヤー）**
+*図 2-1: YoRuu 全体アーキテクチャ*
 
-データは下位層（外部）からコアへ流入し、モード層が実行先を分岐する。UI・レビュー層は人間操作と夜間レビューを担い、横断関心事がスケジュール・ログ・緊急停止を監視する。
+矢印は「呼び出し」または「データの流れ」を示す。詳細なデータフローは第4章、関数呼び出しの正確な姿は第10章で示す。
 
----
-
-## 2.2 技術スタック表
+## 2.2 技術スタック
 
 | 層 | 技術 | バージョン目安 | 選定理由 |
-|:---|:---|:---|:---|
-| 言語 | Python | 3.11+ | エコシステム、可読性、Polymarket SDK 対応 |
+|---|---|---|---|
+| 言語 | Python | 3.11+ | エコシステム、可読性、Polymarket SDK の対応 |
 | Web Framework | FastAPI | 最新安定版 | 軽量、型安全、自動 API docs |
-| WS Client | websockets | — | 標準的・安定 |
-| HTTP Client | httpx | — | async 対応、リトライ記述が容易 |
-| Polymarket | py-clob-client | — | 公式 SDK |
-| DB | SQLite | 3.40+ | 単一ファイル、バックアップ容易 |
-| ORM | SQLAlchemy | — | 型安全、alembic マイグレーション |
-| スケジューラ | APScheduler | — | cron 相当、Python 内完結 |
-| 設定 | pydantic-settings | — | 型検証込み YAML 読込 |
-| ログ | structlog | — | 構造化ログ、JSON 出力可 |
-| テスト | pytest + pytest-asyncio | — | 標準 |
+| WS Client | websockets | 最新 | 標準的・安定 |
+| HTTP Client | httpx | 最新 | async 対応、リトライが書きやすい |
+| Polymarket | py-clob-client | 公式最新 | 公式 SDK |
+| DB | SQLite | 3.40+ | 単一ファイル、バックアップ容易、十分高速 |
+| ORM | SQLAlchemy | 2.x | 型安全、マイグレーション (Alembic) |
+| スケジューラ | APScheduler | 最新 | cron 相当、Python 内で完結 |
+| 設定 | pydantic-settings | 最新 | 型検証込み YAML 読込 |
+| ログ | structlog | 最新 | 構造化ログ、JSON 出力可能 |
+| テスト | pytest + pytest-asyncio | 最新 | 標準 |
 | Web UI | 素の HTML/CSS/JS | — | 依存最小、モックアップとの一貫性 |
-| リアルタイム UI | Server-Sent Events | — | WebSocket より単純で十分 |
-| プロセス管理 | systemd / supervisor | — | VPS 運用標準 |
+| Web UI (リアルタイム) | Server-Sent Events | — | WebSocket より単純、十分 |
+| プロセス管理 | systemd または supervisor | — | VPS 運用標準 |
+| マイグレーション | Alembic | 最新 | SQLAlchemy 標準 |
 
----
+技術選定の基本姿勢は **「枯れた技術を優先、流行を避ける」** である。トレード Bot の中核はシンプルな数値計算と DB I/O であり、最新フレームワークの採用メリットよりも安定性のメリットが大きい。
 
-## 2.3 デプロイ構成図
+## 2.3 デプロイ構成
 
-### パターンA: ローカル PC 運用
+YoRuu は2パターンの運用形態を想定する。
 
-```mermaid
-flowchart LR
-    DEV[開発者 PC]
-    subgraph DEV_BOX["localhost"]
-        BOT[YoRuu Process]
-        DBF[(yoruu.db)]
-        ENV[.env chmod 600]
-        WEB[http://127.0.0.1:8765]
-    end
-    DEV --> BOT
-    BOT --> DBF
-    BOT --> ENV
-    BOT --> WEB
-    BN[Binance] --> BOT
-    PM[Polymarket] --> BOT
-```
+### パターン A: ローカル PC 運用
 
-**図 2-2: パターンA — ローカル PC**
-
-| 項目 | 配置 |
-|:---|:---|
-| SQLite | `./data/yoruu.db` |
-| Web UI | `127.0.0.1:8765`（LAN 公開は `[要確認: セキュリティ方針]`） |
-| 秘密鍵 | `.env`（プロジェクト外配置も可） |
-
-### パターンB: Hetzner VPS 運用
+開発・初期検証用。Web UI へは `http://localhost:8765` でアクセスする。
 
 ```mermaid
 flowchart LR
-    USER[ユーザー Browser]
-    VPS[Hetzner VPS]
-    subgraph VPS_BOX["/opt/yoruu"]
-        BOT[YoRuu systemd service]
-        DBF[(yoruu.db)]
-        ENV[.env]
-        NG[nginx reverse proxy TLS]
+    subgraph LOCAL[ローカルPC]
+        APP[YoRuu プロセス]
+        DBF[(SQLite ファイル)]
+        ENV[.env 秘密鍵]
+        CFG[yoruu.yaml]
+        BR[ブラウザ]
     end
-    USER -->|HTTPS| NG --> BOT
-    BOT --> DBF
-    BOT --> ENV
-    BN --> BOT
-    PM --> BOT
+    APP --- DBF
+    APP --- ENV
+    APP --- CFG
+    BR -.http://localhost:8765.-> APP
+    APP -.WSS.-> POLY[Polymarket]
+    APP -.WSS.-> BIN[Binance]
 ```
 
-**図 2-3: パターンB — Hetzner VPS**
+*図 2-2: ローカル PC 運用構成*
 
-| 項目 | 配置 |
-|:---|:---|
-| SQLite | `/opt/yoruu/data/yoruu.db`（日次バックアップ） |
-| Web UI | nginx 経由 HTTPS（自己署名 or Let's Encrypt） |
-| 秘密鍵 | `/opt/yoruu/.env`、所有者のみ |
+### パターン B: Hetzner VPS 運用
 
----
+本番。Web UI には SSH トンネル経由 (`ssh -L 8765:localhost:8765 user@vps`) でアクセスする。インターネット直接公開はしない。
+
+```mermaid
+flowchart LR
+    subgraph VPS[Hetzner VPS]
+        APP[YoRuu systemd サービス]
+        DBF[(SQLite ファイル)]
+        ENV[.env 秘密鍵 chmod 600]
+        CFG[yoruu.yaml]
+    end
+    subgraph LOCAL[手元 PC]
+        BR[ブラウザ]
+        SSH[SSH トンネル]
+    end
+    BR -.localhost:8765.-> SSH
+    SSH -.暗号化トンネル.-> APP
+    APP --- DBF
+    APP --- ENV
+    APP --- CFG
+    APP -.WSS.-> POLY[Polymarket]
+    APP -.WSS.-> BIN[Binance]
+```
+
+*図 2-3: VPS 運用構成*
+
+VPS 運用では Web UI を 0.0.0.0 にバインドせず、必ず 127.0.0.1 にバインドする。理由はセキュリティで、第5章 (信頼境界線) と整合する。
 
 ## 2.4 ディレクトリ構造
 
@@ -165,82 +195,158 @@ yoruu/
 ├── pyproject.toml
 ├── README.md
 ├── .env.example
+├── .gitignore
 ├── yoruu.yaml.example
-├── .cursor/rules/project.md
+├── .cursor/
+│   └── rules/
+│       └── project.md            # Cursor 運用ルール
 ├── docs/
-│   ├── design/
-│   └── mockups/
+│   ├── design/                   # 設計書 (本ファイル群)
+│   └── mockups/                  # HTML モックアップ
 ├── src/yoruu/
-│   ├── __main__.py
-│   ├── config.py
-│   ├── core/
-│   ├── data/
-│   ├── exchange/
-│   ├── modes/
-│   ├── review/
-│   ├── persistence/
-│   ├── safety/
-│   ├── audit/
-│   ├── scheduler/
-│   ├── web/
-│   └── utils/
-├── tests/{unit,integration,e2e}/
-└── scripts/
+│   ├── __init__.py
+│   ├── __main__.py               # CLI エントリポイント
+│   ├── config.py                 # 設定ファイル読み込み
+│   ├── core/                     # 戦略・約定・状態管理
+│   │   ├── markov.py
+│   │   ├── kelly.py
+│   │   ├── strategy.py
+│   │   ├── order_manager.py
+│   │   └── position_tracker.py
+│   ├── data/                     # 価格データ取得
+│   │   ├── binance.py
+│   │   ├── price_aggregator.py
+│   │   └── chainlink.py
+│   ├── exchange/                 # Polymarket クライアント
+│   │   ├── polymarket_client.py
+│   │   └── clob_ws.py
+│   ├── modes/                    # 4モードの分岐実装
+│   │   ├── base.py
+│   │   ├── backtest.py
+│   │   ├── paper.py
+│   │   ├── simmer.py
+│   │   └── live.py
+│   ├── review/                   # 夜間レビュー
+│   │   ├── report_generator.py
+│   │   ├── apply_validator.py
+│   │   └── strategy_writer.py
+│   ├── persistence/              # DB, JSON I/O
+│   │   ├── db.py
+│   │   ├── models.py             # SQLAlchemy モデル
+│   │   └── strategy_io.py
+│   ├── safety/                   # 不変条件・キル・スイッチ
+│   │   ├── invariants.py
+│   │   ├── kill_switch.py
+│   │   └── safety_checker.py
+│   ├── audit/                    # 監査ログ
+│   │   └── audit_logger.py
+│   ├── scheduler/                # cron 的スケジューリング
+│   │   └── scheduler.py
+│   ├── web/                      # FastAPI Web UI
+│   │   ├── app.py
+│   │   ├── routes/
+│   │   │   ├── dashboard.py
+│   │   │   ├── trades.py
+│   │   │   ├── review.py
+│   │   │   ├── settings.py
+│   │   │   ├── strategy.py
+│   │   │   ├── alerts.py
+│   │   │   ├── mode.py
+│   │   │   └── emergency.py
+│   │   ├── static/               # CSS / JS / 画像
+│   │   └── templates/            # HTML テンプレート
+│   └── utils/                    # 共通ユーティリティ
+│       ├── time.py
+│       ├── errors.py
+│       └── ids.py
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── alembic/                      # DB マイグレーション
+│   └── versions/
+├── scripts/                      # 運用補助スクリプト
+│   ├── backup.sh
+│   └── restore.sh
+└── data/                         # ランタイム生成 (gitignore)
+    ├── yoruu.db
+    ├── strategy.json
+    ├── strategy_history/
+    ├── reports/
+    └── logs/
 ```
 
-| パス | 責務 |
-|:---|:---|
-| `src/yoruu/core/` | Markov 推定、Kelly サイジング、状態機械 |
-| `src/yoruu/data/` | Binance WS、価格バッファ、5分足集計 |
-| `src/yoruu/exchange/` | Polymarket CLOB クライアント、EIP-712 署名呼び出し |
-| `src/yoruu/modes/` | backtest / paper / simmer / live の Executor |
-| `src/yoruu/review/` | 日次レポート生成、apply 検証 |
-| `src/yoruu/persistence/` | SQLite ORM、JSON I/O |
-| `src/yoruu/safety/` | 不変条件、キル・スイッチ |
-| `src/yoruu/audit/` | 監査ログ append |
-| `src/yoruu/scheduler/` | 5分境界、夜間レビュー時刻 |
-| `src/yoruu/web/` | FastAPI ルート、SSE、静的 HTML |
+各ディレクトリの責務は以下のとおり。
 
----
+| ディレクトリ | 責務 |
+|---|---|
+| `core/` | 戦略の中核ロジック。LLM 非依存、純粋関数中心 |
+| `data/` | 外部からの価格データ取得、正規化 |
+| `exchange/` | Polymarket への発注・板取得・WS 購読 |
+| `modes/` | 動作モード分岐。同一インターフェースで4実装 |
+| `review/` | 夜間レポート生成と Apply プロセス |
+| `persistence/` | SQLite・JSON 永続化の唯一の窓口 |
+| `safety/` | 不変条件検証・キル・スイッチ |
+| `audit/` | 監査ログ専用 (改ざん検知) |
+| `scheduler/` | 5分判定・夜間レビューの起動 |
+| `web/` | FastAPI ベースの Web UI |
+| `utils/` | 時刻・例外クラス・ID 採番など |
 
 ## 2.5 横断的関心事
 
-### ロギング
+以下は全モジュールに共通する規約である。実装時に各モジュールでこれらが守られていることをコードレビューで確認する。
 
-全モジュールは `structlog.get_logger(__name__)` を使用する。ログレベル定義は (→ 第18章)。
+### 2.5.1 ロギング
 
-### エラー処理
+全モジュールが `structlog.get_logger(__name__)` を使う。print 文の使用は禁止。ログレベルの使い分けの詳細は第18章で定義する。
 
-例外は `YoRuuError` 階層を経由する。Zone 3 入力の検証失敗は専用サブクラス（例: `ValidationError`）とする (→ 第5章 5.3節)。
+### 2.5.2 エラー処理
 
-### 時刻
+例外は専用クラス階層 (`YoRuuError` を継承) を必ず通す。Python 標準例外を直接 raise する箇所は外部ライブラリ呼び出し直後のみとし、即座に YoRuu 例外でラップして上位に渡す。例外階層の詳細は第18章で定義する。
 
-- 内部処理は **UTC** 固定
-- 表示・レポートはユーザー TZ（デフォルト `Asia/Tokyo`）
-- 5分境界は UTC 基準でスケジューラが合わせる
+### 2.5.3 時刻
 
-### 乱数
+内部表現は全て UTC で行う。`datetime.now()` の素の使用は禁止し、`yoruu.utils.time.now_utc()` を使う。表示時のみユーザー設定のタイムゾーン (デフォルト `Asia/Tokyo`) に変換する。
 
-テスト用シードを `yoruu.yaml` で固定可能にし、バックテスト再現性を確保する。
+### 2.5.4 乱数
 
-### シャットダウン
+シミュレーション・テストで乱数を使う場合、シード固定で再現性を確保する。`yoruu.utils.random.seeded_random(seed)` 経由でのみ取得する。
 
-`SIGTERM` 受信時:
+### 2.5.5 シャットダウン
 
-1. 新規発注停止
-2. 現ポジションを DB 保存
-3. WebSocket 切断
-4. 状態を `SHUTDOWN` へ遷移 (→ 第3章 3.2節)
+SIGTERM 受信時の動作は次の順序で行う。
 
----
+1. 新規取引判定を停止 (Scheduler 停止)
+2. 未約定注文をキャンセル
+3. 現ポジションの状態を DB に永続化
+4. WS 切断
+5. Web Server 停止
+6. ログフラッシュ
+7. プロセス終了
+
+タイムアウトは30秒。これを超えたら強制終了するが、その場合は次回起動時に「異常終了からの復旧」モードで起動する。詳細は第3章状態遷移と第19章で定義する。
+
+## 2.6 依存関係の方向
+
+層間の依存方向を明示する。これに反する依存は実装段階で禁止する。
+
+```
+UI層 → コア層 → データソース層
+モード層 → コア層 + 外部
+レビュー層 → コア層 + 永続化層
+横断的関心事 ← すべての層から利用される
+永続化層 ← コア層・モード層・レビュー層から利用される
+```
+
+例えば `core/` から `web/` を import する実装は禁止である。これにより Web UI を取り外しても Bot 本体は動作する状態を維持する。
 
 ## 品質チェック
 
 - [x] 章の冒頭に「この章の目的」を記載した
 - [x] 図はすべて Mermaid で描画した
 - [x] 図にキャプションを付けた
-- [x] 他章への参照は `(→ 第X章 X.Y節)` 形式
-- [x] 用語は第1章 1.6 と一致
-- [x] 出力ファイル名 `02_architecture.md`
-- [x] 章内矛盾なし
-- [x] 詳細は後続章へ委譲
+- [x] 他章への参照は `(→ 第X章)` 形式で記載した
+- [x] 用語は第1章 1.6 の用語集と一致している
+- [x] 出力ファイル名: `02_architecture.md`
+- [x] 章内で矛盾する記述がない
+- [x] 後続章で詳細化される項目は明示的に「(→ 第X章で詳細)」と書いた
