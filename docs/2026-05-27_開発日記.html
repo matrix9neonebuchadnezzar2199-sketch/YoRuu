@@ -408,6 +408,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1500">#entry-1500</a></td>
       </tr>
+      <tr>
+        <td>15:15</td>
+        <td>第13章 ペーパー約定エンジン配置（v1.0 REVIEW_PENDING）</td>
+        <td><span class="tag tag-warn">warn</span></td>
+        <td><a href="#entry-1515">#entry-1515</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1475,6 +1481,32 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>Commit: <code>b73fc18</code></p>
+</section>
+
+<section class="entry" id="entry-1515">
+  <h2>第13章 ペーパー約定エンジン配置（M1.3 ch13）<a href="#entry-1515" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 15:15 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-warn">warn</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    マスター執筆 <code>13_paper_execution.md</code> v1.0 を配置（FillModel / PaperExecutor / 約定失敗 / 検証ポリシー）。
+    配置時: YES/NO 独立オーダーブック表記を §13.3.3・§13.7.1・§13.8.1 に統一、<code>FillResult</code> ↔ <code>OrderResult</code> マッピング注記。
+    ch12 APPROVED は <code>b73fc18</code>（前エントリ）。
+  </p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/13_paper_execution.md</li>
+    <li><span class="op op-mod">~</span> docs/design/INDEX.md、00_ROADMAP.md</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>
