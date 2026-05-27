@@ -480,6 +480,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1620">#entry-1620</a></td>
       </tr>
+      <tr>
+        <td>16:25</td>
+        <td>PHASE 2 M2.3 完了 — 設定/アラート/モード/緊急停止/What-If（PHASE 2 100%）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1625">#entry-1625</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1830,6 +1836,35 @@ body.diary > footer {
   <p>
     夜間レビュー: 「サンプル読込」→「差分確認」→ Apply 活性、±20% 超 JSON で Apply 無効を確認。
     §8.25.3 + §15.12.4 PHASE 2 項目。Commit: <code>9b4ce17</code>（push 済）
+  </p>
+</section>
+
+<section class="entry" id="entry-1625">
+  <h2>PHASE 2 M2.3 完了 — 運用系5画面 + PHASE 2 100%<a href="#entry-1625" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 16:25 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-scope">ui</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    §3.3 に従い <code>04_settings</code> / <code>06_alerts</code> / <code>07_mode_switch</code> /
+    <code>08_emergency_stop</code> / <code>10_what_if</code> を実装。LIVE は 2 段階モーダル（LIVE 入力 + チェックリスト）、
+    EMERGENCY_STOP からの LIVE 直接復帰は拒否モーダル（§12.5.3）。
+    <code>drawdown</code> シナリオで緊急停止状態を再現。PHASE 2 全 11 画面が揃った。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/mockups/04_settings.html, 06_alerts.html, 07_mode_switch.html, 08_emergency_stop.html, 10_what_if.html</li>
+    <li><span class="op op-mod">~</span> mock-data.js, style.css, locales/ja.json, ja.bundle.js</li>
+    <li><span class="op op-mod">~</span> 00_ROADMAP.md, INDEX.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>
+    §8.25.3 共通チェック、07 で「デモ: IDLE」→ LIVE 2 段階、08 で LIVE 復帰拒否、drawdown で停止 UI。
+    Commit: <code>pending</code>
   </p>
 </section>
 

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — What-If (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="app-layout" data-page="what_if">
+<!--
+  YoRuu Mockup: What-If
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.21
+  Related Mockups: 03_nightly_review.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.what_if.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.what_if.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+    <main class="app-main">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="whatif-period" data-i18n="whatif.period"></label>
+          <select id="whatif-period">
+            <option value="7">7日</option>
+            <option value="14">14日</option>
+            <option value="30">30日</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="whatif-scenario" data-i18n="whatif.scenario"></label>
+          <select id="whatif-scenario"></select>
+        </div>
+        <button type="button" class="btn btn-primary" id="recalc" data-i18n="action.recalculate"></button>
+        <button type="button" class="btn" id="save-scenario" data-i18n="action.save_scenario"></button>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="whatif.params"></div>
+        <div class="panel-body" id="sliders"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="whatif.compare"></div>
+        <div class="panel-body">
+          <table class="data-table compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th data-i18n="whatif.current"></th>
+                <th data-i18n="whatif.simulated"></th>
+              </tr>
+            </thead>
+            <tbody id="compare-body"></tbody>
+          </table>
+          <svg id="pnl-chart" class="persistence-chart" viewBox="0 0 400 80" aria-hidden="true"></svg>
+        </div>
+      </section>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/sidebar.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var scenarios = [];
+      var current = null;
+      var PARAMS = [
+        "MIN_PROB",
+        "MIN_EDGE",
+        "KELLY_FRACTION",
+        "PERSISTENCE_THRESHOLD",
+      ];
+
+      function loadScenarios() {
+        scenarios = md.getWhatIfScenarios();
+        var sel = document.getElementById("whatif-scenario");
+        sel.innerHTML = "";
+        scenarios.forEach(function (s) {
+          var opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = s.label;
+          sel.appendChild(opt);
+        });
+        current = scenarios[0];
+        renderSliders();
+        renderCompare();
+      }
+
+      function renderSliders() {
+        if (!current) return;
+        var html = "";
+        PARAMS.forEach(function (key) {
+          var val = current.params[key];
+          html +=
+            '<div class="slider-row"><label><span>' +
+            key +
+            '</span><span class="mono" id="val-' +
+            key +
+            '">' +
+            val +
+            '</span></label><input type="range" min="0" max="100" step="1" data-key="' +
+            key +
+            '" value="' +
+            Math.round(val * 100) +
+            '" disabled /></div>';
+        });
+        document.getElementById("sliders").innerHTML = html;
+      }
+
+      function renderCompare() {
+        var base = scenarios[0];
+        var sim = current;
+        if (!base || !sim) return;
+        var rows = [
+          ["trades", base.result.trades, sim.result.trades],
+          ["win_rate", (base.result.win_rate * 100).toFixed(1) + "%", (sim.result.win_rate * 100).toFixed(1) + "%"],
+          ["pnl_usd", base.result.pnl_usd, sim.result.pnl_usd],
+        ];
+        var body = "";
+        rows.forEach(function (r) {
+          body +=
+            "<tr><td>" +
+            r[0] +
+            '</td><td class="num">' +
+            r[1] +
+            '</td><td class="num">' +
+            r[2] +
+            "</td></tr>";
+        });
+        document.getElementById("compare-body").innerHTML = body;
+        var svg = document.getElementById("pnl-chart");
+        svg.innerHTML =
+          '<text x="8" y="20" fill="#7d8590" font-size="10">累積 P&L (mock)</text>' +
+          '<line x1="40" y1="60" x2="120" y2="45" stroke="#7d8590" stroke-width="2"/>' +
+          '<line x1="40" y1="60" x2="120" y2="35" stroke="#2f81f7" stroke-width="2"/>';
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({ sidebar: true, activePage: "what_if", langToggleId: "lang-toggle" });
+        loadScenarios();
+
+        document.getElementById("whatif-scenario").addEventListener("change", function (e) {
+          current = scenarios.find(function (s) {
+            return s.id === e.target.value;
+          });
+          renderSliders();
+          renderCompare();
+        });
+        document.getElementById("recalc").addEventListener("click", function () {
+          window.alert(i18n.t("mock.whatif_recalc"));
+          renderCompare();
+        });
+        document.getElementById("save-scenario").addEventListener("click", function () {
+          window.alert(i18n.t("mock.whatif_saved"));
+        });
+        document.addEventListener("scenario_changed", loadScenarios);
+      });
+    })();
+  </script>
+</body>
+</html>

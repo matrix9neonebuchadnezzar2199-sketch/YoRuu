@@ -961,3 +961,181 @@ body.has-banner .sidebar {
 .edge-readout .met-no {
   color: var(--danger-fg);
 }
+
+/* —— Settings —— */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.form-grid label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.form-grid input,
+.form-grid select {
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.yaml-editor {
+  width: 100%;
+  min-height: 200px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.restart-banner {
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  background: var(--severity-warn-bg);
+  border: 1px solid var(--attention-fg);
+  font-size: 13px;
+}
+
+/* —— Alerts —— */
+.alert-card {
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--bg-default);
+}
+
+.alert-card.unread {
+  border-left: 3px solid var(--accent-emphasis);
+}
+
+.alert-card[data-severity="CRITICAL"] {
+  border-left-color: var(--danger-fg);
+}
+
+.alert-card[data-severity="ERROR"] {
+  border-left-color: var(--danger-fg);
+}
+
+.alert-card[data-severity="WARN"] {
+  border-left-color: var(--attention-fg);
+}
+
+.alert-card[data-severity="INFO"] {
+  border-left-color: var(--text-link);
+}
+
+.alert-card header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.alert-card .code {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.alert-card .msg {
+  font-size: 13px;
+}
+
+.alert-card .loc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* —— Mode cards —— */
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.mode-card {
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--bg-default);
+}
+
+.mode-card.current {
+  border-color: var(--accent-emphasis);
+  box-shadow: 0 0 0 1px var(--accent-emphasis);
+}
+
+.mode-card h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.mode-card p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+  min-height: 36px;
+}
+
+.mode-card.live-card {
+  border-color: var(--mode-live);
+}
+
+.info-banner {
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  background: var(--severity-info-bg);
+  border: 1px solid var(--accent-emphasis);
+  font-size: 13px;
+}
+
+.checklist-live {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.checklist-live li {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.checklist-live label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* —— What-If —— */
+.slider-row {
+  margin-bottom: 14px;
+}
+
+.slider-row label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+}
+
+.compare-table td.num {
+  font-family: var(--font-mono);
+  text-align: right;
+}

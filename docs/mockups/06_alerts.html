@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Alerts (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="app-layout" data-page="alerts">
+<!--
+  YoRuu Mockup: Alerts
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.17
+  Related Mockups: index.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.alerts.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.alerts.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+    <main class="app-main">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label for="filter-severity" data-i18n="filter.severity"></label>
+          <select id="filter-severity">
+            <option value="all" data-i18n="filter.all"></option>
+            <option value="CRITICAL" data-i18n="severity.CRITICAL"></option>
+            <option value="ERROR" data-i18n="severity.ERROR"></option>
+            <option value="WARN" data-i18n="severity.WARN"></option>
+            <option value="INFO" data-i18n="severity.INFO"></option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label><input type="checkbox" id="filter-unread"> <span data-i18n="filter.unread_only"></span></label>
+        </div>
+        <button type="button" class="btn" id="mark-all" data-i18n="action.mark_all_read"></button>
+      </div>
+
+      <div id="alert-list" role="log" aria-live="polite"></div>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/sidebar.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var alerts = [];
+
+      function render() {
+        var sev = document.getElementById("filter-severity").value;
+        var unreadOnly = document.getElementById("filter-unread").checked;
+        var html = "";
+        alerts
+          .filter(function (a) {
+            if (sev !== "all" && a.severity !== sev) return false;
+            if (unreadOnly && a.read) return false;
+            return true;
+          })
+          .forEach(function (a) {
+            html +=
+              '<article class="alert-card' +
+              (a.read ? "" : " unread") +
+              '" data-severity="' +
+              a.severity +
+              '"><header><span class="code">' +
+              a.code +
+              '</span><span class="tag">' +
+              i18n.t("severity." + a.severity) +
+              "</span></header>" +
+              '<p class="msg">' +
+              a.message +
+              '</p><p class="loc">' +
+              a.location +
+              " · " +
+              a.created_at.slice(11, 19) +
+              '</p><button type="button" class="btn btn-sm mark-one" data-id="' +
+              a.id +
+              '"' +
+              (a.read ? " disabled" : "") +
+              ">" +
+              i18n.t("action.mark_read") +
+              "</button></article>";
+          });
+        document.getElementById("alert-list").innerHTML = html || "<p>—</p>";
+        document.querySelectorAll(".mark-one").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var id = Number(btn.getAttribute("data-id"));
+            alerts.forEach(function (a) {
+              if (a.id === id) a.read = true;
+            });
+            render();
+          });
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({ sidebar: true, activePage: "alerts", langToggleId: "lang-toggle" });
+        alerts = md.getAlerts();
+        render();
+        document.getElementById("filter-severity").addEventListener("change", render);
+        document.getElementById("filter-unread").addEventListener("change", render);
+        document.getElementById("mark-all").addEventListener("click", function () {
+          alerts.forEach(function (a) {
+            a.read = true;
+          });
+          render();
+        });
+        document.addEventListener("alert_added", function () {
+          alerts.unshift({
+            id: Date.now(),
+            severity: "WARN",
+            code: "W_MOCK_001",
+            message: "SSE alert_added (mock)",
+            location: "mock",
+            created_at: new Date().toISOString(),
+            read: false,
+          });
+          render();
+        });
+        document.addEventListener("scenario_changed", function () {
+          alerts = md.getAlerts();
+          render();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

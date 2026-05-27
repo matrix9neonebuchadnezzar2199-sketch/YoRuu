@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Settings (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="app-layout" data-page="settings">
+<!--
+  YoRuu Mockup: Settings
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.15
+  Related Mockups: 05_strategy_history.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.settings.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.settings.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+    <main class="app-main">
+      <div id="restart-banner" class="restart-banner hidden" role="alert" data-i18n="warning.restart_required"></div>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="settings.general"></div>
+        <div class="panel-body form-grid">
+          <div>
+            <label for="cfg-mode" data-i18n="filter.mode"></label>
+            <select id="cfg-mode">
+              <option value="paper" data-i18n="mode.paper"></option>
+              <option value="simmer" data-i18n="mode.simmer"></option>
+              <option value="live" data-i18n="mode.live"></option>
+            </select>
+          </div>
+          <div>
+            <label for="cfg-balance">initial_balance_usd</label>
+            <input type="number" id="cfg-balance" step="0.01" min="0">
+          </div>
+          <div>
+            <label for="cfg-max-size">max_trade_size_usd</label>
+            <input type="number" id="cfg-max-size" step="0.01" min="0">
+          </div>
+          <div>
+            <label for="cfg-loss">daily_loss_limit_usd</label>
+            <input type="number" id="cfg-loss" step="0.01" min="0">
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span data-i18n="settings.strategy_readonly"></span>
+          <a href="05_strategy_history.html" class="btn btn-sm" data-i18n="settings.link_strategy"></a>
+        </div>
+        <div class="panel-body mono" id="strategy-readonly" style="font-size:12px"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="settings.nightly"></div>
+        <div class="panel-body form-grid">
+          <div>
+            <label for="cfg-send">send_time (HH:MM)</label>
+            <input type="text" id="cfg-send" pattern="[0-9]{2}:[0-9]{2}">
+          </div>
+          <div>
+            <label for="cfg-tz">timezone</label>
+            <input type="text" id="cfg-tz">
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="settings.yaml_editor"></div>
+        <div class="panel-body">
+          <textarea id="yaml-editor" class="yaml-editor" spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <div class="action-bar">
+        <button type="button" class="btn btn-primary" id="save-settings" data-i18n="action.save"></button>
+        <button type="button" class="btn" id="cancel-settings" data-i18n="action.cancel"></button>
+      </div>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/sidebar.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var initialSnapshot = "";
+
+      function loadForm() {
+        var s = md.getSettings();
+        document.getElementById("cfg-mode").value = s.mode;
+        document.getElementById("cfg-balance").value = s.initial_balance_usd;
+        document.getElementById("cfg-max-size").value = s.max_trade_size_usd;
+        document.getElementById("cfg-loss").value = s.daily_loss_limit_usd;
+        document.getElementById("cfg-send").value = s.nightly_review.send_time;
+        document.getElementById("cfg-tz").value = s.nightly_review.timezone;
+        document.getElementById("yaml-editor").value = s.yaml;
+        var p = s.strategy_readonly;
+        document.getElementById("strategy-readonly").textContent =
+          "MIN_PROB=" + p.MIN_PROB + " MIN_EDGE=" + p.MIN_EDGE +
+          " KELLY=" + p.KELLY_FRACTION + " PERS=" + p.PERSISTENCE_THRESHOLD;
+        initialSnapshot = JSON.stringify(collect());
+        document.getElementById("restart-banner").classList.add("hidden");
+      }
+
+      function collect() {
+        return {
+          mode: document.getElementById("cfg-mode").value,
+          initial_balance_usd: Number(document.getElementById("cfg-balance").value),
+          max_trade_size_usd: Number(document.getElementById("cfg-max-size").value),
+          daily_loss_limit_usd: Number(document.getElementById("cfg-loss").value),
+          send_time: document.getElementById("cfg-send").value,
+        };
+      }
+
+      function validate() {
+        var c = collect();
+        if (c.initial_balance_usd <= 0 || c.max_trade_size_usd <= 0 || c.daily_loss_limit_usd <= 0) {
+          return false;
+        }
+        if (!/^\d{2}:\d{2}$/.test(c.send_time)) {
+          return false;
+        }
+        return true;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({ sidebar: true, activePage: "settings", langToggleId: "lang-toggle" });
+        loadForm();
+
+        document.getElementById("cfg-mode").addEventListener("change", function () {
+          document.getElementById("restart-banner").classList.remove("hidden");
+        });
+        document.getElementById("cfg-balance").addEventListener("input", function () {
+          document.getElementById("restart-banner").classList.remove("hidden");
+        });
+
+        document.getElementById("save-settings").addEventListener("click", function () {
+          if (!validate()) {
+            window.alert("Validation failed (mock)");
+            return;
+          }
+          window.alert(i18n.t("action.save") + " (mock)");
+        });
+        document.getElementById("cancel-settings").addEventListener("click", loadForm);
+        document.addEventListener("scenario_changed", loadForm);
+      });
+    })();
+  </script>
+</body>
+</html>

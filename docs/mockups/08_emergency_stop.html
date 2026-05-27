@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Emergency Stop (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="app-layout" data-page="emergency_stop">
+<!--
+  YoRuu Mockup: Emergency Stop
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.19, ch12 §12.5.3
+  Related Mockups: 01_dashboard.html, 07_mode_switch.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.emergency_stop.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.emergency_stop.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+    <main class="app-main">
+      <div class="judgment-banner wait" role="status">
+        <span class="status status-emergency" data-i18n="state.emergency_stop.short"></span>
+      </div>
+
+      <section class="panel">
+        <div class="panel-body" id="stop-meta"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="emergency.snapshot"></div>
+        <div class="panel-body">
+          <pre id="snapshot-json" style="font-size:12px;margin:0;overflow:auto"></pre>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="emergency.checklist"></div>
+        <div class="panel-body"><ul id="stop-checklist"></ul></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="emergency.logs"></div>
+        <div class="panel-body">
+          <pre id="stop-logs" class="mono" style="font-size:12px;margin:0"></pre>
+        </div>
+      </section>
+
+      <div class="action-bar">
+        <button type="button" class="btn" id="download-logs" data-i18n="action.download_logs"></button>
+        <button type="button" class="btn btn-primary" id="recover-paper" data-i18n="action.recover_paper"></button>
+        <button type="button" class="btn" id="recover-simmer" data-i18n="action.recover_simmer"></button>
+        <button type="button" class="btn" id="recover-live" data-i18n="mode.live"></button>
+      </div>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="recover-modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 data-i18n="confirm.recover_title"></h2>
+        <button type="button" class="btn btn-sm" id="recover-cancel" data-i18n="action.cancel"></button>
+      </div>
+      <div class="modal-body">
+        <p id="recover-body"></p>
+        <div class="action-bar">
+          <button type="button" class="btn" id="recover-back" data-i18n="action.cancel"></button>
+          <button type="button" class="btn btn-primary" id="recover-confirm" data-i18n="action.recover"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="no-live-modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 data-i18n="error.emergency_no_live"></h2>
+        <button type="button" class="btn btn-sm" id="no-live-close" data-i18n="action.close"></button>
+      </div>
+      <div class="modal-body">
+        <p data-i18n="error.emergency_no_live_body"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/sidebar.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var recoverMode = null;
+
+      function renderStop() {
+        var stop = md.getEmergencyStop();
+        document.getElementById("stop-meta").innerHTML =
+          "<p><strong data-i18n=\"emergency.triggered_at\"></strong>: " +
+          stop.triggered_at +
+          "</p><p><strong data-i18n=\"emergency.trigger_source\"></strong>: " +
+          stop.trigger_source +
+          "</p><p><strong data-i18n=\"emergency.reason\"></strong>: " +
+          stop.reason +
+          "</p>";
+        i18n.applyI18n(document.getElementById("stop-meta"));
+        document.getElementById("snapshot-json").textContent = JSON.stringify(
+          stop.snapshot,
+          null,
+          2,
+        );
+        document.getElementById("stop-checklist").innerHTML = stop.checklist_done
+          .map(function (c) {
+            return "<li>✓ " + c + "</li>";
+          })
+          .join("");
+        document.getElementById("stop-logs").textContent = stop.logs.join("\n");
+      }
+
+      function openRecover(mode) {
+        if (mode === "live") {
+          document.getElementById("no-live-modal").classList.remove("hidden");
+          return;
+        }
+        recoverMode = mode;
+        document.getElementById("recover-body").textContent = i18n.t(
+          "confirm.recover_body",
+          null,
+          { mode: mode.toUpperCase() },
+        );
+        document.getElementById("recover-modal").classList.remove("hidden");
+      }
+
+      function closeRecover() {
+        document.getElementById("recover-modal").classList.add("hidden");
+        recoverMode = null;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({
+          sidebar: true,
+          activePage: "emergency_stop",
+          langToggleId: "lang-toggle",
+        });
+        renderStop();
+
+        document.getElementById("download-logs").addEventListener("click", function () {
+          window.alert(i18n.t("mock.logs_download"));
+        });
+        document.getElementById("recover-paper").addEventListener("click", function () {
+          openRecover("paper");
+        });
+        document.getElementById("recover-simmer").addEventListener("click", function () {
+          openRecover("simmer");
+        });
+        document.getElementById("recover-live").addEventListener("click", function () {
+          openRecover("live");
+        });
+        document.getElementById("recover-cancel").addEventListener("click", closeRecover);
+        document.getElementById("recover-back").addEventListener("click", closeRecover);
+        document.getElementById("no-live-close").addEventListener("click", function () {
+          document.getElementById("no-live-modal").classList.add("hidden");
+        });
+        document.getElementById("recover-confirm").addEventListener("click", function () {
+          closeRecover();
+          window.alert(i18n.t("mock.recovered"));
+          try {
+            sessionStorage.setItem("yoruu_mock_recovered", recoverMode || "paper");
+          } catch (_e) {
+            /* ignore */
+          }
+          window.location.href = "01_dashboard.html";
+        });
+        document.addEventListener("scenario_changed", renderStop);
+      });
+    })();
+  </script>
+</body>
+</html>

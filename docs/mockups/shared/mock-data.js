@@ -202,6 +202,148 @@
     },
   ];
 
+  const SETTINGS_MOCK = {
+    mode: "paper",
+    initial_balance_usd: 1000,
+    max_trade_size_usd: 10,
+    daily_loss_limit_usd: 15,
+    nightly_review: { enabled: true, send_time: "04:00", timezone: "Asia/Tokyo" },
+    yaml: [
+      "mode: paper",
+      "initial_balance_usd: 1000.00",
+      "max_trade_size_usd: 10.00",
+      "daily_loss_limit_usd: 15.00",
+      "nightly_review:",
+      "  enabled: true",
+      "  send_time: \"04:00\"",
+      "  timezone: Asia/Tokyo",
+    ].join("\n"),
+    strategy_readonly: {
+      MIN_PROB: 0.87,
+      MIN_EDGE: 0.06,
+      KELLY_FRACTION: 0.65,
+      PERSISTENCE_THRESHOLD: 0.72,
+    },
+  };
+
+  const ALERTS_MOCK = [
+    {
+      id: 1,
+      severity: "WARN",
+      code: "W_WS_001",
+      message: "WebSocket レイテンシが上昇しています",
+      location: "websocket/polymarket",
+      created_at: "2026-05-27T14:20:00+09:00",
+      read: false,
+    },
+    {
+      id: 2,
+      severity: "ERROR",
+      code: "E_FILL_001",
+      message: "流動性不足のため約定できませんでした",
+      location: "executor/paper",
+      created_at: "2026-05-27T13:58:00+09:00",
+      read: false,
+    },
+    {
+      id: 3,
+      severity: "INFO",
+      code: "I_REPORT_001",
+      message: "夜間レポートが生成されました",
+      location: "nightly/reporter",
+      created_at: "2026-05-28T04:00:12+09:00",
+      read: false,
+    },
+    {
+      id: 4,
+      severity: "CRITICAL",
+      code: "C_STOP_001",
+      message: "緊急停止が実行されました（モック履歴）",
+      location: "killswitch",
+      created_at: "2026-05-26T18:12:00+09:00",
+      read: true,
+    },
+  ];
+
+  const EMERGENCY_ACTIVE_MOCK = {
+    active: true,
+    triggered_at: "2026-05-27T14:35:00+09:00",
+    trigger_source: "dashboard_fab",
+    reason: "user_initiated",
+    snapshot: {
+      state: "EMERGENCY_STOP",
+      mode: "paper",
+      open_positions: 0,
+      balance_usd: 1042.18,
+    },
+    checklist_done: [
+      "open_orders_cancelled",
+      "positions_closed",
+      "websocket_disconnected",
+    ],
+    logs: [
+      "[14:35:00] emergency_stop_triggered received",
+      "[14:35:01] cancel_all_orders: ok",
+      "[14:35:02] close_positions: none open",
+      "[14:35:03] state → EMERGENCY_STOP",
+    ],
+  };
+
+  const MODE_HEALTH_MOCK = {
+    ws_polymarket_connected: true,
+    ws_binance_connected: true,
+    usdc_balance_usd: 128.5,
+    daily_loss_limit_usd: 15,
+    max_trade_size_usd: 10,
+  };
+
+  const WHAT_IF_SCENARIOS = [
+    {
+      id: "baseline",
+      label: "現行 (baseline)",
+      params: {
+        MIN_PROB: 0.87,
+        MIN_EDGE: 0.06,
+        KELLY_FRACTION: 0.65,
+        PERSISTENCE_THRESHOLD: 0.72,
+      },
+      result: { trades: 70, win_rate: 0.543, pnl_usd: 42.18 },
+    },
+    {
+      id: "conservative",
+      label: "保守 (高 MIN_PROB)",
+      params: {
+        MIN_PROB: 0.92,
+        MIN_EDGE: 0.07,
+        KELLY_FRACTION: 0.55,
+        PERSISTENCE_THRESHOLD: 0.75,
+      },
+      result: { trades: 52, win_rate: 0.58, pnl_usd: 28.4 },
+    },
+    {
+      id: "aggressive",
+      label: "積極 (低閾値)",
+      params: {
+        MIN_PROB: 0.82,
+        MIN_EDGE: 0.05,
+        KELLY_FRACTION: 0.7,
+        PERSISTENCE_THRESHOLD: 0.68,
+      },
+      result: { trades: 89, win_rate: 0.51, pnl_usd: 35.6 },
+    },
+    {
+      id: "drawdown_sim",
+      label: "DD シミュレーション",
+      params: {
+        MIN_PROB: 0.88,
+        MIN_EDGE: 0.08,
+        KELLY_FRACTION: 0.5,
+        PERSISTENCE_THRESHOLD: 0.74,
+      },
+      result: { trades: 45, win_rate: 0.49, pnl_usd: -8.2 },
+    },
+  ];
+
   const MARKOV_LIVE_NORMAL = {
     window_size: 20,
     matrix: {
@@ -273,6 +415,11 @@
       sampleProposal: SAMPLE_PROPOSAL_JSON,
       strategyVersions: STRATEGY_VERSIONS_NORMAL,
       markovLive: MARKOV_LIVE_NORMAL,
+      settings: SETTINGS_MOCK,
+      alerts: ALERTS_MOCK,
+      emergencyStop: null,
+      modeHealth: MODE_HEALTH_MOCK,
+      whatIfScenarios: WHAT_IF_SCENARIOS,
     },
     winning_streak: {
       /* PHASE 2: 枠のみ — M2.2+ で詳細 */
@@ -310,10 +457,15 @@
         wait_reason: null,
         edge: { value: 0.095, min_edge: 0.06, met: true },
       }),
+      settings: SETTINGS_MOCK,
+      alerts: [],
+      emergencyStop: null,
+      modeHealth: MODE_HEALTH_MOCK,
+      whatIfScenarios: WHAT_IF_SCENARIOS,
     },
     drawdown: {
-      /* PHASE 2: 枠のみ — 緊急停止フロー検証用 */
-      bot_state: { state: "TRADING", mode: "paper" },
+      /* 緊急停止フロー検証用 */
+      bot_state: { state: "EMERGENCY_STOP", mode: "paper" },
       balance: { current: 972.5, initial: 1000.0 },
       daily_pnl: { value: -12.8, percent: -1.28 },
       cumulative_pnl: { value: -27.5, percent: -2.75 },
@@ -358,6 +510,15 @@
           0.49, 0.48, 0.47, 0.48, 0.49, 0.48, 0.47, 0.48, 0.48, 0.48,
         ],
       }),
+      settings: SETTINGS_MOCK,
+      alerts: ALERTS_MOCK.map(function (a) {
+        return Object.assign({}, a, { read: false });
+      }),
+      emergencyStop: EMERGENCY_ACTIVE_MOCK,
+      modeHealth: Object.assign({}, MODE_HEALTH_MOCK, {
+        ws_polymarket_connected: false,
+      }),
+      whatIfScenarios: WHAT_IF_SCENARIOS,
     },
   };
 
@@ -433,6 +594,30 @@
     return JSON.parse(JSON.stringify(getData().markovLive));
   }
 
+  function getEmergencyStop() {
+    var d = getData();
+    if (d.emergencyStop) {
+      return JSON.parse(JSON.stringify(d.emergencyStop));
+    }
+    return JSON.parse(JSON.stringify(EMERGENCY_ACTIVE_MOCK));
+  }
+
+  function getAlerts() {
+    return JSON.parse(JSON.stringify(getData().alerts));
+  }
+
+  function getSettings() {
+    return JSON.parse(JSON.stringify(getData().settings));
+  }
+
+  function getWhatIfScenarios() {
+    return JSON.parse(JSON.stringify(getData().whatIfScenarios));
+  }
+
+  function getModeHealth() {
+    return JSON.parse(JSON.stringify(getData().modeHealth));
+  }
+
   global.YoRuuMockData = {
     SCENARIOS: SCENARIOS,
     DAILY_REPORT_NORMAL: DAILY_REPORT_NORMAL,
@@ -441,6 +626,12 @@
     getDailyReport: getDailyReport,
     getStrategyVersions: getStrategyVersions,
     getMarkovLive: getMarkovLive,
+    getEmergencyStop: getEmergencyStop,
+    getAlerts: getAlerts,
+    getSettings: getSettings,
+    getWhatIfScenarios: getWhatIfScenarios,
+    getModeHealth: getModeHealth,
+    EMERGENCY_ACTIVE_MOCK: EMERGENCY_ACTIVE_MOCK,
     setScenario: setScenario,
     mockSSE: mockSSE,
     formatPnl: formatPnl,
