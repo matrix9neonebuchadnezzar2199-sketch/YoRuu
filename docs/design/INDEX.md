@@ -1,18 +1,18 @@
 # YoRuu 設計書 INDEX
 
-> **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) 等で管理する。
+> **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — **M1.3** ch9〜14 執筆（M1.2 完了）；HTML モックは PHASE 2  
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**現在 PHASE**: PHASE 1 — **M1.3** ch10〜14 執筆（ch9 完了 1/6）；HTML モックは PHASE 2  
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)、[`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
 
 | 指標 | 値 |
 |------|-----|
-| APPROVED | **8 / 24** 章（ch1〜8） |
-| REVIEW_PENDING | ch9（ユーザー操作フロー） |
-| 現在マイルストーン | **M1.3**（ch9 レビュー待ち → ch10〜14） |
+| APPROVED | **9 / 24** 章（ch1〜9） |
+| M1.3 進捗 | **1 / 6** 章完了（ch9）→ ch10 着手 |
+| 現在マイルストーン | **M1.3**（ch10 関数+データモデル） |
 | 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
@@ -58,7 +58,7 @@
 
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
-| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | REVIEW_PENDING | `93cc6a6` |
+| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | （APPROVED コミット hash） |
 | 10 | 関数呼び出し・データフォーマット・データモデル | `10_function_and_data.md` | PENDING |
 | 11 | 戦略ロジック（Markov + Kelly） | `11_strategy.md` | PENDING |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
@@ -126,9 +126,11 @@
 
 - ch1〜7: [`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)
 - ch8: [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)
+- ch9: [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md)
 - ロードマップ: [`00_ROADMAP.md`](./00_ROADMAP.md)
 
 **2026-05-27 補助レビュー反映**（ch1〜7 本文）: 第3章 3.3、第7章 7.2.1、第6章 StateMachine → コミット `49fccec`  
 **2026-05-27 一次レビュー**: ch1〜7 `APPROVED` → コミット `2623330`  
 **2026-05-27 M1.0**: 24章再編・ロードマップ SSOT → `bce8a03`  
-**2026-05-27 M1.2**: 第8章 `APPROVED`（v1.2.1、§8.26.5 7項目）→ `832ad1e`
+**2026-05-27 M1.2**: 第8章 `APPROVED`（v1.2.1、§8.26.5 7項目）→ `832ad1e`  
+**2026-05-27 M1.3**: 第9章 `APPROVED`（§9.16.5 7項目）→ （APPROVED コミット hash）

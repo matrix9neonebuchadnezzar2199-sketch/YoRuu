@@ -39,4 +39,4 @@
 **承認者**: マスター（明示承認）  
 **レビュー実施**: Cursor（§8.26.5 7項目 + carryover）
 
-次工程: M1.3 ch9（ユーザー操作フロー）執筆開始。
+次工程: 第9章 → [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md)（M1.3 ch9 完了）→ ch10。
