@@ -58,7 +58,7 @@
 
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
-| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | （APPROVED コミット hash） |
+| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
 | 10 | 関数呼び出し・データフォーマット・データモデル | `10_function_and_data.md` | PENDING |
 | 11 | 戦略ロジック（Markov + Kelly） | `11_strategy.md` | PENDING |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
@@ -133,4 +133,4 @@
 **2026-05-27 一次レビュー**: ch1〜7 `APPROVED` → コミット `2623330`  
 **2026-05-27 M1.0**: 24章再編・ロードマップ SSOT → `bce8a03`  
 **2026-05-27 M1.2**: 第8章 `APPROVED`（v1.2.1、§8.26.5 7項目）→ `832ad1e`  
-**2026-05-27 M1.3**: 第9章 `APPROVED`（§9.16.5 7項目）→ （APPROVED コミット hash）
+**2026-05-27 M1.3**: 第9章 `APPROVED`（§9.16.5 7項目）→ `06c0398`
