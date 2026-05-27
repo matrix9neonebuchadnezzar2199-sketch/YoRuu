@@ -1,9 +1,10 @@
 # 第13章 ペーパー約定エンジン
 
-- **バージョン**: v1.0.1
+- **バージョン**: v1.0.2
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED
+- **ローリング更新 (v1.0.2)**: Polymarket CLOB 詳細の参照先を修正（`INDEX` ch21 は設定影響。CLOB は未執筆・章番号 TBD。→ [`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md) §2.1）
 - **関連章**: 3（状態遷移）, 6（シーケンス §6.3）, 10（関数・データモデル §10.3.4 / §10.7.6 / §10.7.7 / §10.7.8）, 11（戦略ロジック §11.6 / §11.8）, 12（モード仕様 §12.2 / §12.7）, 15（夜間レビュー）, 17（リスク管理）, 18（エラーコード）, 21（Polymarket CLOB クライアント詳細）
 - **旧 ch14「Paper execution」を本章に統合**
 
@@ -19,7 +20,7 @@ YoRuu のペーパー約定エンジン（`PaperExecutor`）の仕様を単一�
 - `FillModel`: スプレッド・スリッページ・約定遅延（§13.3）
 - データ構造: `OpenRequest` / `CloseRequest` / `FillResult`（§13.4）
 - `BacktestExecutor` との FillModel 共有（§13.5）
-- `LiveExecutor` 概要と対比表（§13.6、詳細は第21章）
+- `LiveExecutor` 概要と対比表（§13.6、CLOB 詳細は未執筆章 TBD）
 - 約定価格決定アルゴリズム（§13.7）
 - 約定失敗ケース（§13.8）
 - ペーパー約定の現実性検証ポリシー（§13.9）
@@ -27,7 +28,7 @@ YoRuu のペーパー約定エンジン（`PaperExecutor`）の仕様を単一�
 
 ### 13.1.3 スコープ外
 
-- Polymarket CLOB クライアント実装詳細（→ 第21章）
+- Polymarket CLOB クライアント実装詳細（→ 未執筆章 TBD、`INDEX` ch21 は設定影響）
 - 戦略アルゴリズム（→ 第11章）
 - 取引履歴 UI（→ 第8章 §8.13）
 - リスクガード（→ 第11章 §11.6, 第17章）
@@ -379,11 +380,11 @@ class LiveExecutor:
     def close(self, request: CloseRequest) -> FillResult: ...
 ```
 
-詳細は第21章（Polymarket CLOB クライアント）で確定。本章ではプロトコル準拠と対比のみ規定。
+詳細は Polymarket CLOB 専用章（**章番号 TBD**、M1.5 で `INDEX` 確定予定）で規定。本章ではプロトコル準拠と対比のみ。暫定 API 契約は §10.7.7 `LiveExecutor` を参照。
 
 ### 13.6.3 LIVE 約定失敗時のフォールバック
 
-LIVE では Polymarket API の失敗応答（流動性不足・タイムアウト・残高不足等）を `FillResult.success = False` で返す。リトライ戦略は第21章で規定（既定: 流動性不足は 1 回リトライ、残高不足はリトライなし）。
+LIVE では Polymarket API の失敗応答（流動性不足・タイムアウト・残高不足等）を `FillResult.success = False` で返す。リトライ戦略は CLOB 詳細章（TBD）で規定（既定: 流動性不足は 1 回リトライ、残高不足はリトライなし）。
 
 ## 13.7 約定価格決定アルゴリズム
 
@@ -542,7 +543,7 @@ def detect_liquidity_failure(
 | `E_FILL_005` オーダーブック取得失敗 | 3 回（1s 間隔） | 最終失敗で ERROR 状態 |
 | `E_FILL_010` ポジション不在 | しない | 即時不整合報告 |
 
-LIVE 固有エラー（タイムアウト・残高不足）は第21章で規定。
+LIVE 固有エラー（タイムアウト・残高不足）は CLOB 詳細章（TBD）で規定。
 
 ### 13.8.7 失敗時の状態への影響
 
@@ -631,7 +632,7 @@ FillModel の既定値は **現実より悪く** 設定：
 | §13.3.2 パラメータ | §10.4.2 | `yoruu.yaml` 露出は v1.1 |
 | §13.4 データ構造 | §10.3.4 / §10.3.5 | DB スキーマ整合 |
 | §13.5 BacktestExecutor | 第3章 §3.3 / 第11章 §11.9 / 第12章 §12.8.4 | 状態機械外・What-If 計算・格納先 |
-| §13.6 LiveExecutor | 第21章 | Polymarket CLOB 実装詳細 |
+| §13.6 LiveExecutor | CLOB 章（TBD）/ §10.7.7 | Polymarket CLOB 実装詳細 |
 | §13.7.3 P&L 計算 | §10.3.4 `trades.pnl` | DB 整合 |
 | §13.8 失敗ケース | 第18章 | エラーコード `E_FILL_*` |
 | §13.8.1 流動性 | 第11章 §11.5.3 / §11.7.2 | wait_reason=liquidity |

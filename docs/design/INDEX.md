@@ -4,7 +4,7 @@
 
 **最終更新**: 2026-05-27  
 **現在 PHASE**: PHASE 1 — **M1.4** 着手準備（M1.3 完了、14/24）；HTML モックは PHASE 2  
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch14.md`](./REVIEW_CHECKLIST_ch14.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch14.md`](./REVIEW_CHECKLIST_ch14.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
 
