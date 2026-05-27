@@ -11,7 +11,8 @@
 | 指標 | 値 |
 |------|-----|
 | APPROVED | **8 / 24** 章（ch1〜8） |
-| 現在マイルストーン | **M1.3**（ch9〜14） |
+| REVIEW_PENDING | ch9（ユーザー操作フロー） |
+| 現在マイルストーン | **M1.3**（ch9 レビュー待ち → ch10〜14） |
 | 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
@@ -55,9 +56,9 @@
 <details>
 <summary>第4部 詳細仕様（ch9〜14）</summary>
 
-| # | タイトル | ファイル | ステータス |
-|---|----------|----------|-----------|
-| 9 | ユーザー操作フロー | `09_user_flow.md` | PENDING |
+| # | タイトル | ファイル | ステータス | コミット |
+|---|----------|----------|-----------|----------|
+| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | REVIEW_PENDING | （配置コミット hash） |
 | 10 | 関数呼び出し・データフォーマット・データモデル | `10_function_and_data.md` | PENDING |
 | 11 | 戦略ロジック（Markov + Kelly） | `11_strategy.md` | PENDING |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
