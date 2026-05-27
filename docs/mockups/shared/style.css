@@ -763,3 +763,201 @@ body.has-banner .sidebar {
   font-size: 11px;
   margin-left: 6px;
 }
+
+/* —— Nightly review —— */
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  font-size: 13px;
+}
+
+.report-summary-grid dt {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.report-summary-grid dd {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+}
+
+.paste-area {
+  width: 100%;
+  min-height: 140px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.parse-status {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.parse-status.ok {
+  color: var(--success-fg);
+}
+
+.parse-status.err {
+  color: var(--danger-fg);
+}
+
+.action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.diff-table tr.diff-unchanged td {
+  opacity: 0.55;
+}
+
+.diff-table tr.diff-warn td {
+  background: var(--severity-warn-bg);
+}
+
+.diff-table tr.diff-error td {
+  background: var(--severity-danger-bg);
+}
+
+.validation-messages {
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.validation-messages .warn {
+  color: var(--attention-fg);
+}
+
+.validation-messages .err {
+  color: var(--danger-fg);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* —— Strategy history cards —— */
+.version-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.version-card {
+  background: var(--bg-default);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.version-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.version-card .params {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.version-card .rationale {
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.version-card .perf {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.version-card .actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* —— Markov live —— */
+.markov-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .markov-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.matrix-table {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.matrix-table td,
+.matrix-table th {
+  border: 1px solid var(--border-default);
+  padding: 10px;
+  text-align: center;
+}
+
+.judgment-banner {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-default);
+}
+
+.judgment-banner.ok {
+  background: var(--severity-success-bg);
+  color: var(--success-fg);
+  border-color: var(--success-fg);
+}
+
+.judgment-banner.wait {
+  background: var(--severity-warn-bg);
+  color: var(--attention-fg);
+  border-color: var(--attention-fg);
+}
+
+.judgment-banner.muted {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.persistence-chart {
+  width: 100%;
+  height: 120px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+}
+
+.edge-readout {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.edge-readout .met-yes {
+  color: var(--success-fg);
+}
+
+.edge-readout .met-no {
+  color: var(--danger-fg);
+}

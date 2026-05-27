@@ -1,4 +1,4 @@
-/* Auto-sync SSOT: locales/ja.json — file:// 用ランタイム読込 */
+/* Auto-sync SSOT: locales/ja.json */
 (function (g) {
   g.YORUU_LOCALES = g.YORUU_LOCALES || {};
   g.YORUU_LOCALES.ja = {
@@ -142,7 +142,83 @@
   "lang.switch": "EN",
   "lang.switch_back": "JA",
 
-  "mock.export_notice": "モック: エクスポートは UI のみ（ファイルは生成しません）"
+  "mock.export_notice": "モック: エクスポートは UI のみ（ファイルは生成しません）",
+
+  "page.nightly_review.title": "夜間レビュー",
+  "page.nightly_review.subtitle": "日次レポートと戦略 Apply",
+  "page.nightly_review.diff_preview": "差分プレビュー",
+  "page.nightly_review.report_summary": "レポートサマリ",
+  "page.nightly_review.paste_label": "提案 JSON",
+  "page.nightly_review.prompt_section": "AI プロンプト",
+
+  "nightly.report_date": "レポート日",
+  "nightly.trades_total": "取引数",
+  "nightly.win_rate": "勝率",
+  "nightly.pnl": "損益",
+  "nightly.wait_reasons": "待機理由分布",
+  "nightly.paste_area": "提案 JSON を貼り付け",
+  "nightly.parse_ok": "JSON 形式 OK",
+  "nightly.parse_fail": "JSON 解析エラー",
+
+  "action.copy_all": "全選択コピー",
+  "action.copy_all_done": "クリップボードにコピーしました（モック）",
+  "action.diff_check": "差分確認",
+  "action.apply": "適用",
+  "action.discard": "破棄",
+  "action.cancel": "キャンセル",
+  "action.load_sample": "サンプル読込",
+  "action.rollback": "ロールバック",
+  "action.details": "詳細",
+
+  "diff.preview": "差分プレビュー",
+  "diff.key": "キー",
+  "diff.old": "現行",
+  "diff.new": "提案",
+  "diff.delta_pct": "変化率",
+  "diff.unchanged": "変更なし",
+
+  "error.missing_key": "必須キーが不足しています",
+  "error.out_of_range": "範囲外の値です",
+  "error.parse_failed": "JSON の解析に失敗しました",
+  "error.reject_large_change": "変化率 ±20% 超のため Apply 不可",
+  "warning.large_change": "変化率 ±10% 超（警告）",
+
+  "confirm.apply_title": "戦略を適用しますか？",
+  "confirm.apply_body": "v{from} → v{to} として strategy.json を更新します（モック: 書込なし）。",
+  "confirm.apply_ok": "適用する",
+  "confirm.rollback_title": "ロールバック確認",
+  "confirm.rollback_body": "v{ver} のパラメータを新規バージョンとして適用します（モック: 書込なし）。",
+
+  "page.strategy_history.title": "戦略履歴",
+  "page.strategy_history.subtitle": "バージョン別パフォーマンス",
+  "strategy.version_card": "バージョン {ver}",
+  "strategy.applied_at": "適用日時",
+  "strategy.rationale": "理由",
+
+  "page.markov_live.title": "Markov ライブ",
+  "page.markov_live.subtitle": "遷移確率とエントリー判定",
+  "markov.matrix_title": "遷移行列",
+  "markov.from_to": "{from} → {to}",
+  "markov.recent_series": "直近系列",
+  "markov.persistence_chart": "Rolling Persistence",
+  "markov.edge_panel": "Edge",
+  "markov.min_prob_panel": "予測確率",
+  "markov.window_n": "表示本数",
+  "markov.threshold_line": "閾値",
+
+  "judgment.entry_ok": "エントリー可",
+  "judgment.wait": "待機",
+  "judgment.insufficient_data": "データ不足",
+
+  "markov.wait.persistence": "持続性閾値未達",
+  "markov.wait.edge": "エッジ不足",
+  "markov.wait.prob": "確率不足",
+  "markov.wait.risk": "リスク制約",
+  "markov.wait.liquidity": "流動性不足",
+  "markov.wait.risk_budget": "予算上限",
+
+  "mock.apply_done": "モック: Apply は UI のみ（ファイルは更新しません）",
+  "mock.rollback_done": "モック: ロールバックは UI のみ"
 }
 ;
   g.YORUU_LOCALES.en = {};

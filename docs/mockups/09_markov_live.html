@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Markov Live (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="app-layout" data-page="markov_live">
+<!--
+  YoRuu Mockup: Markov Live
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.20
+  Related Mockups: 01_dashboard.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.markov_live.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.markov_live.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+
+    <main class="app-main" aria-live="polite">
+      <div id="judgment-banner" class="judgment-banner" role="status"></div>
+
+      <div class="markov-grid-2">
+        <section class="panel">
+          <div class="panel-header" data-i18n="markov.matrix_title"></div>
+          <div class="panel-body">
+            <table class="matrix-table" role="table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>→ UP</th>
+                  <th>→ DOWN</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <span data-i18n="markov.recent_series"></span>
+            <label style="font-size:12px;font-weight:normal">
+              <span data-i18n="markov.window_n"></span>
+              <select id="window-n">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+          </div>
+          <div class="panel-body markov-series" id="series-display"></div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="markov.persistence_chart"></div>
+        <div class="panel-body">
+          <svg id="persistence-chart" class="persistence-chart" viewBox="0 0 400 120" role="img" aria-label="Persistence chart"></svg>
+        </div>
+      </section>
+
+      <div class="markov-grid-2">
+        <section class="panel">
+          <div class="panel-header" data-i18n="markov.edge_panel"></div>
+          <div class="panel-body edge-readout" id="edge-panel"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-header" data-i18n="markov.min_prob_panel"></div>
+          <div class="panel-body edge-readout" id="prob-panel"></div>
+        </section>
+      </div>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/sidebar.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var windowN = 20;
+
+      function waitReasonLabel(reason) {
+        if (!reason) {
+          return "";
+        }
+        var key = "markov.wait." + reason.replace("risk_", "risk");
+        if (reason.indexOf("risk_") === 0) {
+          key = "markov.wait.risk";
+        }
+        return i18n.t(key);
+      }
+
+      function renderSeries(series) {
+        return series
+          .map(function (c) {
+            return (
+              '<span class="' + (c === "U" ? "up" : "down") + '">' + c + "</span>"
+            );
+          })
+          .join(" ");
+      }
+
+      function drawPersistenceChart(series, threshold) {
+        var svg = document.getElementById("persistence-chart");
+        var w = 400;
+        var h = 120;
+        var pad = 8;
+        var max = 1;
+        var min = 0.4;
+        var points = [];
+        series.forEach(function (v, i) {
+          var x = pad + (i / (series.length - 1 || 1)) * (w - pad * 2);
+          var y = h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+          points.push(x + "," + y);
+        });
+        var threshY =
+          h - pad - ((threshold - min) / (max - min)) * (h - pad * 2);
+        svg.innerHTML =
+          '<line x1="' +
+          pad +
+          '" y1="' +
+          threshY +
+          '" x2="' +
+          (w - pad) +
+          '" y2="' +
+          threshY +
+          '" stroke="#d29922" stroke-dasharray="4" />' +
+          '<text x="' +
+          (w - pad - 40) +
+          '" y="' +
+          (threshY - 4) +
+          '" fill="#7d8590" font-size="10">' +
+          i18n.t("markov.threshold_line") +
+          "</text>" +
+          '<polyline fill="none" stroke="#2f81f7" stroke-width="2" points="' +
+          points.join(" ") +
+          '" />';
+      }
+
+      function renderMarkov() {
+        var live = md.getMarkovLive();
+        var m = live.matrix;
+        document.getElementById("matrix-body").innerHTML =
+          "<tr><th>UP</th><td>" +
+          m.p_up_up.toFixed(3) +
+          "</td><td>" +
+          m.p_up_down.toFixed(3) +
+          "</td></tr>" +
+          "<tr><th>DOWN</th><td>" +
+          m.p_down_up.toFixed(3) +
+          "</td><td>" +
+          m.p_down_down.toFixed(3) +
+          "</td></tr>";
+
+        var series = live.recent_series_full.slice(-windowN);
+        document.getElementById("series-display").innerHTML = renderSeries(series);
+
+        drawPersistenceChart(
+          live.persistence_series,
+          live.persistence_threshold,
+        );
+
+        var edgeMet = live.edge.met;
+        document.getElementById("edge-panel").innerHTML =
+          "Edge: <strong>" +
+          live.edge.value.toFixed(3) +
+          "</strong> / min " +
+          live.edge.min_edge.toFixed(2) +
+          ' <span class="' +
+          (edgeMet ? "met-yes" : "met-no") +
+          '">' +
+          (edgeMet ? "OK" : "NG") +
+          "</span>";
+
+        var probMet = live.min_prob.met;
+        document.getElementById("prob-panel").innerHTML =
+          "P: <strong>" +
+          live.min_prob.value.toFixed(2) +
+          "</strong> / min " +
+          live.min_prob.threshold.toFixed(2) +
+          ' <span class="' +
+          (probMet ? "met-yes" : "met-no") +
+          '">' +
+          (probMet ? "OK" : "NG") +
+          "</span>";
+
+        var banner = document.getElementById("judgment-banner");
+        if (live.threshold_met) {
+          banner.className = "judgment-banner ok";
+          banner.textContent = i18n.t("judgment.entry_ok");
+        } else if (live.wait_reason) {
+          banner.className = "judgment-banner wait";
+          banner.textContent =
+            i18n.t("judgment.wait") + " — " + waitReasonLabel(live.wait_reason);
+        } else {
+          banner.className = "judgment-banner muted";
+          banner.textContent = i18n.t("judgment.insufficient_data");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({
+          sidebar: true,
+          activePage: "markov_live",
+          langToggleId: "lang-toggle",
+        });
+        renderMarkov();
+
+        document.getElementById("window-n").addEventListener("change", function (e) {
+          windowN = Number(e.target.value);
+          renderMarkov();
+        });
+
+        document.addEventListener("markov_update", function (e) {
+          if (e.detail) {
+            renderMarkov();
+          }
+        });
+        document.addEventListener("scenario_changed", renderMarkov);
+        document.addEventListener("language_changed", renderMarkov);
+      });
+    })();
+  </script>
+</body>
+</html>

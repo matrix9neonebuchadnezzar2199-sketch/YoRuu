@@ -474,6 +474,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1543">#entry-1543</a></td>
       </tr>
+      <tr>
+        <td>16:20</td>
+        <td>PHASE 2 M2.2 — 夜間レビュー + 戦略履歴 + Markov ライブ</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1620">#entry-1620</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1795,6 +1801,36 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>§8.25.3 10/10 pass（ダブルクリック・⌘K・?・緊急停止・言語切替・シナリオ切替・フォーカスリング・ヘッダコメント）。Commit: <code>c4e20a4</code>（push 済）</p>
+</section>
+
+<section class="entry" id="entry-1620">
+  <h2>PHASE 2 M2.2 — 夜間レビュー・戦略履歴・Markov ライブ<a href="#entry-1620" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 16:20 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-scope">ui</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    <code>PHASE2_KICKOFF_TEMPLATE.md</code> §3.2 に従い M2.2 を実装。
+    <code>03_nightly_review.html</code> は §15.4.8 レポート固定値・§15.5.2 プロンプトコピー・§15.6 JSON 貼付/parse・§15.7 差分（±10% 警告 / ±20% Apply 無効）・§15.8 二重確認モーダル（書込なし）。
+    <code>05_strategy_history.html</code> はバージョンカード + 詳細/ロールバック UI のみ。
+    <code>09_markov_live.html</code> は遷移行列・系列 N 切替・Persistence SVG・判定バナー。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/mockups/03_nightly_review.html, 05_strategy_history.html, 09_markov_live.html</li>
+    <li><span class="op op-add">+</span> docs/mockups/shared/nightly-review.js</li>
+    <li><span class="op op-mod">~</span> mock-data.js, style.css, locales/ja.json, ja.bundle.js</li>
+    <li><span class="op op-mod">~</span> 00_ROADMAP.md, INDEX.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>
+    夜間レビュー: 「サンプル読込」→「差分確認」→ Apply 活性、±20% 超 JSON で Apply 無効を確認。
+    §8.25.3 + §15.12.4 PHASE 2 項目。Commit: <code>pending</code>
+  </p>
 </section>
 
 </main>
