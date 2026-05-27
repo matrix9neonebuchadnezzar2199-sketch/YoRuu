@@ -60,7 +60,7 @@
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
 | 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | `1bdb84c` |
-| 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `pending` |
+| 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `d405f0c` |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
 | 13 | ペーパー約定エンジン | `13_paper_execution.md` | PENDING |
 | 14 | i18n 設計 | `14_i18n.md` | PENDING |
