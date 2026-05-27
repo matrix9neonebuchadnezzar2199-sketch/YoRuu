@@ -70,6 +70,7 @@
         <button type="button" class="btn" id="export-json" data-i18n="action.export_json"></button>
       </div>
 
+      <p class="mono" id="trade-log-balance" style="margin:0 0 12px;font-size:14px"></p>
       <p id="export-notice" style="font-size:12px;color:var(--text-secondary);margin:0 0 12px" data-i18n="mock.export_notice"></p>
 
       <section class="panel">
@@ -144,7 +145,22 @@
         renderTable();
       }
 
+      function renderBalance() {
+        var snap = md.getBalanceSnapshot();
+        var el = document.getElementById("trade-log-balance");
+        if (el) {
+          el.textContent =
+            i18n.t("page.mode_switch.balance") +
+            ": $" +
+            snap.current.toFixed(2) +
+            " (open $" +
+            snap.open_notional.toFixed(2) +
+            ")";
+        }
+      }
+
       function renderTable() {
+        renderBalance();
         var total = filteredTrades.length;
         var pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
         if (currentPage > pages) currentPage = pages;
@@ -197,6 +213,7 @@
           sidebar: true,
           activePage: "trade_log",
           langToggleId: "lang-toggle",
+          onBalanceChange: renderTable,
         });
         filteredTrades = md.getData().all_trades.slice();
         renderTable();
@@ -229,6 +246,10 @@
         document.addEventListener("position_closed", function () {
           applyFilters();
         });
+        document.addEventListener("position_opened", function () {
+          applyFilters();
+        });
+        document.addEventListener("balance_updated", renderBalance);
       });
     })();
   </script>

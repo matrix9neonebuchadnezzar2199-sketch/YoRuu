@@ -196,6 +196,14 @@
       }
       updateModeBadges();
     });
+
+    ["position_opened", "position_closed", "balance_updated"].forEach(function (ev) {
+      global.document.addEventListener(ev, function () {
+        if (options.onBalanceChange) {
+          options.onBalanceChange();
+        }
+      });
+    });
   }
 
   global.YoRuuApp = {

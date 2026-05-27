@@ -524,6 +524,202 @@
 
   let CURRENT_SCENARIO = "normal";
 
+  /** Q3-MOCK: PaperExecutor 準拠の可変残高（open 減算 / close 加算、INV-D-06） */
+  let runtimeLedger = null;
+
+  function resetRuntimeLedger(scenarioId, baseBalance) {
+    runtimeLedger = {
+      scenarioId: scenarioId,
+      initial: baseBalance.initial,
+      balance: baseBalance.current,
+      openPositions: [],
+      closedPnlSum: 0,
+      nextTradeId: 8100,
+    };
+  }
+
+  function ensureRuntimeLedger(scenarioId, baseBalance) {
+    if (
+      !runtimeLedger ||
+      runtimeLedger.scenarioId !== scenarioId
+    ) {
+      resetRuntimeLedger(scenarioId, baseBalance);
+    }
+    return runtimeLedger;
+  }
+
+  function sumOpenNotional() {
+    if (!runtimeLedger) {
+      return 0;
+    }
+    return runtimeLedger.openPositions.reduce(function (sum, pos) {
+      return sum + pos.size_usd;
+    }, 0);
+  }
+
+  function checkInvD06() {
+    if (!runtimeLedger) {
+      return true;
+    }
+    const left = runtimeLedger.balance + sumOpenNotional();
+    const right = runtimeLedger.initial + runtimeLedger.closedPnlSum;
+    return Math.abs(left - right) < 0.02;
+  }
+
+  function applyPositionOpened(payload) {
+    const ledger = runtimeLedger;
+    if (!ledger || !payload) {
+      return;
+    }
+    const sizeUsd = Number(payload.size_usd);
+    if (!Number.isFinite(sizeUsd) || sizeUsd <= 0) {
+      return;
+    }
+    ledger.balance -= sizeUsd;
+    ledger.openPositions.push({
+      trade_id: payload.trade_id,
+      size_usd: sizeUsd,
+      side: payload.side || "YES",
+      entry_price: payload.entry_price || 0.62,
+    });
+    if (!checkInvD06()) {
+      console.warn("[Q3-MOCK] INV-D-06 drift after position_opened", {
+        balance: ledger.balance,
+        open_sum: sumOpenNotional(),
+        initial: ledger.initial,
+        closed_pnl: ledger.closedPnlSum,
+      });
+    }
+  }
+
+  function applyPositionClosed(payload) {
+    const ledger = runtimeLedger;
+    if (!ledger || !payload) {
+      return false;
+    }
+    const tradeId = payload.trade_id;
+    const idx = ledger.openPositions.findIndex(function (p) {
+      return p.trade_id === tradeId;
+    });
+    if (idx < 0) {
+      console.warn("[Q3-MOCK] position_closed: unknown trade_id", tradeId);
+      return false;
+    }
+    const pos = ledger.openPositions[idx];
+    const pnl = Number(payload.pnl);
+    const safePnl = Number.isFinite(pnl) ? pnl : 0;
+    ledger.balance += pos.size_usd + safePnl;
+    ledger.closedPnlSum += safePnl;
+    ledger.openPositions.splice(idx, 1);
+    if (!checkInvD06()) {
+      console.warn("[Q3-MOCK] INV-D-06 drift after position_closed", {
+        balance: ledger.balance,
+        open_sum: sumOpenNotional(),
+        initial: ledger.initial,
+        closed_pnl: ledger.closedPnlSum,
+      });
+    }
+    return true;
+  }
+
+  function getBalanceSnapshot() {
+    if (!runtimeLedger) {
+      const d = SCENARIOS[CURRENT_SCENARIO] || SCENARIOS.normal;
+      return {
+        current: d.balance.current,
+        initial: d.balance.initial,
+        open_notional: 0,
+        closed_pnl_sum: 0,
+      };
+    }
+    return {
+      current: runtimeLedger.balance,
+      initial: runtimeLedger.initial,
+      open_notional: sumOpenNotional(),
+      closed_pnl_sum: runtimeLedger.closedPnlSum,
+    };
+  }
+
+  function simulatePositionOpened(sizeUsd, side) {
+    const data = getData();
+    const ledger = ensureRuntimeLedger(getScenarioId(), data.balance);
+    const payload = {
+      trade_id: ledger.nextTradeId,
+      market: "BTC_5MIN_UPDOWN",
+      side: side || "YES",
+      size_usd: sizeUsd,
+      entry_price: 0.62,
+      expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      edge_at_entry: 0.071,
+      persistence_at_entry: 0.72,
+    };
+    ledger.nextTradeId += 1;
+    applyPositionOpened(payload);
+    global.document.dispatchEvent(
+      new CustomEvent("position_opened", { detail: payload }),
+    );
+    global.document.dispatchEvent(
+      new CustomEvent("balance_updated", {
+        detail: getBalanceSnapshot(),
+      }),
+    );
+    return payload;
+  }
+
+  function simulatePositionClosed(tradeId, pnlUsd) {
+    const payload = {
+      trade_id: tradeId,
+      exit_price: 1.0,
+      pnl: pnlUsd,
+      win: pnlUsd >= 0,
+      closed_at: new Date().toISOString(),
+    };
+    applyPositionClosed(payload);
+    global.document.dispatchEvent(
+      new CustomEvent("position_closed", { detail: payload }),
+    );
+    global.document.dispatchEvent(
+      new CustomEvent("balance_updated", {
+        detail: getBalanceSnapshot(),
+      }),
+    );
+    return payload;
+  }
+
+  /** 手動確認: 3 open → 順次 close（Q3-MOCK.4） */
+  function runQ3BalanceDemo() {
+    const sizes = [5.5, 6.0, 4.5];
+    const pnls = [1.2, -0.8, 0.5];
+    const log = [];
+    const snap0 = getBalanceSnapshot();
+    log.push({ step: "initial", balance: snap0.current });
+    const opens = sizes.map(function (sz) {
+      return simulatePositionOpened(sz, "YES");
+    });
+    opens.forEach(function (o, i) {
+      log.push({
+        step: "open " + (i + 1),
+        trade_id: o.trade_id,
+        balance: getBalanceSnapshot().current,
+      });
+    });
+    opens.forEach(function (o, i) {
+      simulatePositionClosed(o.trade_id, pnls[i]);
+      log.push({
+        step: "close " + (i + 1),
+        trade_id: o.trade_id,
+        balance: getBalanceSnapshot().current,
+      });
+    });
+    log.push({
+      step: "final",
+      balance: getBalanceSnapshot().current,
+      inv_d06: checkInvD06(),
+    });
+    console.table(log);
+    return log;
+  }
+
   function getScenarioId() {
     return parseScenarioFromUrl();
   }
@@ -532,17 +728,21 @@
     const id = getScenarioId();
     CURRENT_SCENARIO = id;
     const base = SCENARIOS[id] || SCENARIOS.normal;
+    const clone = JSON.parse(JSON.stringify(base));
+    const ledger = ensureRuntimeLedger(id, clone.balance);
+    clone.balance.current = ledger.balance;
+    clone.balance.initial = ledger.initial;
     if (id === "winning_streak" && base.recent_trades.length === 0) {
       const t = buildTrades(58, 0.72, 1.4);
-      base.recent_trades = t.slice(0, 5);
-      base.all_trades = t;
+      clone.recent_trades = t.slice(0, 5);
+      clone.all_trades = t;
     }
     if (id === "drawdown" && base.all_trades.length === 0) {
       const t = buildTrades(58, 0.41, 1.0);
-      base.recent_trades = t.slice(0, 5);
-      base.all_trades = t;
+      clone.recent_trades = t.slice(0, 5);
+      clone.all_trades = t;
     }
-    return JSON.parse(JSON.stringify(base));
+    return clone;
   }
 
   function setScenario(id) {
@@ -550,6 +750,7 @@
       return false;
     }
     CURRENT_SCENARIO = id;
+    runtimeLedger = null;
     try {
       const url = new URL(global.location.href);
       url.searchParams.set("scenario", id);
@@ -566,6 +767,25 @@
   function mockSSE(eventName, payload, delayMs) {
     const delay = delayMs || 0;
     setTimeout(function () {
+      if (eventName === "position_opened" && payload) {
+        const data = getData();
+        ensureRuntimeLedger(getScenarioId(), data.balance);
+        applyPositionOpened(payload);
+        global.document.dispatchEvent(
+          new CustomEvent("balance_updated", {
+            detail: getBalanceSnapshot(),
+          }),
+        );
+      } else if (eventName === "position_closed" && payload) {
+        const data = getData();
+        ensureRuntimeLedger(getScenarioId(), data.balance);
+        applyPositionClosed(payload);
+        global.document.dispatchEvent(
+          new CustomEvent("balance_updated", {
+            detail: getBalanceSnapshot(),
+          }),
+        );
+      }
       global.document.dispatchEvent(
         new CustomEvent(eventName, { detail: payload }),
       );
@@ -634,6 +854,11 @@
     EMERGENCY_ACTIVE_MOCK: EMERGENCY_ACTIVE_MOCK,
     setScenario: setScenario,
     mockSSE: mockSSE,
+    getBalanceSnapshot: getBalanceSnapshot,
+    simulatePositionOpened: simulatePositionOpened,
+    simulatePositionClosed: simulatePositionClosed,
+    runQ3BalanceDemo: runQ3BalanceDemo,
+    checkInvD06: checkInvD06,
     formatPnl: formatPnl,
     formatPct: formatPct,
     BASE_TIME: BASE_TIME,
