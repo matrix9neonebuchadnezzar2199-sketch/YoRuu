@@ -232,6 +232,7 @@ flowchart TB
 | 種別 | パス | 説明 |
 |:---|:---|:---|
 | 設計指示書（第1〜7章） | [`docs/design/00_INSTRUCTIONS_ch01-07.md`](docs/design/00_INSTRUCTIONS_ch01-07.md) | Cursor / Opus 4.7 向け生成仕様 |
+| レビュー用チェックリスト | [`docs/design/REVIEW_CHECKLIST_ch01-07.md`](docs/design/REVIEW_CHECKLIST_ch01-07.md) | 第1〜7章の人間レビュー基準 |
 | 開発日記 | [`docs/2026-05-27_開発日記.html`](docs/2026-05-27_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | 設計判断の時系列ログ |
 | UI モックアップ | `docs/mockups/` | 単一 HTML · オフライン動作（準備中） |
 | 正式設計書 | `docs/design/01_overview.md` 〜 | 24章構成（生成予定） |

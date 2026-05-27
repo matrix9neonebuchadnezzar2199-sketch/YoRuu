@@ -294,6 +294,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-0845">#entry-0845</a></td>
       </tr>
+      <tr>
+        <td>08:52</td>
+        <td>レビュー基準をリポジトリ化（REVIEW_CHECKLIST + 指示書3点追記）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0852">#entry-0852</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -832,6 +838,39 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>Commit: <code>786306c</code>（README + .gitignore、GitHub に push 済み）</p>
+</section>
+
+<section class="entry" id="entry-0852">
+  <h2>レビュー基準をリポジトリ化（REVIEW_CHECKLIST + 指示書3点追記）<a href="#entry-0852" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 08:52 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-scope">process</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    マスターが提示した第1〜7章レビュー基準・出力フォーマット・気付き3点への見解を
+    <code>docs/design/REVIEW_CHECKLIST_ch01-07.md</code> に固定化。
+    あわせて <code>00_INSTRUCTIONS_ch01-07.md</code> に Opus 向けの追記
+    （第6章実行時間ルール、第7.3スコープ制限、INDEX.md 登録範囲）を反映。README のドキュメント表にもリンク追加。
+  </p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/REVIEW_CHECKLIST_ch01-07.md</li>
+    <li><span class="op op-mod">~</span> docs/design/00_INSTRUCTIONS_ch01-07.md</li>
+    <li><span class="op op-mod">~</span> README.md</li>
+    <li><span class="op op-mod">~</span> docs/2026-05-27_開発日記.html</li>
+  </ul>
+
+  <h3>設計判断</h3>
+  <p>マスター承認済みのワークフロー: Cursor Opus 4.7 で第1〜7章生成 → サマリを本チャットに持ち込み → マスターが REVIEW_CHECKLIST で評価 → 差し戻し or 第8章へ。</p>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>
