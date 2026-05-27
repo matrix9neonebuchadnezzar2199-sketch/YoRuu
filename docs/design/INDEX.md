@@ -3,16 +3,16 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — **M1.3** ch14 レビュー待ち（ch13 まで APPROVED 5/6）；HTML モックは PHASE 2  
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)、[`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md)、[`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md)、[`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md)、[`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md)、[`REVIEW_CHECKLIST_ch13.md`](./REVIEW_CHECKLIST_ch13.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**現在 PHASE**: PHASE 1 — **M1.4** 着手準備（M1.3 完了、14/24）；HTML モックは PHASE 2  
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch14.md`](./REVIEW_CHECKLIST_ch14.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
 
 | 指標 | 値 |
 |------|-----|
-| APPROVED | **13 / 24** 章（ch1〜13） |
-| M1.3 進捗 | **5 / 6** APPROVED（ch9〜13）、ch14 執筆完了（`REVIEW_PENDING`） |
-| 現在マイルストーン | **M1.3**（ch14 一次レビュー §14.13.2） |
+| APPROVED | **14 / 24** 章（ch1〜14） |
+| M1.3 進捗 | **6 / 6 完了**（ch9〜14 すべて APPROVED） |
+| 現在マイルストーン | **M1.4**（ch15〜19 安全設計、中間レビュー後着手） |
 | 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
@@ -63,7 +63,7 @@
 | 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `d405f0c` |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
 | 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED |
-| 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | REVIEW_PENDING |
+| 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED |
 
 </details>
 
