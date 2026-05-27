@@ -2,11 +2,11 @@
 
 > **目的**: YoRuu の Web UI 全画面（ハブ + 10画面）の設計仕様を確定する。本章は第7章 §7.6 の画面一覧を**正式に上書き**し、PHASE 2 で実装する HTML モックおよび PHASE 4 で実装する本実装 UI の SSOT となる。
 
-**バージョン**: v1.2.1  
+**バージョン**: v1.2.2  
 **作成日**: 2026-05-27  
 **承認日**: 2026-05-27  
 **ステータス**: APPROVED  
-**最終更新**: 2026-05-27（v1.2.1: §8.4.1 に severity 背景変数を追記）  
+**最終更新**: 2026-05-27（v1.2.2: §8.20.5 Persistence SSOT 一本化、`wait_reason` i18n 暫定表）  
 **関連章**: 第3章（状態遷移）、第6章（シーケンス）、第7章（入出力）、第14章（i18n）、第19章（キルスイッチ）  
 **関連ファイル**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)（本章に統合済み・アーカイブ）
 
@@ -785,7 +785,26 @@ backtest「別タブ」、paper/simmer 即時（1段確認）、live 2段階。
 
 ### 8.20.5 計算ロジック
 
-詳細は第11章。Persistence 表示 = `(P(UP→UP)+P(DOWN→DOWN))/2`。Rolling Persistence = 案α（§7.2.1）。
+詳細は第11章 §11.4 / §11.7。
+
+- **Persistence 表示値**: `min(P(UP→UP), P(DOWN→DOWN))`（第11章 §11.4.1 を SSOT）
+- **判定ゲート**: `Persistence ≥ PERSISTENCE_THRESHOLD`（既定 0.70）
+- **閾値未達時の `wait_reason`**: `persistence`
+
+判定バナー・ツールチップは `markov_update` SSE の `threshold_met` / `wait_reason`（§10.5.3）を表示する。
+
+#### 8.20.5.1 `wait_reason` と i18n キー（暫定、第14章で正式化）
+
+| `wait_reason` | 意味 | i18n キー（暫定） |
+|---------------|------|-------------------|
+| `persistence` | Persistence 閾値未達 | `markov.wait.persistence` |
+| `edge` | Edge 閾値未達 | `markov.wait.edge` |
+| `prob` | 予測確率 `MIN_PROB` 未達 | `markov.wait.prob` |
+| `risk_*` | `RiskGuard` 事前チェック失敗（例: `risk_balance`） | `markov.wait.risk`（サフィックスで具体化可） |
+| `liquidity` | スプレッド超過（§11.5.3） | `markov.wait.liquidity` |
+| `risk_budget` | 日次残予算不足（§11.6.6） | `markov.wait.risk_budget` |
+
+PHASE 2 の `mock-data.js` は `markov_update` ペイロードに `wait_reason` を含める（`threshold_met=false` 時）。
 
 ### 8.20.6 SSE イベント
 
@@ -801,7 +820,7 @@ backtest「別タブ」、paper/simmer 即時（1段確認）、live 2段階。
 
 ### 8.20.9 i18n キー一覧
 
-`page.markov_live.title`, `markov.*`, `judgment.*`
+`page.markov_live.title`, `markov.*`, `markov.wait.*`, `judgment.*`
 
 ### 8.20.10 関連章
 

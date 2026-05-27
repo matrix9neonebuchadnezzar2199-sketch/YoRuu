@@ -1,8 +1,8 @@
 # 第10章 関数・データモデル
 
-- **バージョン**: v1.0.1
+- **バージョン**: v1.0.2
 - **作成日**: 2026-05-27
-- **最終更新**: 2026-05-27（v1.0.1: §10.3.11〜13 テーブル追加、§10.7.2 State 注記）
+- **最終更新**: 2026-05-27（v1.0.2: §10.7.4 `EvaluationResult` 拡張、§10.5.3 `wait_reason`）
 - **ステータス**: APPROVED
 - **関連章**: 2（アーキテクチャ）, 4（データフロー）, 6（シーケンス）, 7（I/O 図）, 11（戦略ロジック）, 12（モード仕様）, 13（ペーパー約定）, 14（i18n）, 15（夜間レビュー）, 18（エラーハンドリング）, 19（キルスイッチ）
 - **旧章統合**: 旧 ch11「Data Model」を §10.3（SQLite）／§10.4（`strategy.json`）に統合
@@ -458,11 +458,14 @@ data: {
   "computed_at": "2026-05-27T14:35:00+09:00",
   "window_size": 20,
   "matrix": {"p_up_up":0.578,"p_up_down":0.422,"p_down_up":0.388,"p_down_down":0.612},
-  "rolling_persistence": 0.595,
+  "rolling_persistence": 0.578,
   "last_direction": "UP",
-  "threshold_met": false
+  "threshold_met": false,
+  "wait_reason": "persistence"
 }
 ```
+
+`wait_reason` は `threshold_met=false` のときのみ付与（§11.7.2 / §8.20.5.1）。値は `persistence` / `edge` / `prob` / `risk_*` / `liquidity` / `risk_budget`。
 
 **`health_degraded`**:
 ```
@@ -807,7 +810,21 @@ class StrategyEvaluator:
         """strategy.json リロード（Apply 直後）"""
 ```
 
-`EvaluationResult` は `should_enter: bool`, `side: Side | None`, `size_usd: float`, `edge: float`, `persistence: float`, `reason: str` を含む。
+```python
+@dataclass(frozen=True)
+class EvaluationResult:
+    should_enter: bool
+    side: Side | None
+    size_usd: float
+    edge: float
+    persistence: float
+    predicted_prob: float
+    market_price: float
+    reason: str
+    wait_reason: WaitReason | None  # 待機時のみ（§11.7.2 / §8.20.5.1）
+```
+
+`WaitReason` は `Literal["persistence", "edge", "prob", "liquidity", "risk_budget"]` または `risk_*` プレフィックス付き文字列（例: `risk_balance`）。
 
 ### 10.7.5 RiskGuard（`src/yoruu/execution/risk_guard.py`）
 

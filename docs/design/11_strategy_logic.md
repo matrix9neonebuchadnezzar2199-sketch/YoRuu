@@ -1,8 +1,9 @@
 # 第11章 戦略ロジック
 
-- **バージョン**: v1.0
+- **バージョン**: v1.0.1
 - **作成日**: 2026-05-27
-- **ステータス**: REVIEW_PENDING
+- **最終更新**: 2026-05-27（v1.0.1: R11-1〜3 横断 SSOT 整合、ch7/ch8/ch10 追補）
+- **ステータス**: APPROVED
 - **関連章**: 3（状態遷移）, 6（シーケンス）, 7（I/O 図）, 9（ユーザーフロー §9.10）, 10（関数・データモデル §10.7.4 / §10.9 / §10.4.1）, 12（モード仕様）, 13（ペーパー約定）, 15（夜間レビュー）
 - **旧 ch12 「Strategy」を本章に統合**
 
@@ -109,7 +110,7 @@ Persistence = min(P(UP→UP), P(DOWN→DOWN))
 
 両方向の自己遷移確率のうち弱い方を採用する保守的指標。両方向で持続性が確認されたときのみ高値を取る。
 
-実装 SSOT は §10.9 `MarkovEngine.rolling_persistence()` / `compute_persistence()` と同式。第7章 §7.2.1 の「案α」は本式を指す（§10.9・本章が実装定義の正）。
+実装 SSOT は §10.9 `MarkovEngine.rolling_persistence()` / `compute_persistence()` と同式。第7章 §7.2.1 の「案α」は本式を指す（§10.9・本章が実装定義の正）。第7章 §7.2.1 末尾にも本式への逆参照注記あり。
 
 ### 11.4.2 範囲・既定値
 
@@ -250,10 +251,11 @@ EvaluationResult(
   predicted_prob=float,
   market_price=float,
   reason="all_conditions_met" | "wait:<reason>",
+  wait_reason=WaitReason | None,
 )
 ```
 
-`predicted_prob` / `market_price` は §10.7.4 `EvaluationResult` の追補フィールド（ch10 v1.0.1 パッチで SSOT 同期予定）。
+フィールド定義の SSOT は §10.7.4 `EvaluationResult`（ch10 v1.0.2）。
 
 ### 11.7.4 Side 決定規則
 
