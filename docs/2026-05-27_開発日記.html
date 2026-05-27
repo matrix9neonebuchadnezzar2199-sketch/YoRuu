@@ -462,6 +462,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1529">#entry-1529</a></td>
       </tr>
+      <tr>
+        <td>15:39</td>
+        <td>PHASE 2 キックオフテンプレ作成（Composer 引き渡し）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1539">#entry-1539</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1725,6 +1731,33 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>Commit: <code>5212e3a</code>（push 済）</p>
+</section>
+
+<section class="entry" id="entry-1539">
+  <h2>PHASE 2 キックオフテンプレ作成<a href="#entry-1539" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 15:39 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    マスター指示により PHASE 2 UI モックは <strong>Composer 2.5 の別チャット</strong>（規約 <code>52-yoruu-model-routing.mdc</code>）に引き渡す方針を確定。
+    本 Opus チャットでは実装に踏み込まず、M2.1/M2.2/M2.3 のコピペ用依頼テンプレと SSOT 参照表を <code>PHASE2_KICKOFF_TEMPLATE.md</code> に固定。
+    PHASE 2 と M1.5 設計の並行可否は未定（マスター後日判断）。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/PHASE2_KICKOFF_TEMPLATE.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <ul>
+    <li>03_nightly_review 単発着手は却下 — M2.1 共通基盤未整備のため shared/* を二重作成するリスク</li>
+    <li>並行/逐次は <code>p3 未定</code> 採択、テンプレは両対応の中立記述</li>
+  </ul>
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>
