@@ -123,4 +123,4 @@ Opus は空欄を埋めようとする。数値には次のいずれかが必須
 | 第6章 | APPROVED | 2026-05-27 | 補助レビュー反映済み（StateMachine 参加者） |
 | 第7章 | APPROVED | 2026-05-27 | 補助レビュー反映済み（§7.2.1 PERSISTENCE 案α） |
 
-次工程: `00_ROADMAP.md` 整備（M1.0）→ 24章再編 cross-ref → 第8章設計書（HTML は PHASE 2）。
+次工程: 第8章 → [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)（M1.2 完了）→ M1.3 ch9〜14。

@@ -1,10 +1,18 @@
 # YoRuu 設計書 INDEX
 
-> **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` および後続のチェックリストで管理する。
+> **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — M1.2 第8章設計書 `REVIEW_PENDING`、HTML は PHASE 2  
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**現在 PHASE**: PHASE 1 — **M1.3** ch9〜14 執筆（M1.2 完了）；HTML モックは PHASE 2  
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)、[`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+
+### PHASE 1 進捗（設計書 APPROVED 章数）
+
+| 指標 | 値 |
+|------|-----|
+| APPROVED | **8 / 24** 章（ch1〜8） |
+| 現在マイルストーン | **M1.3**（ch9〜14） |
+| 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
 
@@ -38,9 +46,9 @@
 <details>
 <summary>第3部 UI設計（ch8）</summary>
 
-| # | タイトル | ファイル | ステータス |
-|---|----------|----------|-----------|
-| 8 | UIモックアップ（11画面） | [`08_ui_mockup.md`](./08_ui_mockup.md) | REVIEW_PENDING |
+| # | タイトル | ファイル | ステータス | コミット |
+|---|----------|----------|-----------|----------|
+| 8 | UIモックアップ（11画面） | [`08_ui_mockup.md`](./08_ui_mockup.md) | APPROVED | `37e4e16` |
 
 </details>
 
@@ -116,8 +124,10 @@
 ## レビュー基準
 
 - ch1〜7: [`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)
+- ch8: [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md)
 - ロードマップ: [`00_ROADMAP.md`](./00_ROADMAP.md)
 
 **2026-05-27 補助レビュー反映**（ch1〜7 本文）: 第3章 3.3、第7章 7.2.1、第6章 StateMachine → コミット `49fccec`  
 **2026-05-27 一次レビュー**: ch1〜7 `APPROVED` → コミット `2623330`  
-**2026-05-27 M1.0**: 24章再編・ロードマップ SSOT → 本コミット
+**2026-05-27 M1.0**: 24章再編・ロードマップ SSOT → `bce8a03`  
+**2026-05-27 M1.2**: 第8章 `APPROVED`（v1.2.1、§8.26.5 7項目）→ `37e4e16`
