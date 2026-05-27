@@ -88,8 +88,19 @@
 | 20 | 監査ログ | `20_audit_log.md` | PENDING |
 | 21 | 設定影響マトリクス | `21_config_impact.md` | PENDING |
 | 22 | 設定仕様（yoruu.yaml） | `22_config_spec.md` | PENDING |
-| 23 | テスト戦略 | `23_test_strategy.md` | PENDING |
-| 24 | デプロイ + ロールバック | `24_deploy_rollback.md` | PENDING |
+| 23 | テスト戦略（デプロイ・ロールバック統合予定） | `23_test_strategy.md` | PENDING |
+| 24 | Polymarket CLOB クライアント詳細 | `24_polymarket_clob.md` | PENDING |
+
+</details>
+
+<details>
+<summary>付録</summary>
+
+| 付録 | タイトル | ファイル | ステータス |
+|------|----------|----------|-----------|
+| A | 用語集 | [`appendix_a_glossary.md`](./appendix_a_glossary.md) | PENDING |
+
+> ch1 §1.6 は要約。用語の SSOT は付録 A（中間レビュー案 Y、2026-05-27）。
 
 </details>
 
@@ -110,6 +121,9 @@
 | 14 | ペーパー約定 | 13 | ペーパー約定エンジン | 章番号 -1 |
 | — | — | **14** | **i18n 設計** | **新規** |
 | 15〜24 | 安全・運用 | 15〜24 | 同左 | 番号維持 |
+| 24 | デプロイ + ロールバック | 24 | Polymarket CLOB クライアント詳細 | 案 Y（2026-05-27） |
+| — | — | 付録 A | 用語集（ch1 §1.6 から分離） | 新規 |
+| 24（旧）デプロイ | — | ch23 | テスト戦略に統合予定（§23.x） | M1.5b 執筆時 |
 
 ### ch1〜7 内の cross-ref 更新（実施済み）
 

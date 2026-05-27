@@ -56,11 +56,18 @@ gantt
 - ch1〜7 補助レビュー反映完了（コミット `49fccec`）
 - ch1〜7 正式 `APPROVED`（コミット `2623330`）
 
-### PHASE 1: 設計書執筆（2026-05-28 〜 2026-06-06、10日）
+### PHASE 1: 設計書執筆（2026-05-28 〜 2026-05-31 目標、当初 10 日）
 
-**目的**: ch1〜24 すべての設計書を `APPROVED` 状態に到達させる。
+**目的**: ch1〜24 すべての設計書を `APPROVED` 状態に到達させる（付録 A 用語集を含む）。
 
-**成果物**: `docs/design/01_*.md` 〜 `docs/design/24_*.md`（全24章、合計約 20,000〜25,000字）
+**成果物**: `docs/design/01_*.md` 〜 `docs/design/24_*.md`、`appendix_a_glossary.md`
+
+**期間再見積（2026-05-27 中間レビュー）**:
+
+| 項目 | 目標日 |
+|------|--------|
+| PHASE 1 完了 | **2026-05-31** |
+| PHASE 2 着手 | **ch15 APPROVED 翌営業日**（**2026-06-01 週**想定） |
 
 **マイルストーン**:
 
@@ -69,11 +76,19 @@ gantt
 | M1.0 | ロードマップ整備（本ファイル + INDEX/§1.7 + cross-ref + carryover 更新） | 半日 | 完了 |
 | M1.1 | ch1〜7 `APPROVED` | — | 完了 |
 | M1.2 | ch8 UIモック**設計書のみ** `APPROVED`（HTML は PHASE 2） | 2日 | **完了**（v1.2.1、`08_ui_mockup.md`） |
-| M1.3 | ch9〜14 詳細設計（操作フロー・関数+データモデル・戦略・モード・ペーパー約定・i18n） | 3日 | **完了**（6/6 APPROVED、PHASE 1: 14/24） |
-| M1.4 | ch15〜19 安全設計（夜間レビュー・不変条件・リスク・エラー・キルスイッチ） | 2日 | **着手可能**（中間レビュー合意済 → [`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)） |
-| M1.5 | ch20〜24 運用設計（監査・設定影響・設定仕様・テスト・デプロイ） | 2日 | 待機（**M1.5a/b/c** 分割は中間レビュー記録参照） |
+| M1.3 | ch9〜14 詳細設計 | 3日 | **完了**（6/6 APPROVED、14/24） |
+| M1.4 | ch15 夜間レビューフロー | 1〜2日 | **着手可能** |
+| M1.5 | ch16〜24 + 付録 A（下記 a/b/c 分割） | 2日 | 待機 |
 
-**M1.3 中間レビュー（2026-05-27）**: 14/24 到達。A-1（INDEX 維持・CLOB 章 TBD）、PHASE 2 は ch15 APPROVED 後着手。詳細は [`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)。
+**M1.5 執筆分割（INDEX 準拠・2026-05-27 合意）**:
+
+| サブ ID | 章順 | 内容 |
+|---------|------|------|
+| M1.5a | ch17 → ch18 → ch19 | リスク・エラー・キル（M1.4 と並行可） |
+| M1.5b | ch20 → ch16 → ch23 | 監査・不変条件・テスト（**順序**: 監査確定後に不変条件・テスト） |
+| M1.5c | ch21 → ch22 → ch24 | 設定影響・設定仕様・**Polymarket CLOB** |
+
+**中間レビュー確定（案 Y）**: ch21 = 設定影響（維持）、ch24 = Polymarket CLOB クライアント詳細、付録 A = 用語集。旧 ch24「デプロイ + ロールバック」は **ch23** に統合予定。詳細: [`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)。
 
 **Exit Criteria**:
 
@@ -225,14 +240,17 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | PHASE 0 | ch1〜7 初版 |
 | PHASE 1 M1.2 | ch8 |
 | PHASE 1 M1.3 | ch9, ch10, ch11, ch12, ch13, ch14 |
-| PHASE 1 M1.4 | ch15, ch16, ch17, ch18, ch19 |
-| PHASE 1 M1.5 | ch20, ch21, ch22, ch23, ch24 |
+| PHASE 1 M1.4 | ch15 |
+| PHASE 1 M1.5a | ch17, ch18, ch19 |
+| PHASE 1 M1.5b | ch20, ch16, ch23 |
+| PHASE 1 M1.5c | ch21, ch22, ch24（CLOB） |
+| 付録 A | 用語集 |
 | PHASE 2 | ch8 の HTML 実装 |
-| PHASE 3 | ch11, ch13, ch10（データモデル節）が主要参照 |
+| PHASE 3 | ch11, ch13, ch10, ch24（CLOB）が主要参照 |
 | PHASE 4 | ch8, ch14 が主要参照 |
 | PHASE 5 | ch16, ch17, ch18, ch19, ch23 が主要参照 |
 | PHASE 6 | ch15, ch20 が主要参照 |
-| PHASE 7 | ch22, ch24 が主要参照 |
+| PHASE 7 | ch22, ch23（デプロイ統合）, ch24（CLOB）が主要参照 |
 
 ---
 
@@ -252,3 +270,4 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-27 | v1.0 | M1.3 ch9 完了、第9章 APPROVED（§9.16.5） | `06c0398` |
 | 2026-05-27 | v1.0 | M1.3 完了（ch9〜14 APPROVED）、PHASE 1 進捗 14/24 | `3e16689` |
 | 2026-05-27 | v1.0 | M1.3 中間レビュー合意（A-1・M1.5 分割・PHASE 2 タイミング） | `1a35cdb` |
+| 2026-05-27 | v1.0 | 案 Y: ch24=CLOB、付録 A=用語集、M1.5a/b/c、PHASE 1 5/31 目標 | （本コミット） |

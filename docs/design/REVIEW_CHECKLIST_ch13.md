@@ -14,7 +14,7 @@
 | 2 | FillModel 既定値（§13.3.2） | 合格 | spread 0.02 / slippage 0.001 / latency 150ms、§13.9.2 保守的 |
 | 3 | データ構造（§13.4） | 合格 | OpenRequest / CloseRequest ↔ trades・positions |
 | 4 | BacktestExecutor 共有（§13.5） | 合格 | SeededRNG・仮想時刻、PAPER との公正比較 |
-| 5 | LiveExecutor 対比（§13.6） | 合格 | 9 項目、第21章への伏線 |
+| 5 | LiveExecutor 対比（§13.6） | 合格 | 9 項目、第24章（CLOB）への伏線 |
 | 6 | 約定価格・P&L（§13.7） | 合格 | shares = size_usd / entry_price |
 | 7 | 失敗ケース（§13.8） | 合格 | E_FILL_001〜010、ch3 / ch11 §11.7 整合 |
 
@@ -43,5 +43,6 @@ ch13 v1.0.1 APPROVED では設計判断のみ確定（§13.12.3 記録）。ch10
 **レビュー実施**: マスター
 
 | v1.0.2 | 2026-05-27 | CLOB cross-ref 修正（ch21≠CLOB、A-1） | `1a35cdb` |
+| v1.0.3 | 2026-05-27 | CLOB 参照を第24章に確定（案 Y） | （本コミット） |
 
 次工程: M1.4 ch15（夜間レビューフロー）。
