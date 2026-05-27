@@ -58,7 +58,7 @@
 
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
-| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | REVIEW_PENDING | （配置コミット hash） |
+| 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | REVIEW_PENDING | `93cc6a6` |
 | 10 | 関数呼び出し・データフォーマット・データモデル | `10_function_and_data.md` | PENDING |
 | 11 | 戦略ロジック（Markov + Kelly） | `11_strategy.md` | PENDING |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
