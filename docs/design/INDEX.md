@@ -11,8 +11,8 @@
 | 指標 | 値 |
 |------|-----|
 | APPROVED | **9 / 24** 章（ch1〜9） |
-| M1.3 進捗 | **1 / 6** 章完了（ch9）→ ch10 着手 |
-| 現在マイルストーン | **M1.3**（ch10 関数+データモデル） |
+| M1.3 進捗 | **1 / 6** 章完了（ch9）→ ch10 Part 1 配置済 |
+| 現在マイルストーン | **M1.3**（ch10 Part 2 待ち） |
 | 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
@@ -59,7 +59,7 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
-| 10 | 関数呼び出し・データフォーマット・データモデル | `10_function_and_data.md` | PENDING |
+| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | DRAFT（Part 1/2） |
 | 11 | 戦略ロジック（Markov + Kelly） | `11_strategy.md` | PENDING |
 | 12 | モード仕様（backtest / paper / simmer / live） | `12_modes.md` | PENDING |
 | 13 | ペーパー約定エンジン | `13_paper_execution.md` | PENDING |
