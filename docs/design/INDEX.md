@@ -15,13 +15,13 @@
 
 | 章 | タイトル | ファイル | ステータス | サマリ |
 |---|---|---|---|---|
-| 1 | 概要 | [`01_overview.md`](./01_overview.md) | REVIEW_PENDING | システム目的・スコープ・用語集 |
-| 2 | アーキテクチャ概観 | [`02_architecture.md`](./02_architecture.md) | REVIEW_PENDING | 層構造・技術スタック・ディレクトリ |
-| 3 | 状態遷移図 | [`03_state_diagram.md`](./03_state_diagram.md) | REVIEW_PENDING | 9状態の定義と遷移ルール |
-| 4 | データフロー図 (DFD) | [`04_data_flow.md`](./04_data_flow.md) | REVIEW_PENDING | DFD レベル0/1、データ寿命表 |
-| 5 | 信頼境界線図 | [`05_trust_boundary.md`](./05_trust_boundary.md) | REVIEW_PENDING | 4ゾーン定義、境界検証ルール |
-| 6 | シーケンス図 | [`06_sequence.md`](./06_sequence.md) | REVIEW_PENDING | 7ユースケースの時系列 |
-| 7 | インプット/アウトプット図 | [`07_io_diagram.md`](./07_io_diagram.md) | REVIEW_PENDING | 30 I/O 項目、検証マトリクス |
+| 1 | 概要 | [`01_overview.md`](./01_overview.md) | APPROVED | システム目的・スコープ・用語集 |
+| 2 | アーキテクチャ概観 | [`02_architecture.md`](./02_architecture.md) | APPROVED | 層構造・技術スタック・ディレクトリ |
+| 3 | 状態遷移図 | [`03_state_diagram.md`](./03_state_diagram.md) | APPROVED | 9状態の定義と遷移ルール |
+| 4 | データフロー図 (DFD) | [`04_data_flow.md`](./04_data_flow.md) | APPROVED | DFD レベル0/1、データ寿命表 |
+| 5 | 信頼境界線図 | [`05_trust_boundary.md`](./05_trust_boundary.md) | APPROVED | 4ゾーン定義、境界検証ルール |
+| 6 | シーケンス図 | [`06_sequence.md`](./06_sequence.md) | APPROVED | 7ユースケースの時系列 |
+| 7 | インプット/アウトプット図 | [`07_io_diagram.md`](./07_io_diagram.md) | APPROVED | 30 I/O 項目、検証マトリクス |
 
 ## 今後の章 (第8〜24章)
 
@@ -55,3 +55,5 @@
 各章は [REVIEW_CHECKLIST_ch01-07.md](./REVIEW_CHECKLIST_ch01-07.md) の12観点で評価する。
 
 **2026-05-27 補助レビュー反映**: 第3章 3.3（backtest ガード）、第7章 7.2.1（PERSISTENCE 案α）、第6章 StateMachine 参加者、第8章 UI 予約 → [`08_mockup_carryover.md`](./08_mockup_carryover.md)。
+
+**2026-05-27 一次レビュー**: 第1〜7章を `APPROVED` に昇格（折衷案: マスター目視確認後）。次: M1.0 ロードマップ整備 → 第8章設計（PHASE 1 M1.2）。

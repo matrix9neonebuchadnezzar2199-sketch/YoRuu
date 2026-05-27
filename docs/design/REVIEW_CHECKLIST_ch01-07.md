@@ -108,3 +108,19 @@ Opus は空欄を埋めようとする。数値には次のいずれかが必須
 | 戦略 | `strategy.json`、Markov チューニング、閾値 | private |
 
 （Kaustubh Patange / polymarket-trade-engine と同型の分離）
+
+---
+
+## 承認記録
+
+| 章 | ステータス | 承認日 (JST) | 備考 |
+|:---|:---:|:---|:---|
+| 第1章 | APPROVED | 2026-05-27 | 折衷案: 目視確認（形式・品質チェック節・Mermaid 閉じ）後 |
+| 第2章 | APPROVED | 2026-05-27 | 同上 |
+| 第3章 | APPROVED | 2026-05-27 | 補助レビュー反映済み（§3.3 backtest ガード） |
+| 第4章 | APPROVED | 2026-05-27 | 同上 |
+| 第5章 | APPROVED | 2026-05-27 | 同上 |
+| 第6章 | APPROVED | 2026-05-27 | 補助レビュー反映済み（StateMachine 参加者） |
+| 第7章 | APPROVED | 2026-05-27 | 補助レビュー反映済み（§7.2.1 PERSISTENCE 案α） |
+
+次工程: `00_ROADMAP.md` 整備（M1.0）→ 24章再編 cross-ref → 第8章設計書（HTML は PHASE 2）。

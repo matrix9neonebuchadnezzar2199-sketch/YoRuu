@@ -318,6 +318,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1054">#entry-1054</a></td>
       </tr>
+      <tr>
+        <td>11:17</td>
+        <td>設計書 第1〜7章を APPROVED 昇格（INDEX・チェックリスト・コミット）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1117">#entry-1117</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -995,6 +1001,35 @@ body.diary > footer {
 
   <h3>検証</h3>
   <p>Commit: <code>49fccec</code></p>
+</section>
+
+<section class="entry" id="entry-1117">
+  <h2>設計書 第1〜7章を APPROVED 昇格（ステップ1完了）<a href="#entry-1117" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 11:17 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">design</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>折衷案（C）に基づき、第1〜7章を正式 <code>APPROVED</code> に昇格。INDEX・レビューチェックリストに承認記録を追記。次は M1.0（<code>00_ROADMAP.md</code> 等）→ 24章再編 cross-ref → 第8章設計書。</p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/design/INDEX.md（ch1〜7 ステータス APPROVED）</li>
+    <li><span class="op op-mod">~</span> docs/design/REVIEW_CHECKLIST_ch01-07.md（承認記録表）</li>
+    <li><span class="op op-mod">~</span> docs/2026-05-27_開発日記.html</li>
+  </ul>
+
+  <h3>設計判断</h3>
+  <ul>
+    <li>章番号再編・cross-ref 差し替えは <strong>APPROVED 後</strong>（M1.0）で実施し、履歴を追跡可能にする</li>
+    <li>第8章 HTML モックは PHASE 2 まで着手しない</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>
