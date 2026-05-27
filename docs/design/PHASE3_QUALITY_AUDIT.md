@@ -185,6 +185,7 @@ A/B/C の根に共通する **設計書側を直すべき** 項目を抽出:
 | D8 | **ch6 / ch7 cross-ref** | 旧 `GENERATING_REPORT` 等の参照を `NIGHTLY_REVIEW` 統合後に更新 | A・D1 連動 |
 | D9 | **ch11 §11.7.2** | Evaluator 内 Risk 統合 / OM 層分離のどちらが SSOT か 1 段落明記 | A7 |
 | D10 | **ch14 §14.4.1** | `ja.bundle.js` の存在・ja.json 同期手順を SSOT 化 | B-MED |
+| D11 | **ch13 §13.2.5 新設** | PaperExecutor の `balance` 更新タイミング明文化（open 時減算、close 時加算）。INV-D-06 として ch16 への不変条件追加候補 | I1 確定（Q3=A） |
 
 ---
 
@@ -340,13 +341,32 @@ Track 4 (PHASE 2 後修正) ─┬─ T4.1/3/4/5/6/7/8/9 並列可
 
 ### `[要確認: file]` 系（断定不可、マスター判断要）
 
-| # | 項目 | 影響 | 確認方法 |
-|---|---|---|---|
-| I1 | A14: PaperExecutor の open 時 balance 更新タイミングが ch10/ch13 で SSOT 化されているか | 残高不整合の根本判定 | ch10 §10.10 / ch13 §13.6 全文読解 |
-| I2 | A15「ch13 vs ch22 FillModel 既定値」優先順位 | T1.x 着手前に方針確定必要 | ch13 §13.3.2 / ch22 §22.2 を Opus でレビュー |
-| I3 | A3 の `W_NIGHTLY_001` が ch18 に正式掲載されているか | エラーコード整合 | ch18 全文 grep |
-| I4 | E1: PHASE 3 scaffold commit `005fdcd` が Composer 2.5 経由か Opus 経由か | 規約遵守判定 | git log の Co-authored-by 確認、または該当チャット履歴 |
-| I5 | A の cli.py `paper evaluate-once` 22 close ハードコードが「デモ専用」か「本番 evaluate パス」か | T1.x の優先度判定 | マスター意図確認 |
+| # | 項目 | 影響 | 確認方法 | 判定（2026-05-28） |
+|---|---|---|---|---|
+| I1 | A14: PaperExecutor の open 時 balance 更新タイミングが ch10/ch13 で SSOT 化されているか | 残高不整合の根本判定 | ch10 §10.10 / ch13 §13.6 全文読解 | **❌ SSOT 明示なし** → Q3=**A 案確定** (open 時即時減算 + close 時加算)。D11 追加 |
+| I2 | A15「ch13 vs ch22 FillModel 既定値」優先順位 | T1.x 着手前に方針確定必要 | ch13 §13.3.2 / ch22 §22.2 を Opus でレビュー | **⚠️ ch22 が SSOT 主張、ch13 と 10 倍差** → Q2=**A 案確定** (ch22 SSOT 化、ch13 従属化)。§13.9.2 保守的原則は対応 B 推奨 |
+| I3 | A3 の `W_NIGHTLY_001` が ch18 に正式掲載されているか | エラーコード整合 | ch18 全文 grep | **❌ ch18 未掲載**（`E_NIGHTLY_001`〜`014` のみ）→ Q1=**A 案確定** (`E_NIGHTLY_008` に統合、`W_` プレフィックス非導入) |
+| I4 | E1: PHASE 3 scaffold commit `005fdcd` が Composer 2.5 経由か Opus 経由か | 規約遵守判定 | git log の Co-authored-by 確認、または該当チャット履歴 | 未確認（Composer 引き渡し前に要マスター確認） |
+| I5 | A の cli.py `paper evaluate-once` 22 close ハードコードが「デモ専用」か「本番 evaluate パス」か | T1.x の優先度判定 | マスター意図確認 | 未確認 |
+
+### 判定根拠サマリ（Opus 章読解、2026-05-28）
+
+**Q1（I3 関連）— `W_NIGHTLY_001` → `E_NIGHTLY_008` 統合（A 案）**:
+- ch18 §18.3.4 カタログは `E_NIGHTLY_001`〜`E_NIGHTLY_014` の 14 件、全て `E_` プレフィックス（`W_` 不在）
+- §18.1.2 命名規則も `E_<DOMAIN>_<NNN>` 一択
+- `E_NIGHTLY_008`（severity=WARN、HTTP=422、「変化率 ±20% 超」）が既存 → ±10% 警告と意味的に統合可能
+- 命名規則改訂を避ける最小差分
+
+**Q2（I2 関連）— ch22 SSOT 化、ch13 従属化（A 案）**:
+- ch22 ヘッダが「ch10 §10.4.2 の完全スキーマは本章が SSOT」と宣言
+- ch13 §13.3.2 自身が「v1.0 は内部定数」と記載、ch22 への露出を v1.1 と位置付け
+- ch22 §22.2 paper セクションは v1.0 で既に存在 → 設計意図として ch22 が新 SSOT
+- **重大注意**: ch22 `slippage_coeff = 0.0001`、`latency_ms_mean = 80` は ch13 §13.9.2「保守的原則」（実観測 80-120ms の上位寄り = 150ms）と矛盾。Track 2C で対応 B（§13.9.2 維持 + ch22 を lab 用初期値と明記）を推奨。`slippage_coeff = 0.0001` が誤記の可能性も否定できない
+
+**Q3（I1 関連）— open 時即時減算 + close 時加算（A 案）**:
+- ch10 §10.7.6 / ch13 §13.2.4 ともに `PaperExecutor.open/close` の balance 更新タイミング **未明示**
+- ch13 §13.6 LiveExecutor 対比表は「PaperExecutor: balance 内部」とのみ記載
+- 監視 UI で残高がリアルタイム表示される / 最大同時オープン残高が見える / INV-D-XX として残高不変条件をテスト可能、という 3 理由で open 時減算採用
 
 ### 隠れリスク
 
@@ -359,21 +379,47 @@ Track 4 (PHASE 2 後修正) ─┬─ T4.1/3/4/5/6/7/8/9 並列可
 
 ## J. Composer 2.5 / Opus 依頼テンプレ集
 
-### J.1 Composer 2.5: Track 1（PHASE 3 SSOT 同期）
+### J.1 Composer 2.5: Track 1（PHASE 3 SSOT 同期）— Q1〜Q3 判断反映版
 
 ```
 [実装] PHASE 3 SSOT 同期 (Track 1)。
+
 スコープ: T1.1〜T1.11 を順序通り、各タスク後に pytest 実行。
-SSOT: @docs/design/PHASE3_QUALITY_AUDIT.md
-      @docs/design/10_functions_data_model.md (§10.3)
-      @docs/design/11_strategy_logic.md (§11.7)
-      @docs/design/13_paper_execution.md (§13.4, §13.8)
-      @docs/design/15_nightly_review.md (§15.3, §15.4, §15.6, §15.7, §15.8)
-      @docs/design/16_invariants.md
-      @docs/design/18_error_handling.md
-      @docs/design/23_test_strategy.md
-依頼内容: PHASE3_QUALITY_AUDIT.md §F Track 1 全件。HIGH 8 件は分割 commit 推奨。
-完了基準: pytest --cov pass, fail_under=80, paper evaluate-once 動作確認。
+
+マスター判断確定事項（Track 2 で章ローリング予定だが、実装は既に整合 or 修正要）:
+  - Q1: W_NIGHTLY_001 → E_NIGHTLY_008 統合
+        実装側で W_NIGHTLY_001 を使用している箇所があれば E_NIGHTLY_008 に置換
+  - Q2: FillModel 既定値は ch22 §22.2 が SSOT
+        実装は既に ch22 準拠 (settings.py:46-50)、修正不要
+        ただし src/yoruu/execution/fill_model.py:28-32 の default 値が
+        ch13 値 (0.001/150ms) になっていないか確認、ch22 値 (0.0001/80ms) に統一
+  - Q3: PaperExecutor.open() で balance 即時減算追加（A14 修正）
+        open() 成功時: db.update_balance(balance - size_usd)
+        close() 成功時: db.update_balance(balance + size_usd + pnl)
+        失敗時は変更なし
+        INV-D-06 として InvariantChecker に「残高保存則」追加（T1.5 に統合）
+
+SSOT:
+  @docs/design/PHASE3_QUALITY_AUDIT.md
+  @docs/design/10_functions_data_model.md (§10.3)
+  @docs/design/11_strategy_logic.md (§11.7)
+  @docs/design/13_paper_execution.md (§13.4, §13.8)
+  @docs/design/15_nightly_review.md (§15.3, §15.4, §15.6, §15.7, §15.8)
+  @docs/design/16_invariants.md
+  @docs/design/18_error_handling.md
+  @docs/design/22_config_spec.md (§22.2)
+  @docs/design/23_test_strategy.md
+
+依頼内容: PHASE3_QUALITY_AUDIT.md §F Track 1 全件 + 上記 Q1〜Q3 判断反映。
+HIGH 8 件は分割 commit 推奨。
+
+完了基準:
+  - pytest --cov pass
+  - fail_under=80 達成
+  - yoruu paper evaluate-once 動作確認
+  - INV-* assertion 全件 pass（INV-D-06 含む）
+  - balance 不変条件テスト追加
+
 全部おまかせ（commit/push/日記まで）。
 ```
 
@@ -406,7 +452,7 @@ SSOT: @docs/design/PHASE3_QUALITY_AUDIT.md
 ```
 [設計執筆] ch3 v1.0.1 ローリング + ch6/ch7 cross-ref 同期。
 
-背景: ch15 §15.3.2 / §15.12.3 の `[要確認: ch3]` を解消する。
+背景: ch15 §15.3.2 / §15.12.3 の [要確認: ch3] を解消する。
   - ch10 / ch12 / ch15 / types.py / state_machine.py は単一 NIGHTLY_REVIEW を採用済み
   - ch3 §3.1 (L16-18) のみ GENERATING_REPORT / AWAITING_APPLY / APPLYING_STRATEGY の3細分が残存
   - ch6 / ch7 cross-ref に旧細分状態の参照あり
@@ -414,16 +460,17 @@ SSOT: @docs/design/PHASE3_QUALITY_AUDIT.md
 タスク:
 1. ch3 §3.1 を NIGHTLY_REVIEW 単一に統合 (v1.0.1)
    - 内部実装上のサブフェーズとして残すなら enum 並立で記述
-2. ch6 / ch7 の cross-ref を更新
+2. ch6 / ch7 の cross-ref を更新（旧 3 細分 → NIGHTLY_REVIEW）
 3. REVIEW_CHECKLIST_ch3 を更新（v1.0.1 注記）
-4. ch15 §15.12.3 の `[要確認: ch3]` 行削除
+4. ch15 §15.12.3 の [要確認: ch3] 行削除
 
-SSOT: @docs/design/03_state_diagram.md
-      @docs/design/06_sequence.md
-      @docs/design/07_io_diagram.md
-      @docs/design/10_functions_data_model.md §10.7
-      @docs/design/15_nightly_review.md §15.3
-      @docs/design/PHASE3_QUALITY_AUDIT.md §D1, §D8
+SSOT:
+  @docs/design/03_state_diagram.md
+  @docs/design/06_sequence.md
+  @docs/design/07_io_diagram.md
+  @docs/design/10_functions_data_model.md §10.7
+  @docs/design/15_nightly_review.md §15.3
+  @docs/design/PHASE3_QUALITY_AUDIT.md §D1, §D8
 
 配置・commit・push は Composer 2.5 別チャットで実施。本チャットは Markdown 出力まで。
 ```
@@ -433,69 +480,150 @@ SSOT: @docs/design/03_state_diagram.md
 ```
 [設計執筆] ch10 v1.1 — regenerate API 追加 + event_bus 引数言及。
 
-背景: ch15 §15.10.5 で PHASE 3 実装対象とされる `POST /api/v1/reports/regenerate`
-が ch10 §10.6.8 に未掲載。`[要確認: ch10]` 解消が必要。
+背景: ch15 §15.10.5 で PHASE 3 実装対象とされる
+`POST /api/v1/reports/regenerate` が ch10 §10.6.8 に未掲載。
+[要確認: ch10] 解消が必要。
 
 タスク:
 1. ch10 §10.6.8 に regenerate エンドポイント追加（preview-apply の隣）
    - リクエスト/レスポンス JSON、認可、再生成のトランザクション扱い
 2. §10.7.2 StateMachine.__init__ シグネチャに event_bus: EventBus を明記
-3. ch15 §15.12.3 / §15.10.5 の `[要確認: ch10]` 行削除
+   （現状の SSOT には既に記載済みだが、ローリング更新で明示性強化）
+3. ch15 §15.12.3 / §15.10.5 の [要確認: ch10] 行削除
 4. REVIEW_CHECKLIST_ch10 v1.1 注記
 
-SSOT: @docs/design/10_functions_data_model.md
-      @docs/design/15_nightly_review.md §15.10.5
-      @docs/design/PHASE3_QUALITY_AUDIT.md §D2
+SSOT:
+  @docs/design/10_functions_data_model.md
+  @docs/design/15_nightly_review.md §15.10.5
+  @docs/design/PHASE3_QUALITY_AUDIT.md §D2
 
 配置・commit・push は Composer 2.5。
 ```
 
-### J.6 Opus: Track 2C（ch13 + ch22 FillModel SSOT 統一）
+### J.6 Opus: Track 2C（ch13 + ch22 FillModel SSOT 統一 + D11 balance 追補）— Q2/Q3 判断反映版
 
 ```
-[設計執筆] ch13 + ch22 — FillModel 既定値の二重 SSOT 解消、OrderBook.source MOCK 規約。
+[設計執筆] ch13 + ch22 — FillModel 既定値 SSOT 統一、OrderBook.source MOCK 規約、
+PaperExecutor balance 更新タイミング明文化（D11）。
 
-背景: PHASE 3 監査で以下の乖離発覚。
-  - ch13 §13.3.2: slippage_coeff=0.001, latency_ms=150
-  - ch22 §22.2:   slippage_coeff=0.0001, latency_ms=80
-  - 実装は ch22 準拠。どちらが優先か明文化なし
-  - types.py:101 で OrderBook.source に "MOCK" 追加されているが ch13 §13.4.4 SSOT に存在しない
+マスター判断確定事項:
+  - Q2 = ch22 §22.2 を SSOT として確定、ch13 §13.3.2 を従属化
+  - Q3 = PaperExecutor.open() 時 balance 即時減算 + close() 時加算
 
 タスク:
-1. ch22 §22.2 を SSOT に確定、ch13 §13.3.2 に「実行時は ch22 paper.* を優先」明記
-   （または逆方向で統一、マスター判断）
-2. ch13 §13.4.4 の OrderBook.source Literal に "MOCK" 追加（lab/mock 用途）
-   または FALLBACK へのマップ規約を明記
-3. REVIEW_CHECKLIST_ch13/22 に v1.0.x 注記
 
-SSOT: @docs/design/13_paper_execution.md
-      @docs/design/22_config_spec.md
-      @docs/design/PHASE3_QUALITY_AUDIT.md §D3, §D4
+1. ch13 §13.3.2 を v1.0.x ローリング更新（SSOT 従属化）
+   末尾に以下を明記:
+
+   **SSOT 優先順位**: 本表の既定値は設計段階の参考値である。
+   実行時の既定値・キー名は第22章 §22.2 paper セクションが SSOT として優先する。
+   v1.0 実行時の正規値:
+     - slippage_coeff:   0.0001
+     - slippage_max:     0.02
+     - latency_ms_mean:  80
+     - latency_ms_std:   20
+   本表の値 0.001 / 150 / 50 は v0.x 設計初期のドラフト値であり、参照しないこと。
+
+2. ch22 §22.2 に逆参照注記を追加（v1.0.x）
+   「本節の paper.* セクションが FillModel 既定値の SSOT。
+   ch13 §13.3.2 のドラフト値は無効、本節を参照すること。」
+
+3. ch13 §13.9.2「保守的モデルの原則」の整合性確認（重要判断）
+   ch22 §22.2 の latency_ms_mean=80 は §13.9.2 の保守的原則（150ms = 実観測上位寄り）と矛盾する。
+   以下から選択:
+     - 対応 A: §13.9.2 を「PHASE 5 で実観測後に再校正」と緩める
+     - 対応 B: §13.9.2 を維持し、ch22 §22.2 が「lab 用初期値」と明記（推奨）
+     - 対応 C: ch22 §22.2 の値を保守的方向に修正（再度マスター判断必要）
+   推奨は対応 B。
+
+4. ch13 §13.4.4 の OrderBook.source Literal に "MOCK" 追加（lab/mock 用途）
+   または FALLBACK へのマップ規約を明記
+
+5. ch13 §13.2.5 新設（D11 balance 更新タイミング SSOT 化）
+   以下を新節として追加:
+
+   ### 13.2.5 残高更新タイミング
+
+   PaperExecutor は以下のタイミングで bot_state.balance を更新する：
+
+   - open() 成功時:  balance -= size_usd（即時減算）
+   - close() 成功時: balance += (size_usd + pnl)（元本 + 損益を加算）
+   - open() 失敗時:  balance 変更なし
+   - close() 失敗時: balance 変更なし（リトライ対象）
+
+   加算と減算が対称であるため、勝率 50% かつ pnl = 0 の場合に
+   balance が initial_balance を維持する。
+
+   不変条件: 任意の時点で
+     balance + sum(positions.size_usd for OPEN positions)
+       == 過去全 close の累積 + initial_balance
+   （INV-D-06 として ch16 で正式追加候補）
+
+6. REVIEW_CHECKLIST_ch13 / ch22 に v1.0.x 注記
+
+SSOT:
+  @docs/design/13_paper_execution.md §13.2, §13.3, §13.4, §13.9
+  @docs/design/22_config_spec.md §22.2
+  @docs/design/PHASE3_QUALITY_AUDIT.md §D3, §D4, §D11
 
 配置・commit・push は Composer 2.5。
 ```
 
-### J.7 Opus: Track 2D（ch18 + ch8 §8.7.4 + ch14 §14.4.1 + ch11 §11.7.2 + en 切替矛盾）
+### J.7 Opus: Track 2D（ch18 + ch8 §8.7.4 + ch14 §14.4.1 + ch11 §11.7.2 + en 切替矛盾）— Q1 判断反映版
 
 ```
 [設計執筆] Track 2D 5 件まとめ — エラーコード追補・dead ref 解消・bundle 規約・層分担・en 矛盾解消。
 
+マスター判断確定事項:
+  - Q1 = W_NIGHTLY_001 は E_NIGHTLY_008 に統合（命名規則維持、最小差分）
+
 スコープ:
-1. ch18: W_NIGHTLY_001（§15.7.4 警告コード）正式掲載、E_YORUU_000 基底コード扱い
-2. ch8 §8.7.4 新設: 緊急停止のパレット短縮一致禁止（現在 dead ref）
-3. ch14 §14.4.1: ja.bundle.js の存在・ja.json 同期手順を SSOT 化
-4. ch11 §11.7.2: Evaluator 内 Risk 統合 / OM 層分離のどちらが SSOT か 1 段落明記
-5. ch8 §8.25.3 / ch9 §9.13.6 vs ch14 §14.5.1 矛盾解消（推奨: ja フォールバック側へ統一、ch8/9 を更新）
+
+1. ch18: W_NIGHTLY_001 → E_NIGHTLY_008 統合
+   - ch15 §15.7.4 の警告コード参照を確認
+   - 「±10% 警告」と「±20% 超」が ch15 でどう使い分けられているか確認後、以下いずれか:
+     a) E_NIGHTLY_008 の「説明」を「変化率 ±10% 警告 / ±20% 超」に拡張
+     b) E_NIGHTLY_008（±20% 超、Apply 無効）と E_NIGHTLY_015 新設（±10% 警告、Apply 可能）に分離
+   - 推奨: ch15 §15.7.4 を読んで判断。±10% と ±20% で動作が異なる（警告のみ vs Apply 無効）なら b、同じなら a。
+
+2. ch18: E_YORUU_000 基底コードの扱い明記
+   - errors.py:9 で使われているが ch18 カタログ未掲載
+   - §18.3 に「§18.3.9 共通エラー」節を新設し E_YORUU_000 を「未分類例外の基底コード」として正式掲載
+
+3. ch8 §8.7.4 新設: 緊急停止のパレット短縮一致禁止
+   - 現在 ch8 内 dead reference のため、新節として規定
+   - 内容: Cmd/Ctrl+K パレット検索で "emergency" 等の前方一致が緊急停止を直接発火しないこと
+   - 緊急停止は専用ボタン経由のみ（パレットから到達できない）
+
+4. ch14 §14.4.1: ja.bundle.js の存在・ja.json 同期手順を SSOT 化
+   - ja.json (SSOT) → ja.bundle.js (file:// オフライン起動用ビルド) の同期規約
+   - tools/build_locales.py（PHASE 3 で実装予定）への言及
+   - pre-commit hook での自動再生成方針
+
+5. ch11 §11.7.2: Evaluator vs RiskGuard 層分担を SSOT に明記
+   - 現状: ch11 §11.7.2 は「4 条件 AND（C1〜C4）」と記述、C4 = RiskGuard.check_pre_trade
+   - 実装乖離: evaluator は C1〜C3 のみ判定、C4 は CLI/OrderManager 層で別途呼出
+   - 以下いずれかを SSOT として明記:
+     a) Evaluator が C1〜C4 全件判定（RiskGuard をコンストラクタ注入）
+     b) Evaluator は C1〜C3 のみ、OrderManager 層で C4 判定（実装現状）
+   - 推奨: b（実装現状追認、ch11 §11.7.2 を「Evaluator は C1〜C3、C4 は OrderManager 統合時に判定」と明記）
+
+6. ch8 §8.25.3 / ch9 §9.13.6 vs ch14 §14.5.1 矛盾解消
+   - ch8 §8.25.3 / ch9 §9.13.6: 「en 切替時はキー表示」
+   - ch14 §14.5.1: 「en 不在キーは ja フォールバック」
+   - 推奨: ch14 §14.5.1 側に統一（ja フォールバック）、ch8/ch9 側を更新
+   - 理由: ch14 が i18n の SSOT、ch8/ch9 はテスト基準として ch14 を参照すべき
 
 各章 v1.0.x ローリング、REVIEW_CHECKLIST に 1 行追記。
 
-SSOT: @docs/design/18_error_handling.md
-      @docs/design/08_ui_mockup.md §8.7 §8.25
-      @docs/design/09_user_flow.md §9.13
-      @docs/design/14_i18n_design.md §14.4 §14.5
-      @docs/design/11_strategy_logic.md §11.7
-      @docs/design/15_nightly_review.md §15.7.4
-      @docs/design/PHASE3_QUALITY_AUDIT.md §D5-D7, §D9-D10
+SSOT:
+  @docs/design/18_error_handling.md §18.1, §18.3
+  @docs/design/08_ui_mockup.md §8.7, §8.25
+  @docs/design/09_user_flow.md §9.13
+  @docs/design/14_i18n_design.md §14.4, §14.5
+  @docs/design/11_strategy_logic.md §11.7
+  @docs/design/15_nightly_review.md §15.7.4
+  @docs/design/PHASE3_QUALITY_AUDIT.md §D5-D7, §D9-D10
 
 配置・commit・push は Composer 2.5。
 ```
@@ -506,7 +634,36 @@ SSOT: @docs/design/18_error_handling.md
 
 1. **コア骨格は SSOT 整合、ブロッカーは HIGH 17 件**（実装 8 / モック 3 / ドキュメント 6）。最重量は **InvariantChecker 12 件未実装 + 呼出ゼロ**（A5）— 安全装置が回路未接続
 2. **4 トラック並列で 4 日**（5/28〜5/31）で PHASE 3 Exit Criteria 到達可能。クリティカルパスは Track 1 T1.5。Track 2/3/4 は独立並列
-3. **未確認 5 件**（I1〜I5）は Composer に投げる前にマスター判断必要。特に I4（規約遵守判定）と I2（ch13 vs ch22 優先順位）
+3. **Q1〜Q3 確定済**（A 案 ×3、I1〜I3 解消）。残未確認は **I4 / I5 のみ**（Composer 引き渡し前にマスター確認推奨）
+
+---
+
+## L. Q1〜Q3 確定後の運用ガイド
+
+### Composer 2.5 / Opus 別チャットへの投入順序
+
+| 順 | チャット種別 | テンプレ | 目的 |
+|---|------|--------|------|
+| 1 | Opus `ch3-rolling` | §J.4 (Track 2A) | ch3 v1.0.1（NIGHTLY_REVIEW 統合）— 他章ローリングの基礎 |
+| 2 | Opus `ch10-v11` | §J.5 (Track 2B) | ch10 v1.1（regenerate API + event_bus 明示） |
+| 3 | Opus `ch13-22-D11` | §J.6 (Track 2C + D11) | ch13/ch22 SSOT 統一 + balance 更新タイミング新節 |
+| 4 | Opus `ch18-ch8-fix` | §J.7 (Track 2D) | W_NIGHTLY_001 統合 + 4 件まとめ |
+| 5 | Composer `PHASE3-fix` | §J.1 (Track 1) | PHASE 3 実装修正（Track 2 の章ローリング待たずに Q1〜Q3 反映で着手可） |
+| 6 | Composer `docs-sync` | §J.2 (Track 3) | INDEX/ROADMAP/README/日記同期 |
+| 7 | Composer `phase2-fix` | §J.3 (Track 4) | モック後修正（T4.2 は §J.7 完了待ち） |
+
+**並列実行可能**: 1〜4（Opus 章ごとに新チャット）と 5〜7（Composer 別チャット）は完全並列。マスターのレビュー帯域に応じて 3 チャット同時程度を推奨。
+
+### Composer 着手前にマスター確認が残る項目
+
+| # | 項目 | 確認方法 | ブロッキング度 |
+|---|------|---------|--------|
+| I4 | PHASE 3 scaffold `005fdcd` が Composer 2.5 経由か Opus 経由か | チャット履歴または git の Co-authored-by 確認 | LOW（規約遵守確認のみ、Track 1 着手は可） |
+| I5 | `cli.py:107-111` の 22 close ハードコードが「デモ専用」か「本番 evaluate パス」か | マスター意図確認 | MED（Track 1 T1.9 で MockMarketProvider 移動 or `--seed-ticks` opt-in の判断分岐） |
+
+### Track 2C で Composer/Opus が判断する選択肢（マスター追加判断不要）
+
+Track 2C §J.6 タスク 3「§13.9.2 保守的モデル原則の整合性確認」は、対応 A/B/C のいずれを採るか Opus 側で章読解して判断する。**推奨は対応 B**（§13.9.2 維持 + ch22 を lab 用初期値と明記）。マスター介入は不要だが、対応 C（ch22 値修正）を選んだ場合のみマスター再判断要。
 
 ---
 
@@ -515,3 +672,4 @@ SSOT: @docs/design/18_error_handling.md
 | 日付 | バージョン | 内容 |
 |------|----------|------|
 | 2026-05-28 | v1.0 | 初版作成（3 並列 explore 監査、HIGH 17 件、4 トラック作業計画） |
+| 2026-05-28 | v1.1 | Q1〜Q3 確定（A 案 ×3）、D11 追加、§J 依頼テンプレ清書、§L 運用ガイド新設 |
