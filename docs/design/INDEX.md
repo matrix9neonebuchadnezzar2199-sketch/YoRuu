@@ -4,13 +4,14 @@
 
 **最終更新**: 2026-05-27  
 **現在 PHASE**: PHASE 1（M1.5 設計）＋ **PHASE 2 完了**（UI モック 11/11 画面）  
+**M1.5a**: ch17〜19 APPROVED（2026-05-27）
 **関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch15.md`](./REVIEW_CHECKLIST_ch15.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
 
 | 指標 | 値 |
 |------|-----|
-| APPROVED | **15 / 24** 章（ch1〜15） |
+| APPROVED | **18 / 24** 章（ch1〜15, ch17〜19） |
 | M1.3 進捗 | **6 / 6 完了**（ch9〜14） |
 | M1.4 進捗 | **1 / 1 完了**（ch15 APPROVED） |
 | 現在マイルストーン | **M1.5**（ch16〜24 + 付録 A）／PHASE 2 **100%** → PHASE 3 着手判断 |
@@ -75,9 +76,9 @@
 |---|----------|----------|-----------|
 | 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED |
 | 16 | 不変条件 | `16_invariants.md` | PENDING |
-| 17 | リスクマトリクス | `17_risk_matrix.md` | PENDING |
-| 18 | エラーハンドリング + ログトリアージ | `18_error_handling.md` | PENDING |
-| 19 | キルスイッチ + 2段階確認 | `19_kill_switch.md` | PENDING |
+| 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED |
+| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED |
+| 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED |
 
 </details>
 

@@ -486,6 +486,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1625">#entry-1625</a></td>
       </tr>
+      <tr>
+        <td>16:32</td>
+        <td>PHASE 1 M1.5a — ch17 リスク / ch18 エラー / ch19 キルスイッチ APPROVED</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1632">#entry-1632</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -1866,6 +1872,31 @@ body.diary > footer {
     §8.25.3 共通チェック、07 で「デモ: IDLE」→ LIVE 2 段階、08 で LIVE 復帰拒否、drawdown で停止 UI。
     Commit: <code>4e2395b</code>（push 済）
   </p>
+</section>
+
+<section class="entry" id="entry-1632">
+  <h2>PHASE 1 M1.5a — ch17〜19 設計書 APPROVED<a href="#entry-1632" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 16:32 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>
+    M1.5a として <code>17_risk_matrix.md</code>（R-MKT/STR/OPS/FIN/HUM マトリクス）、
+    <code>18_error_handling.md</code>（E_NIGHTLY_* 正式採用・ログトリアージ）、
+    <code>19_kill_switch.md</code>（自動/手動トリガ・prepare/confirm API・復帰制約）を執筆し APPROVED。
+    INDEX は 18/24 章。
+  </p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/17_risk_matrix.md, 18_error_handling.md, 19_kill_switch.md</li>
+    <li><span class="op op-add">+</span> REVIEW_CHECKLIST_ch17.md, ch18.md, ch19.md</li>
+    <li><span class="op op-mod">~</span> docs/design/INDEX.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>各章 §*.8.2 の 7 観点チェックリスト合格。Commit: pending（push 予定）</p>
 </section>
 
 </main>
