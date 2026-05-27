@@ -1,0 +1,66 @@
+---
+description: YoRuu 向け AI モデル切替（設計執筆=Opus・配置/実装/git=Composer 2.5）。YoRuu 配下作業時に適用。
+globs: "**/*"
+alwaysApply: false
+---
+
+# YoRuu — モデルルーティング（Opus / Composer 2.5）
+
+マスター合意（2026-05-27）: **設計執筆は Opus + 章単位の新チャット**、**配置・実装・git は Composer 2.5**。
+
+## 自動切替の限界（必読）
+
+Cursor は **1 チャット内でモデルをタスクごとに自動切替できない**。以下で運用する:
+
+| 手段 | 内容 |
+|------|------|
+| **新規チャット + モデル選択** | 設計用チャットは Opus、実装用は Composer 2.5 をピッカーで指定 |
+| **依頼文の先頭タグ** | `[設計執筆]` / `[配置]` / `[実装]` を付け、AI が手順だけ守る |
+| **本ルール** | YoRuu 配下を開いた Agent が役割分担を参照する |
+
+## ルーティング表
+
+| タスク種別 | 推奨モデル | チャット | 主な成果物 |
+|-----------|-----------|---------|-----------|
+| **設計章の新規執筆**（700行級ドラフト） | Claude Opus 4.7（Thinking 可） | **章ごと新規** | `docs/design/NN_*.md` 本文 |
+| **設計レビュー・7観点判定** | マスター（人）→ 必要時 Opus | レビュー専用 | チャット返信 |
+| **配置・整合パッチ** | Composer 2.5 | 実装/運用チャット | 同上 + cross-ref |
+| **APPROVED 化** | Composer 2.5 | 同上 | `REVIEW_CHECKLIST_ch*.md`, INDEX, ROADMAP |
+| **開発日記・git commit/push** | Composer 2.5 | 同上 | `docs/*_開発日記.html`, git |
+| **PHASE 2 UI モック** | Composer 2.5 | `PHASE2-mock` 等 | `docs/mockups/**` |
+| **PHASE 3〜 Python 実装** | Composer 2.5 | `PHASE3-core` 等 | `src/yoruu/**`, `tests/**` |
+
+## 依頼文テンプレート
+
+### 設計執筆（Opus チャット）
+
+```
+[設計執筆] ch15 夜間レビュー v1.0 ドラフトを 1 メッセージで出力。
+SSOT: INDEX.md, 00_ROADMAP.md, ch8 §8.14, ch10 §10.3.10。
+配置・git は別チャット（Composer）で行う。REVIEW_PENDING のみ。
+```
+
+### 配置・APPROVED（Composer チャット）
+
+```
+[配置] マスター執筆 ch15 を docs/design/15_nightly_review.md に配置。
+INDEX / ROADMAP / 日記 / commit / push。全部おまかせ可ならその旨を明記。
+```
+
+## チャット分割の目安
+
+- **1 チャット = 1 設計章の執筆** または **1 マイルストーン（M2.1 等）の実装**
+- 設計チャットに **git log・実装エラー・pytest** を混ぜない
+- コンテキスト圧迫時は **要約ではなく新規チャット**（`INDEX` + 当該章のみ @ 参照）
+
+## PHASE ゲート（着手順）
+
+1. **PHASE 1 完了**（ch1〜24 + 付録 A が APPROVED）まで設計のみ
+2. **PHASE 2** は **ch15 APPROVED 後**（`PHASE1_M13_MIDPOINT_REVIEW.md`）
+3. PHASE 2 と PHASE 3 は ROADMAP 上並行可だが、マスター既定は **PHASE 1 → 2 → 3 逐次**
+
+## 関連 SSOT
+
+- `docs/design/00_ROADMAP.md`
+- `docs/design/INDEX.md`
+- `docs/design/PHASE1_M13_MIDPOINT_REVIEW.md`
