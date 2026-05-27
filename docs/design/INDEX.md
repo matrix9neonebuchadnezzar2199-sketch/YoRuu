@@ -3,16 +3,17 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
 **最終更新**: 2026-05-27  
-**現在 PHASE**: PHASE 1 — **M1.4** ch15 レビュー待ち（14/24）；HTML モックは PHASE 2  
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch14.md`](./REVIEW_CHECKLIST_ch14.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**現在 PHASE**: PHASE 1 — **M1.4 完了**（15/24）；**PHASE 2 着手可**（2026-06-01 週想定）  
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch15.md`](./REVIEW_CHECKLIST_ch15.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 1 進捗（設計書 APPROVED 章数）
 
 | 指標 | 値 |
 |------|-----|
-| APPROVED | **14 / 24** 章（ch1〜14） |
-| M1.3 進捗 | **6 / 6 完了**（ch9〜14 すべて APPROVED） |
-| 現在マイルストーン | **M1.4**（ch15〜19 安全設計、中間レビュー後着手） |
+| APPROVED | **15 / 24** 章（ch1〜15） |
+| M1.3 進捗 | **6 / 6 完了**（ch9〜14） |
+| M1.4 進捗 | **1 / 1 完了**（ch15 APPROVED） |
+| 現在マイルストーン | **M1.5**（ch16〜24 + 付録 A）／PHASE 2 並行可 |
 | 次の Exit | 全24章 APPROVED（PHASE 1 完了） |
 
 ---
@@ -72,7 +73,7 @@
 
 | # | タイトル | ファイル | ステータス |
 |---|----------|----------|-----------|
-| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | REVIEW_PENDING |
+| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED |
 | 16 | 不変条件 | `16_invariants.md` | PENDING |
 | 17 | リスクマトリクス | `17_risk_matrix.md` | PENDING |
 | 18 | エラーハンドリング + ログトリアージ | `18_error_handling.md` | PENDING |
