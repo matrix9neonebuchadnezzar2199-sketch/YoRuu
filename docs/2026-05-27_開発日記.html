@@ -288,6 +288,12 @@ body.diary > footer {
         <td><span class="tag tag-warn">warn</span></td>
         <td><a href="#entry-0838">#entry-0838</a></td>
       </tr>
+      <tr>
+        <td>08:45</td>
+        <td>README.md 新規作成（バッジ・Mermaid・24章ロードマップ）+ .gitignore</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0845">#entry-0845</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -790,7 +796,42 @@ body.diary > footer {
   </ol>
 
   <h3>検証</h3>
-  <p>Commit: <code>pending</code>（指示書 + 本エントリを次コミットで push）</p>
+  <p>Commit: <code>4ae0162</code>（GitHub に push 済み）</p>
+</section>
+
+<section class="entry" id="entry-0845">
+  <h2>README.md 新規作成（バッジ・Mermaid・24章ロードマップ）+ .gitignore<a href="#entry-0845" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-27 08:45 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+
+  <h3>概要</h3>
+  <p>
+    GitHub リポジトリ向けに <strong>README.md</strong> を新規作成。中央揃えヒーロー、
+    <code>for-the-badge</code> スタイルのシールド 14 種、Mermaid アーキテクチャ図、
+    4 モード遷移図、夜間レビューフロー、24 章ロードマップ、免責を収録。
+    あわせて将来実装向けの <strong>.gitignore</strong>（秘密鍵・DB・strategy.json 等）を追加。
+  </p>
+
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> README.md</li>
+    <li><span class="op op-add">+</span> .gitignore</li>
+    <li><span class="op op-mod">~</span> docs/2026-05-27_開発日記.html</li>
+  </ul>
+
+  <h3>設計判断</h3>
+  <ul>
+    <li>現フェーズは <strong>design_phase</strong> バッジで正直に表示（虚偽の CI pass バッジは付けない）</li>
+    <li>バッジは 2 段構成：上段 <code>for-the-badge</code>（主要スタック）、下段 <code>flat-square</code>（補足メタ情報）</li>
+    <li>README 本文は日本語中心、サブタイトル・タグラインは英語で国際的な体裁</li>
+  </ul>
+
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 
 </main>

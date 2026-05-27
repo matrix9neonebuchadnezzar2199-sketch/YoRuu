@@ -1,0 +1,49 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+wallet.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+.envrc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+dist/
+build/
+*.egg-info/
+
+# YoRuu runtime data (per security policy)
+samples/
+output/
+reports/*.json
+!reports/.gitkeep
+logs/
+*.db
+*.sqlite
+*.sqlite3
+strategy.json
+strategy_history/
+
+# Binaries
+*.exe
+*.dll
+*.sys
+*.bin
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+.DS_Store
