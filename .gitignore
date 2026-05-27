@@ -42,6 +42,7 @@ strategy_history/
 *.bin
 
 # IDE / OS
+.cursor/
 .idea/
 .vscode/
 *.swp
