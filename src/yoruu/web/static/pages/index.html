@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Hub (Mock)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="hub-layout" data-page="hub">
+<!--
+  YoRuu Mockup: Hub
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.11
+  Related Mockups: 01_dashboard.html, 02_trade_log.html
+-->
+
+  <header class="hub-header">
+    <div>
+      <h1 class="hub-title" data-i18n="page.hub.title"></h1>
+      <p class="hub-subtitle" style="margin:4px 0 0;color:var(--text-secondary);font-size:13px" data-i18n="page.hub.subtitle"></p>
+    </div>
+    <div class="hub-meta">
+      <span class="mode-badge mode-badge-header" data-mode-label></span>
+      <button type="button" class="lang-toggle" id="lang-toggle"></button>
+      <span class="kbd-hint">⌘K</span>
+    </div>
+  </header>
+
+  <section class="card-grid" id="hub-metrics" aria-live="polite"></section>
+
+  <section class="panel">
+    <div class="panel-header" data-i18n="page.hub.screen_list"></div>
+    <ul class="screen-list" id="hub-screen-list"></ul>
+  </section>
+
+  <p class="scenario-bar">
+    <label for="scenario-select" data-i18n="scenario.label"></label>
+    <select id="scenario-select" aria-label="Scenario">
+      <option value="normal" data-i18n="scenario.normal"></option>
+      <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+      <option value="drawdown" data-i18n="scenario.drawdown"></option>
+    </select>
+  </p>
+
+  <button type="button" class="btn-emergency-sidebar hub-emergency-btn hub-emergency" id="hub-emergency"
+    data-i18n="action.emergency_stop"
+    aria-label=""></button>
+
+  <script src="/static/js/mock-data.js"
+  <script src="/static/js/sse-client.js"></script>
+  <script src="/static/locales/ja.bundle.js"></script>
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/palette.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+
+      function stateClass(state) {
+        if (state === "TRADING") return "status-trading";
+        if (state === "EMERGENCY_STOP") return "status-emergency";
+        return "status-idle";
+      }
+
+      function renderHub() {
+        var d = md.getData();
+        var pnlClass = d.daily_pnl.value >= 0 ? "pnl-positive" : "pnl-negative";
+        var cumClass = d.cumulative_pnl.value >= 0 ? "pnl-positive" : "pnl-negative";
+
+        document.getElementById("hub-metrics").innerHTML =
+          '<article class="metric-card"><div class="label" data-i18n="metric.daily_pnl.label"></div>' +
+          '<div class="value ' + pnlClass + '">' + md.formatPnl(d.daily_pnl.value) +
+          ' <span class="sub">(' + md.formatPct(d.daily_pnl.percent) + ")</span></div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="metric.cumulative_pnl.label"></div>' +
+          '<div class="value ' + cumClass + '">' + md.formatPnl(d.cumulative_pnl.value) +
+          ' <span class="sub">(' + md.formatPct(d.cumulative_pnl.percent) + ")</span></div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="metric.win_rate.label"></div>' +
+          '<div class="value">' + d.win_rate.display + '</div>' +
+          '<div class="sub">' + d.win_rate.wins + 'W / ' + d.win_rate.losses + 'L</div></article>' +
+          '<article class="metric-card"><div class="label" data-i18n="metric.current_state.label"></div>' +
+          '<div class="value"><span class="status ' + stateClass(d.bot_state.state) + '" role="status">' +
+          i18n.t(i18n.stateKeyForBot(d.bot_state.state)) + "</span></div></article>";
+
+        var screens = [
+          { href: "/pages/01_dashboard.html", key: "nav.dashboard", hint: "" },
+          {
+            href: "/pages/02_trade_log.html",
+            key: "nav.trade_log",
+            hint: i18n.t("hub.link.trade_log", null, { count: d.hub_meta.trade_count }),
+          },
+          {
+            href: "/pages/03_nightly_review.html",
+            key: "nav.nightly_review",
+            hint: d.hub_meta.nightly_unread ? i18n.t("nightly.unconsumed") : "—",
+          },
+          {
+            href: "/pages/05_strategy_history.html",
+            key: "nav.strategy_history",
+            hint: i18n.t("hub.link.strategy", null, { version: d.hub_meta.strategy_version }),
+          },
+          {
+            href: "/pages/09_markov_live.html",
+            key: "nav.markov_live",
+            hint: i18n.t("hub.link.markov", null, { p: d.hub_meta.markov_p_uu }),
+          },
+          { href: "/pages/04_settings.html", key: "nav.settings", hint: "" },
+          {
+            href: "/pages/06_alerts.html",
+            key: "nav.alerts",
+            hint: i18n.t("hub.link.alerts", null, { count: d.hub_meta.alert_unread }),
+          },
+          { href: "/pages/07_mode_switch.html", key: "nav.mode_switch", hint: i18n.t("mode." + d.bot_state.mode) },
+          { href: "/pages/10_what_if.html", key: "nav.what_if", hint: "" },
+          { href: "/pages/08_emergency_stop.html", key: "nav.emergency_stop", hint: "" },
+        ];
+
+        var listHtml = "";
+        screens.forEach(function (s) {
+          listHtml +=
+            '<li><a href="' + s.href + '"><span data-i18n="' + s.key + '"></span>' +
+            '<span class="hint">' + s.hint + "</span></a></li>";
+        });
+        document.getElementById("hub-screen-list").innerHTML = listHtml;
+
+        i18n.applyI18n(document.body);
+        window.YoRuuApp.updateModeBadges();
+
+        var emerg = document.getElementById("hub-emergency");
+        emerg.setAttribute("aria-label", i18n.t("a11y.emergency_stop_label"));
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({ sidebar: false, langToggleId: "lang-toggle" });
+        renderHub();
+        document.addEventListener("scenario_changed", renderHub);
+        document.addEventListener("language_changed", renderHub);
+      });
+    })();
+  </script>
+</body>
+</html>

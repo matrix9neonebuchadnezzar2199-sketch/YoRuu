@@ -171,7 +171,13 @@ gantt
 
 **目的**: モックを実動 Web UI に変換。
 
-**成果物**: `yoruu/web/`（FastAPI + 静的 HTML + REST + SSE）— **骨格は PHASE 3 で前倒し済**（`18fb05c` / `dea96e0`）。PHASE 4 は静的資産移植・ダッシュボード結線が主。
+**成果物**: `yoruu/web/`（FastAPI + 静的 HTML + REST + SSE）
+
+| マイルストーン | 状態 |
+|----------------|------|
+| M4.1 FastAPI 骨格 + SSE 契約 | ✅ PHASE 3 前倒し（`dea96e0`） |
+| M4.2 静的モック移植 + EventSource | ✅ `tools/build_web_static.py` + `web/static/` |
+| M4.3 REST 初期データ結線 | 次 |
 
 **マイルストーン**:
 

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Dashboard (Mock)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="app-layout" data-page="dashboard">
+<!--
+  YoRuu Mockup: Dashboard
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.12
+  Related Mockups: index.html, 02_trade_log.html, 09_markov_live.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.dashboard.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.dashboard.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+
+    <main class="app-main" id="dashboard-main" aria-live="polite">
+      <div class="card-grid" id="dash-metrics"></div>
+
+      <section class="panel" id="position-panel">
+        <div class="panel-header" data-i18n="page.dashboard.current_position"></div>
+        <div class="panel-body" id="position-body"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span data-i18n="page.dashboard.markov_state"></span>
+          <a href="/pages/09_markov_live.html" class="btn btn-sm" data-i18n="page.dashboard.view_markov"></a>
+        </div>
+        <div class="panel-body" id="markov-body"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span data-i18n="page.dashboard.recent_trades"></span>
+          <a href="/pages/02_trade_log.html" class="btn btn-sm" data-i18n="nav.trade_log"></a>
+        </div>
+        <div class="panel-body">
+          <table class="data-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="table.time"></th>
+                <th scope="col" data-i18n="table.side"></th>
+                <th scope="col" data-i18n="table.pnl"></th>
+                <th scope="col" data-i18n="table.result"></th>
+              </tr>
+            </thead>
+            <tbody id="recent-trades-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <button type="button" class="fab-emergency" id="fab-emergency" data-i18n="action.emergency_stop"></button>
+
+  <script src="/static/js/mock-data.js"
+  <script src="/static/js/sse-client.js"></script>
+  <script src="/static/locales/ja.bundle.js"></script>
+  <script src="/static/js/severity.js"></script>
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/palette.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+
+      function renderMarkovSeries(series) {
+        return series
+          .map(function (c) {
+            var cls = c === "U" ? "up" : "down";
+            return '<span class="' + cls + '">' + c + "</span>";
+          })
+          .join(" ");
+      }
+
+      function renderDashboard() {
+        var d = md.getData();
+        var pnlClass = d.daily_pnl.value >= 0 ? "pnl-positive" : "pnl-negative";
+
+        document.getElementById("dash-metrics").innerHTML =
+          '<article class="metric-card"><div class="label" data-i18n="page.mode_switch.balance"></div>' +
+          '<div class="value mono" id="dash-balance">$' +
+          d.balance.current.toFixed(2) +
+          "</div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="metric.current_state.label"></div>' +
+          '<div class="value"><span class="status status-trading" role="status">' +
+          i18n.t(i18n.stateKeyForBot(d.bot_state.state)) +
+          "</span></div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="metric.daily_pnl.label"></div>' +
+          '<div class="value ' + pnlClass + '">' + md.formatPnl(d.daily_pnl.value) +
+          ' <span class="sub">(' + md.formatPct(d.daily_pnl.percent) + ")</span></div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="metric.win_rate.label"></div>' +
+          '<div class="value">' + d.win_rate.display + "</div></article>";
+
+        var posBody = document.getElementById("position-body");
+        if (d.current_position) {
+          var p = d.current_position;
+          posBody.innerHTML =
+            '<p class="mono"><strong>' +
+            p.side +
+            "</strong> @" +
+            p.entry.toFixed(2) +
+            " · size $" +
+            p.size.toFixed(2) +
+            "</p>" +
+            '<p><span data-i18n="metric.expires_in.label"></span>: ' +
+            i18n.t("metric.expires_in", null, { sec: p.expires_in_sec }) +
+            " · <span data-i18n=\"metric.edge.label\"></span>: " +
+            p.edge.toFixed(3) +
+            " · <span data-i18n=\"metric.kelly.label\"></span>: " +
+            p.kelly.toFixed(2) +
+            " · <span data-i18n=\"metric.persistence.label\"></span>: " +
+            p.persistence.toFixed(3) +
+            "</p>";
+        } else {
+          posBody.innerHTML =
+            '<p data-i18n="page.dashboard.no_position"></p>';
+        }
+
+        document.getElementById("markov-body").innerHTML =
+          '<p class="mono"><span data-i18n="metric.markov_p_uu"></span>: ' +
+          d.markov.p_uu.toFixed(3) +
+          " · P(D→D): " +
+          d.markov.p_dd.toFixed(3) +
+          "</p>" +
+          '<p class="markov-series">' +
+          renderMarkovSeries(d.markov.recent_series) +
+          "</p>";
+
+        var rows = "";
+        d.recent_trades.forEach(function (t) {
+          var cls = t.pnl_usd >= 0 ? "pnl-positive" : "pnl-negative";
+          rows +=
+            "<tr><td class=\"mono\">" +
+            t.time_display +
+            "</td><td>" +
+            t.side +
+            '</td><td class="mono ' +
+            cls +
+            '">' +
+            md.formatPnl(t.pnl_usd) +
+            "</td><td>" +
+            i18n.t(t.result === "WON" ? "result.won" : "result.lost") +
+            "</td></tr>";
+        });
+        document.getElementById("recent-trades-body").innerHTML = rows;
+
+        i18n.applyI18n(document.getElementById("dashboard-main"));
+        document
+          .getElementById("fab-emergency")
+          .setAttribute("aria-label", i18n.t("a11y.emergency_stop_label"));
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({
+          sidebar: true,
+          activePage: "dashboard",
+          langToggleId: "lang-toggle",
+          onBalanceChange: renderDashboard,
+        });
+        renderDashboard();
+        document.addEventListener("scenario_changed", renderDashboard);
+        document.addEventListener("language_changed", renderDashboard);
+        document.addEventListener("position_closed", renderDashboard);
+        document.addEventListener("position_opened", renderDashboard);
+        document.addEventListener("balance_updated", renderDashboard);
+        document.addEventListener("state_changed", function () {
+          window.YoRuuSidebar.updateSidebarStatus();
+          renderDashboard();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

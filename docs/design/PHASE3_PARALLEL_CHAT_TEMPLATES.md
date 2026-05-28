@@ -4,18 +4,19 @@
 > **運用**: Track 3 先行 + `phase2-fix` は **Q3-MOCK のみ**（監査書 **T4.1 SSE とは別スコープ**）を `docs-sync` と並列可。  
 > **正本**: 監査書 §F の T3.1〜T3.9 / T4.1〜T4.9。本ファイルのチャット用 ID は §F と **1:1 対応表** で併記する。
 
-### 投入チャット索引（テンプレ 7〜12）
+### 投入チャット索引（テンプレ 7〜13）
 
 | # | ID | 状態 | 前提コミット | 触る領域 | 備考 |
 |---|----|------|--------------|----------|------|
 | 7 | `phase2-sse` | **完了** | `7cbfd49` | `docs/mockups/shared/` | §F T4.1 / B1 スリム |
 | 8 | `PHASE3-fix`（継続） | **完了** | `579402f` | `tests/**`, `src/yoruu/safety/` 等 | Track 1 第二フェーズ |
-| 9 | `PHASE3-sse-contract` | **完了** | `18fb05c` 以降 | `src/yoruu/api/sse/`, `web/routes/api_v1.py` | FastAPI SSE 契約 + ValidatingEventBus |
-| 10 | `phase2-i18n-palette` | **完了** | `7cbfd49` | `docs/mockups/shared/`, `tools/build_locales.py` | §F T4.2 |
-| 11 | `PHASE3-fix-inv-d02` | **完了** | `579402f` | `database.py`, `invariants.py`, ch16 §16.6 | INV-D-02 |
-| 12 | `PHASE3-exit-route-a` | **完了** | `2fc6f4f` 以降 | `src/yoruu/infra/**`, `web/**`, `cli.py` | Exit 戦略 A: WS→CLOB→API→24h |
+| 9 | `PHASE3-sse-contract` | **完了** | `dea96e0` | `src/yoruu/api/sse/` | FastAPI SSE 契約 |
+| 10 | `phase2-i18n-palette` | **完了** | `55d1682` | `docs/mockups/shared/` | §F T4.2 |
+| 11 | `PHASE3-fix-inv-d02` | **完了** | `a2b6081` | `database.py`, `invariants.py` | INV-D-02 |
+| 12 | `PHASE3-exit-route-a` | **完了** | `18fb05c` | `infra/**`, `web/**` | Exit 戦略 A |
+| 13 | `phase4-m42-static-ui` | **完了** | `48c47f4` | `web/static/`, `tools/build_web_static.py` | PHASE 4 M4.2 |
 
-**並列推奨（§L ≤ 3）**: テンプレ 7〜11 は完了。**テンプレ 12** は `src/yoruu/**` 横断（単独推奨）。
+**並列推奨（§L ≤ 3）**: テンプレ 7〜13（PHASE 3 Exit + M4.2）は完了。PHASE 4 本番 UI は M4.3 以降。
 
 ---
 
@@ -487,6 +488,34 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 
 ---
 
+## テンプレート 13 — `phase4-m42-static-ui`（PHASE 4 M4.2 静的 UI 結線）
+
+**チャット名**: `phase4-m42-static-ui`  
+**モデル**: Composer 2.5  
+**投入**: PHASE 3 コード Exit 後（`48c47f4` / `f235ab0` 以降）
+
+```
+# PHASE 4 M4.2: 静的モック → Web UI 結線
+
+## スコープ
+1. tools/build_web_static.py — docs/mockups → src/yoruu/web/static/
+2. web/app.py — /static, /pages, GET / リダイレクト
+3. static/js/sse-client.js — EventSource → /api/v1/events/stream
+4. mock-data.js dispatchSseEvent + app.js 緊急停止 REST
+5. tests/web/ — 静的配信 + SSE 契約
+6. ?mock=1 でモック SSE フォールバック
+
+## 完了基準
+- uv run yoruu serve → http://localhost:8765/pages/index.html
+- 11 HTML + B1 契約 SSE、119 tests / 88% coverage
+- docs/mockups/ は削除しない（正本維持）
+
+## 範囲外
+- docs/design/** 変更、Playwright E2E、ch10 v1.2 severity ローリング
+```
+
+---
+
 ## Track 2 — Opus ローリング（§J.4〜J.7）
 
 **前提コミット（全チャット共通）**: `085cad5`（docs-sync）、`f499778`（Track 1）
@@ -522,3 +551,4 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 | 2026-05-28 | テンプレ 8: ch16 INV **19 件**（§16.2〜16.5）表記訂正（旧「15 件」廃止） |
 | 2026-05-28 | テンプレ 7/8 完了状態反映、テンプレ 10 `phase2-i18n-palette`（T4.2）、11 `PHASE3-fix-inv-d02`（INV-D-02）追記 |
 | 2026-05-28 | テンプレ 12 `PHASE3-exit-route-a`（Exit 戦略 A: WS/CLOB/FastAPI/24h paper）追記、10/11 完了反映 |
+| 2026-05-28 | テンプレ 13 `phase4-m42-static-ui`（PHASE 4 M4.2）追記・完了反映 |

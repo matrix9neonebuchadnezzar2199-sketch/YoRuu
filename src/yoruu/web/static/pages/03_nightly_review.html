@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Nightly Review (Mock)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="app-layout" data-page="nightly_review">
+<!--
+  YoRuu Mockup: Nightly Review
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.14
+  Related Mockups: 05_strategy_history.html, index.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.nightly_review.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.nightly_review.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="panel">
+        <div class="panel-header" data-i18n="page.nightly_review.report_summary"></div>
+        <div class="panel-body">
+          <dl class="report-summary-grid" id="report-summary"></dl>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:12px" id="wait-reasons"></p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="page.nightly_review.prompt_section"></div>
+        <div class="panel-body">
+          <button type="button" class="btn btn-primary" id="copy-prompt" data-i18n="action.copy_all"></button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header" data-i18n="page.nightly_review.paste_label"></div>
+        <div class="panel-body">
+          <label class="sr-only" for="proposal-json" data-i18n="nightly.paste_area"></label>
+          <textarea id="proposal-json" class="paste-area" spellcheck="false" aria-describedby="parse-status"></textarea>
+          <p id="parse-status" class="parse-status" role="status"></p>
+          <div class="action-bar">
+            <button type="button" class="btn" id="load-sample" data-i18n="action.load_sample"></button>
+            <button type="button" class="btn btn-primary" id="diff-check" data-i18n="action.diff_check"></button>
+            <button type="button" class="btn" id="discard-btn" data-i18n="action.discard"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="diff-panel">
+        <div class="panel-header" data-i18n="page.nightly_review.diff_preview"></div>
+        <div class="panel-body">
+          <div id="validation-messages" class="validation-messages"></div>
+          <table class="data-table diff-table" role="table">
+            <thead>
+              <tr>
+                <th data-i18n="diff.key"></th>
+                <th data-i18n="diff.old"></th>
+                <th data-i18n="diff.new"></th>
+                <th data-i18n="diff.delta_pct"></th>
+              </tr>
+            </thead>
+            <tbody id="diff-body"></tbody>
+          </table>
+          <div class="action-bar">
+            <button type="button" class="btn btn-primary" id="apply-btn" disabled data-i18n="action.apply"></button>
+          </div>
+        </div>
+      </section>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="apply-modal" role="presentation">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="apply-modal-title">
+      <div class="modal-header">
+        <h2 id="apply-modal-title" data-i18n="confirm.apply_title"></h2>
+        <button type="button" class="btn btn-sm" id="apply-modal-cancel" data-i18n="action.cancel"></button>
+      </div>
+      <div class="modal-body">
+        <p id="apply-modal-body"></p>
+        <div class="action-bar">
+          <button type="button" class="btn" id="apply-modal-back" data-i18n="action.cancel"></button>
+          <button type="button" class="btn btn-primary" id="apply-modal-confirm" data-i18n="confirm.apply_ok"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/mock-data.js"
+  <script src="/static/js/sse-client.js"></script>
+  <script src="/static/locales/ja.bundle.js"></script>
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/nightly-review.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/palette.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var nr = window.YoRuuNightlyReview;
+      var i18n = window.YoRuuI18n;
+      var lastPreview = null;
+      var report = null;
+
+      function renderSummary() {
+        report = md.getDailyReport();
+        var perf = report.performance;
+        document.getElementById("report-summary").innerHTML =
+          "<div><dt data-i18n=\"nightly.report_date\"></dt><dd>" +
+          report.report_date +
+          "</dd></div>" +
+          "<div><dt data-i18n=\"nightly.trades_total\"></dt><dd>" +
+          perf.trades_total +
+          "</dd></div>" +
+          "<div><dt data-i18n=\"nightly.win_rate\"></dt><dd>" +
+          (perf.win_rate * 100).toFixed(1) +
+          "%</dd></div>" +
+          "<div><dt data-i18n=\"nightly.pnl\"></dt><dd class=\"" +
+          (perf.pnl_usd >= 0 ? "pnl-positive" : "pnl-negative") +
+          "\">" +
+          md.formatPnl(perf.pnl_usd) +
+          "</dd></div>" +
+          "<div><dt>strategy v</dt><dd>" +
+          report.current_strategy.version +
+          "</dd></div>";
+        var wr = report.trade_breakdown.wait_reason_distribution;
+        var parts = [];
+        Object.keys(wr).forEach(function (k) {
+          parts.push(k + ": " + wr[k]);
+        });
+        document.getElementById("wait-reasons").innerHTML =
+          "<strong data-i18n=\"nightly.wait_reasons\"></strong> " + parts.join(" · ");
+        i18n.applyI18n(document.getElementById("report-summary").parentElement);
+      }
+
+      function setParseStatus(ok, msg) {
+        var el = document.getElementById("parse-status");
+        el.className = "parse-status " + (ok ? "ok" : "err");
+        el.textContent = msg;
+      }
+
+      function onPasteValidate() {
+        var raw = document.getElementById("proposal-json").value.trim();
+        if (!raw) {
+          setParseStatus(false, "");
+          return;
+        }
+        var parsed = nr.parseProposal(raw);
+        if (!parsed.ok) {
+          setParseStatus(
+            false,
+            i18n.t("error.parse_failed") + " — " + parsed.error,
+          );
+          return;
+        }
+        setParseStatus(true, i18n.t("nightly.parse_ok"));
+      }
+
+      function renderDiffPreview(preview) {
+        lastPreview = preview;
+        document.getElementById("diff-panel").classList.remove("hidden");
+        var msgEl = document.getElementById("validation-messages");
+        msgEl.innerHTML = "";
+        preview.warnings.forEach(function (w) {
+          var p = document.createElement("p");
+          p.className = "warn severity-warn";
+          if (w.indexOf("E_NIGHTLY_008") >= 0) {
+            p.textContent = i18n.t("error.e_nightly_008.warn") + " (" + w + ")";
+          } else {
+            p.textContent = i18n.t("warning.large_change") + " (" + w + ")";
+          }
+          msgEl.appendChild(p);
+        });
+        preview.errors.forEach(function (e) {
+          var p = document.createElement("p");
+          p.className = "err severity-error";
+          if (e.indexOf("E_NIGHTLY_008") >= 0) {
+            p.textContent = i18n.t("error.e_nightly_008.error") + " (" + e + ")";
+          } else if (e.indexOf("E_NIGHTLY_007") >= 0) {
+            p.textContent = i18n.t("error.out_of_range") + " (" + e + ")";
+          } else if (e.indexOf("E_NIGHTLY_009") >= 0) {
+            p.textContent = i18n.t("error.missing_key") + " (" + e + ")";
+          } else {
+            p.textContent = e;
+          }
+          msgEl.appendChild(p);
+        });
+
+        var rows = "";
+        preview.diff.forEach(function (d) {
+          var rowClass = "diff-error";
+          if (d.unchanged) {
+            rowClass = "diff-unchanged";
+          } else if (d.warn_large_change || !d.in_range) {
+            rowClass = d.in_range ? "diff-warn" : "diff-error";
+          }
+          rows +=
+            '<tr class="' +
+            rowClass +
+            '"><td class="mono">' +
+            d.key +
+            "</td><td class=\"mono\">" +
+            d.old +
+            "</td><td class=\"mono\">" +
+            d.new +
+            "</td><td class=\"mono\">" +
+            (d.unchanged
+              ? i18n.t("diff.unchanged")
+              : d.delta_pct.toFixed(2) + "%") +
+            "</td></tr>";
+        });
+        document.getElementById("diff-body").innerHTML = rows;
+        document.getElementById("apply-btn").disabled = !preview.apply_enabled;
+      }
+
+      function runDiffCheck() {
+        var raw = document.getElementById("proposal-json").value.trim();
+        var parsed = nr.parseProposal(raw);
+        if (!parsed.ok) {
+          setParseStatus(false, i18n.t("error.parse_failed"));
+          document.getElementById("diff-panel").classList.add("hidden");
+          return;
+        }
+        setParseStatus(true, i18n.t("nightly.parse_ok"));
+        var preview = nr.computeDiffPreview(report, parsed.data);
+        renderDiffPreview(preview);
+      }
+
+      function copyPrompt() {
+        var text = nr.buildPromptText(report);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            window.alert(i18n.t("action.copy_all_done"));
+          });
+        } else {
+          window.prompt(i18n.t("action.copy_all"), text);
+        }
+      }
+
+      function openApplyModal() {
+        if (!lastPreview || !lastPreview.apply_enabled) {
+          return;
+        }
+        var fromV = lastPreview.current_version;
+        var toV = fromV + 1;
+        document.getElementById("apply-modal-body").textContent = i18n.t(
+          "confirm.apply_body",
+          null,
+          { from: fromV, to: toV },
+        );
+        document.getElementById("apply-modal").classList.remove("hidden");
+      }
+
+      function closeApplyModal() {
+        document.getElementById("apply-modal").classList.add("hidden");
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({
+          sidebar: true,
+          activePage: "nightly_review",
+          langToggleId: "lang-toggle",
+        });
+        renderSummary();
+
+        document.getElementById("copy-prompt").addEventListener("click", copyPrompt);
+        document
+          .getElementById("proposal-json")
+          .addEventListener("input", onPasteValidate);
+        document.getElementById("load-sample").addEventListener("click", function () {
+          document.getElementById("proposal-json").value = JSON.stringify(
+            md.getData().sampleProposal,
+            null,
+            2,
+          );
+          onPasteValidate();
+        });
+        document.getElementById("diff-check").addEventListener("click", runDiffCheck);
+        document.getElementById("discard-btn").addEventListener("click", function () {
+          document.getElementById("proposal-json").value = "";
+          document.getElementById("diff-panel").classList.add("hidden");
+          setParseStatus(false, "");
+        });
+        document.getElementById("apply-btn").addEventListener("click", openApplyModal);
+        document.getElementById("apply-modal-cancel").addEventListener("click", closeApplyModal);
+        document.getElementById("apply-modal-back").addEventListener("click", closeApplyModal);
+        document
+          .getElementById("apply-modal-confirm")
+          .addEventListener("click", function () {
+            closeApplyModal();
+            window.alert(i18n.t("mock.apply_done"));
+            md.mockSSE("strategy_applied", {
+              new_version: lastPreview.current_version + 1,
+              previous_version: lastPreview.current_version,
+              applied_by: "NIGHTLY_REVIEW",
+              applied_at: new Date().toISOString(),
+            });
+          });
+
+        document.addEventListener("scenario_changed", function () {
+          renderSummary();
+          document.getElementById("diff-panel").classList.add("hidden");
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

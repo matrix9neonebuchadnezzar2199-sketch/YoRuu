@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Strategy History (Mock)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="app-layout" data-page="strategy_history">
+<!--
+  YoRuu Mockup: Strategy History
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.16
+  Related Mockups: 03_nightly_review.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.strategy_history.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.strategy_history.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div class="version-cards" id="version-cards" aria-live="polite"></div>
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="detail-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <div class="modal-header">
+        <h2 id="detail-title"></h2>
+        <button type="button" class="btn btn-sm" id="detail-close" data-i18n="action.close"></button>
+      </div>
+      <div class="modal-body" id="detail-body"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="rollback-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rollback-title">
+      <div class="modal-header">
+        <h2 id="rollback-title" data-i18n="confirm.rollback_title"></h2>
+        <button type="button" class="btn btn-sm" id="rollback-close" data-i18n="action.close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="rollback-body"></p>
+        <div class="action-bar">
+          <button type="button" class="btn" id="rollback-cancel" data-i18n="action.cancel"></button>
+          <button type="button" class="btn btn-primary" id="rollback-confirm" data-i18n="action.rollback"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/mock-data.js"
+  <script src="/static/js/sse-client.js"></script>
+  <script src="/static/locales/ja.bundle.js"></script>
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/palette.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var rollbackTarget = null;
+
+      function formatParams(p) {
+        return (
+          "MIN_PROB=" +
+          p.MIN_PROB +
+          " MIN_EDGE=" +
+          p.MIN_EDGE +
+          " KELLY=" +
+          p.KELLY_FRACTION +
+          " PERS=" +
+          p.PERSISTENCE_THRESHOLD
+        );
+      }
+
+      function renderCards() {
+        var versions = md.getStrategyVersions();
+        var html = "";
+        versions.forEach(function (v, idx) {
+          var canRollback = idx > 0;
+          html +=
+            '<article class="version-card"><header><strong>v' +
+            v.version +
+            "</strong>" +
+            '<span class="tag">' +
+            v.applied_by +
+            "</span></header>" +
+            '<p class="params">' +
+            formatParams(v.parameters) +
+            "</p>" +
+            '<p class="rationale"><span data-i18n="strategy.rationale"></span>: ' +
+            v.rationale +
+            "</p>" +
+            '<p class="perf">' +
+            i18n.t("nightly.trades_total") +
+            ": " +
+            v.performance.trades +
+            " · " +
+            (v.performance.win_rate * 100).toFixed(1) +
+            "% · " +
+            md.formatPnl(v.performance.pnl_usd) +
+            "</p>" +
+            '<p class="perf"><span data-i18n="strategy.applied_at"></span>: ' +
+            v.applied_at +
+            "</p>" +
+            '<div class="actions">' +
+            '<button type="button" class="btn btn-sm btn-details" data-ver="' +
+            v.version +
+            '">' +
+            i18n.t("action.details") +
+            "</button>" +
+            (canRollback
+              ? '<button type="button" class="btn btn-sm btn-rollback" data-ver="' +
+                v.version +
+                '">' +
+                i18n.t("action.rollback") +
+                "</button>"
+              : "") +
+            "</div></article>";
+        });
+        document.getElementById("version-cards").innerHTML = html;
+        i18n.applyI18n(document.getElementById("version-cards"));
+
+        document.querySelectorAll(".btn-details").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var ver = Number(btn.getAttribute("data-ver"));
+            var v = versions.find(function (x) {
+              return x.version === ver;
+            });
+            document.getElementById("detail-title").textContent =
+              "v" + ver + " — " + i18n.t("action.details");
+            document.getElementById("detail-body").innerHTML =
+              "<pre style=\"font-size:12px;overflow:auto\">" +
+              JSON.stringify(v, null, 2) +
+              "</pre>";
+            document.getElementById("detail-modal").classList.remove("hidden");
+          });
+        });
+
+        document.querySelectorAll(".btn-rollback").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            rollbackTarget = Number(btn.getAttribute("data-ver"));
+            document.getElementById("rollback-body").textContent = i18n.t(
+              "confirm.rollback_body",
+              null,
+              { ver: rollbackTarget },
+            );
+            document.getElementById("rollback-modal").classList.remove("hidden");
+          });
+        });
+      }
+
+      function closeModals() {
+        document.getElementById("detail-modal").classList.add("hidden");
+        document.getElementById("rollback-modal").classList.add("hidden");
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({
+          sidebar: true,
+          activePage: "strategy_history",
+          langToggleId: "lang-toggle",
+        });
+        renderCards();
+
+        document.getElementById("detail-close").addEventListener("click", closeModals);
+        document.getElementById("rollback-close").addEventListener("click", closeModals);
+        document.getElementById("rollback-cancel").addEventListener("click", closeModals);
+        document
+          .getElementById("rollback-confirm")
+          .addEventListener("click", function () {
+            closeModals();
+            window.alert(i18n.t("mock.rollback_done"));
+            var versions = md.getStrategyVersions();
+            var latestVer = versions.length ? versions[0].version : rollbackTarget + 1;
+            md.mockSSE("strategy_applied", {
+              new_version: rollbackTarget,
+              previous_version: latestVer,
+              applied_by: "USER",
+              rationale: "Rollback to v" + rollbackTarget,
+              applied_at: new Date().toISOString(),
+              diff: {},
+            });
+          });
+
+        document.addEventListener("strategy_applied", renderCards);
+        document.addEventListener("scenario_changed", renderCards);
+      });
+    })();
+  </script>
+</body>
+</html>

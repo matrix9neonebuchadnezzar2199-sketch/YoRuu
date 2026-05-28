@@ -477,6 +477,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1300">#entry-1300</a></td>
       </tr>
+      <tr>
+        <td>13:15</td>
+        <td>PHASE 4 M4.2 静的 UI + SSE 結線</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1315">#entry-1315</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -852,6 +858,26 @@ body.diary > footer {
   <p>残 2 件を「運用 1 + 任意設計 1」に分離。ch10 v1.2 severity 全件必須は PHASE 3 Exit 必須から外し PHASE 4 キックオフ判断へ繰越。</p>
   <h3>検証</h3>
   <p>ドキュメントのみ。Commit: <code>48c47f4</code>。</p>
+</section>
+
+<section class="entry" id="entry-1315">
+  <h2>PHASE 4 M4.2 — 静的モック Web UI 結線<a href="#entry-1315" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 13:15 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>テンプレ <strong>13</strong>。`tools/build_web_static.py` で 11 HTML + shared アセットを <code>web/static/</code> へ同期。<code>sse-client.js</code> で <code>EventSource(/api/v1/events/stream)</code>、<code>dispatchSseEvent</code> で B1 ハンドラ継承。<code>?mock=1</code> で従来 mockSSE 維持。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> src/yoruu/web/static/**, static_src/sse-client.js, tools/build_web_static.py</li>
+    <li><span class="op op-mod">~</span> web/app.py, README, INDEX, ROADMAP, PHASE4_KICKOFF, PARALLEL テンプレ 13</li>
+    <li><span class="op op-add">+</span> tests/web/test_static_serving.py, test_sse_integration.py</li>
+  </ul>
+  <h3>検証</h3>
+  <p>119 tests / 88.01% coverage。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

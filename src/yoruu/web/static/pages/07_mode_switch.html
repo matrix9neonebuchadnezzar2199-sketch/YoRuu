@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — Mode Switch (Mock)</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="app-layout" data-page="mode_switch">
+<!--
+  YoRuu Mockup: Mode Switch
+  Version: 0.1.0
+  Last Updated: 2026-05-27
+  Status: REVIEW_PENDING
+  Linked Design Chapter: 8.18, ch12 §12.6
+  Related Mockups: 08_emergency_stop.html
+-->
+
+  <aside id="sidebar" class="sidebar"></aside>
+  <div class="main-area">
+    <header class="app-header">
+      <div>
+        <h1 data-i18n="page.mode_switch.title"></h1>
+        <span style="font-size:12px;color:var(--text-secondary)" data-i18n="page.mode_switch.subtitle"></span>
+      </div>
+      <div class="app-header-actions">
+        <span class="mode-badge mode-badge-header" data-mode-label></span>
+        <button type="button" class="lang-toggle" id="lang-toggle"></button>
+        <span class="kbd-hint">⌘K</span>
+      </div>
+    </header>
+    <main class="app-main">
+      <div id="state-banner" class="info-banner"></div>
+      <p>
+        <span data-i18n="page.mode_switch.current"></span>:
+        <strong id="current-mode-label"></strong> ·
+        <span data-i18n="page.mode_switch.balance"></span>:
+        <span class="mono" id="current-balance"></span>
+      </p>
+      <button type="button" class="btn btn-sm" id="demo-idle" data-i18n="mock.mode_demo_idle"></button>
+
+      <div class="mode-cards" id="mode-cards"></div>
+
+      <p class="scenario-bar">
+        <label for="scenario-select" data-i18n="scenario.label"></label>
+        <select id="scenario-select">
+          <option value="normal" data-i18n="scenario.normal"></option>
+          <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+          <option value="drawdown" data-i18n="scenario.drawdown"></option>
+        </select>
+      </p>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="live-step1-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="live-step1-title">
+      <div class="modal-header">
+        <h2 id="live-step1-title" data-i18n="confirm.live_step1_title"></h2>
+        <button type="button" class="btn btn-sm live-cancel" data-i18n="action.cancel"></button>
+      </div>
+      <div class="modal-body">
+        <p class="pnl-negative" data-i18n="warning.live_real_money"></p>
+        <p data-i18n="confirm.live_step1_body"></p>
+        <input type="text" id="live-confirm-text" class="paste-area" style="min-height:40px" autocomplete="off"
+          data-i18n-attr="placeholder" data-i18n="confirm.live_step1_placeholder" />
+        <div class="action-bar">
+          <button type="button" class="btn live-cancel" data-i18n="action.cancel"></button>
+          <button type="button" class="btn btn-primary" id="live-step1-next">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="live-step2-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="live-step2-title">
+      <div class="modal-header">
+        <h2 id="live-step2-title" data-i18n="confirm.live_step2_title"></h2>
+        <button type="button" class="btn btn-sm live-cancel" data-i18n="action.cancel"></button>
+      </div>
+      <div class="modal-body">
+        <p data-i18n="confirm.live_step2_body"></p>
+        <ul class="checklist-live" id="live-checklist"></ul>
+        <div class="action-bar">
+          <button type="button" class="btn live-cancel" data-i18n="action.cancel"></button>
+          <button type="button" class="btn btn-primary" id="live-final" data-i18n="confirm.live_final_ok"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="simple-modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="simple-title"></h2>
+        <button type="button" class="btn btn-sm simple-cancel" data-i18n="action.cancel"></button>
+      </div>
+      <div class="modal-body">
+        <p id="simple-body"></p>
+        <div class="action-bar">
+          <button type="button" class="btn simple-cancel" data-i18n="action.cancel"></button>
+          <button type="button" class="btn btn-primary" id="simple-ok" data-i18n="action.confirm"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="no-live-modal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 data-i18n="error.emergency_no_live"></h2>
+        <button type="button" class="btn btn-sm" id="no-live-close" data-i18n="action.close"></button>
+      </div>
+      <div class="modal-body">
+        <p data-i18n="error.emergency_no_live_body"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/mock-data.js"
+  <script src="/static/js/sse-client.js"></script>
+  <script src="/static/locales/ja.bundle.js"></script>
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/sidebar.js"></script>
+  <script src="/static/js/palette.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var mockStateOverride = null;
+      var pendingTarget = null;
+
+      function effectiveState() {
+        if (mockStateOverride) return mockStateOverride;
+        return md.getData().bot_state.state;
+      }
+
+      function canSwitch() {
+        var s = effectiveState();
+        return s === "IDLE";
+      }
+
+      function renderBanner() {
+        var s = effectiveState();
+        var el = document.getElementById("state-banner");
+        if (s === "EMERGENCY_STOP") {
+          el.textContent = i18n.t("error.emergency_no_live_body");
+          el.className = "restart-banner";
+          return;
+        }
+        if (!canSwitch()) {
+          el.textContent = i18n.t("error.mode_switch_idle_only") + " (state=" + s + ")";
+          el.className = "info-banner";
+          return;
+        }
+        el.textContent = "";
+        el.className = "info-banner hidden";
+      }
+
+      function renderCards() {
+        var data = md.getData();
+        var mode = data.bot_state.mode;
+        document.getElementById("current-mode-label").textContent = i18n.t("mode." + mode);
+        document.getElementById("current-balance").textContent =
+          "$" + data.balance.current.toFixed(2);
+
+        var modes = [
+          { id: "backtest", descKey: "mode.backtest.desc", external: true },
+          { id: "paper", descKey: null },
+          { id: "simmer", descKey: null },
+          { id: "live", descKey: "warning.live_real_money", live: true },
+        ];
+        var html = "";
+        modes.forEach(function (m) {
+          var isCurrent = m.id === mode;
+          html +=
+            '<article class="mode-card' +
+            (isCurrent ? " current" : "") +
+            (m.live ? " live-card" : "") +
+            '"><h3 data-i18n="mode.' +
+            m.id +
+            '"></h3>';
+          if (m.descKey) {
+            html += '<p data-i18n="' + m.descKey + '"></p>';
+          } else {
+            html += "<p>—</p>";
+          }
+          if (m.external) {
+            html +=
+              '<button type="button" class="btn btn-sm" disabled>別プロセス</button>';
+          } else if (isCurrent) {
+            html += '<button type="button" class="btn btn-sm" disabled>Current</button>';
+          } else {
+            html +=
+              '<button type="button" class="btn btn-sm switch-mode" data-target="' +
+              m.id +
+              '">' +
+              i18n.t("mode.switch_to", null, { mode: m.id.toUpperCase() }) +
+              "</button>";
+          }
+          html += "</article>";
+        });
+        document.getElementById("mode-cards").innerHTML = html;
+        i18n.applyI18n(document.getElementById("mode-cards"));
+
+        document.querySelectorAll(".switch-mode").forEach(function (btn) {
+          btn.disabled = !canSwitch();
+          btn.addEventListener("click", function () {
+            var target = btn.getAttribute("data-target");
+            if (effectiveState() === "EMERGENCY_STOP" && target === "live") {
+              document.getElementById("no-live-modal").classList.remove("hidden");
+              return;
+            }
+            if (!canSwitch()) return;
+            pendingTarget = target;
+            if (target === "live") {
+              document.getElementById("live-confirm-text").value = "";
+              document.getElementById("live-step1-modal").classList.remove("hidden");
+            } else {
+              document.getElementById("simple-title").textContent = i18n.t(
+                "mode.switch_to",
+                null,
+                { mode: target.toUpperCase() },
+              );
+              document.getElementById("simple-body").textContent = i18n.t(
+                "confirm.mode_simple",
+                null,
+                { mode: target.toUpperCase() },
+              );
+              document.getElementById("simple-modal").classList.remove("hidden");
+            }
+          });
+        });
+      }
+
+      function buildLiveChecklist() {
+        var h = md.getModeHealth();
+        var items = [
+          { key: "confirm.live_check_ws", ok: h.ws_polymarket_connected && h.ws_binance_connected },
+          { key: "confirm.live_check_balance", ok: h.usdc_balance_usd >= h.max_trade_size_usd * 2 },
+          { key: "confirm.live_check_loss_limit", ok: h.daily_loss_limit_usd > 0 },
+          { key: "confirm.live_check_emergency", ok: true },
+        ];
+        var html = "";
+        items.forEach(function (it, idx) {
+          html +=
+            "<li><label><input type=\"checkbox\" class=\"live-chk\" data-idx=\"" +
+            idx +
+            "\"" +
+            (it.ok ? " checked" : "") +
+            " /> " +
+            i18n.t(it.key) +
+            (it.ok ? "" : " (NG)") +
+            "</label></li>";
+        });
+        document.getElementById("live-checklist").innerHTML = html;
+      }
+
+      function closeLiveModals() {
+        document.getElementById("live-step1-modal").classList.add("hidden");
+        document.getElementById("live-step2-modal").classList.add("hidden");
+        document.getElementById("simple-modal").classList.add("hidden");
+      }
+
+      function finishSwitch() {
+        closeLiveModals();
+        window.alert(i18n.t("mock.mode_switched") + " → " + pendingTarget);
+        md.mockSSE("mode_changed", {
+          from: String(md.getData().bot_state.mode).toUpperCase(),
+          to: String(pendingTarget).toUpperCase(),
+          timestamp: new Date().toISOString(),
+        });
+        pendingTarget = null;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        window.YoRuuApp.initApp({ sidebar: true, activePage: "mode_switch", langToggleId: "lang-toggle" });
+        renderBanner();
+        renderCards();
+
+        document.getElementById("demo-idle").addEventListener("click", function () {
+          mockStateOverride = "IDLE";
+          renderBanner();
+          renderCards();
+        });
+
+        document.querySelectorAll(".live-cancel").forEach(function (b) {
+          b.addEventListener("click", closeLiveModals);
+        });
+        document.querySelectorAll(".simple-cancel").forEach(function (b) {
+          b.addEventListener("click", closeLiveModals);
+        });
+        document.getElementById("no-live-close").addEventListener("click", function () {
+          document.getElementById("no-live-modal").classList.add("hidden");
+        });
+
+        document.getElementById("live-step1-next").addEventListener("click", function () {
+          if (document.getElementById("live-confirm-text").value !== "LIVE") {
+            window.alert(i18n.t("error.live_text_mismatch"));
+            return;
+          }
+          document.getElementById("live-step1-modal").classList.add("hidden");
+          buildLiveChecklist();
+          document.getElementById("live-step2-modal").classList.remove("hidden");
+        });
+
+        document.getElementById("live-final").addEventListener("click", function () {
+          var ok = true;
+          document.querySelectorAll(".live-chk").forEach(function (c) {
+            if (!c.checked) ok = false;
+          });
+          if (!ok) {
+            window.alert("Checklist incomplete");
+            return;
+          }
+          finishSwitch();
+        });
+
+        document.getElementById("simple-ok").addEventListener("click", finishSwitch);
+
+        document.addEventListener("scenario_changed", function () {
+          mockStateOverride = null;
+          renderBanner();
+          renderCards();
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -11,7 +11,8 @@
 | Track 4 完了 | B-HIGH 3 件クローズ、§8.25.3 10/10 PASS |
 | PHASE 3 Exit（コード） | カバレッジ 80%・INV 19/19・WS/CLOB/API/SSE — **達成**（`dea96e0`） |
 | PHASE 3 Exit（運用） | lab 24h `yoruu paper-24h` — **未実施**（ハーネス済） |
-| PHASE 3 前倒し | `src/yoruu/web/` + `api/sse/` 既存。M4.1 は静的 UI 移植が残 |
+| PHASE 4 M4.2 | 静的 UI 結線 **完了**（`web/static/` + EventSource、`tools/build_web_static.py`） |
+| 次 | M4.3 以降（ダッシュボード本番データ結線・E2E 等） |
 | モデル | FastAPI / SSE は Composer 2.5、設計ローリングは Opus |
 
 ## 2. 引き渡し SSOT（`@` 添付）
@@ -28,16 +29,19 @@
 | 8 | [`24_polymarket_clob.md`](./24_polymarket_clob.md) | CLOB |
 | 9 | `docs/mockups/` | モック HTML（契約整合後） |
 
-## 3. Composer 依頼テンプレ（コピペ用）
+## 3. Composer 依頼テンプレ（コピペ用・短文）
 
 ```
-[実装] PHASE 4 M4.2: 静的モック → Web UI 結線（FastAPI 骨格は PHASE 3 済）。
+[実装] PHASE 4 M4.3: ダッシュボード REST データ結線（M4.2 完了前提）。
 
-スコープ: docs/mockups/ の HTML/JS を yoruu/web/static へ移植、EventSource → /api/v1/events/stream。
-SSOT: @docs/design/08_ui_mockup.md @docs/design/10_functions_data_model.md @src/yoruu/api/sse/
-完了基準: ダッシュボードで SSE 11 イベント受信、B1 契約とバイト一致。
-設計変更は Opus に返す。commit + push まで実施。
+スコープ: /api/v1/state 等から初期描画、モックシナリオと live API の切替整理。
+SSOT: @docs/design/08_ui_mockup.md @docs/design/10_functions_data_model.md
+完了基準: serve 起動で実データ表示、SSE + REST 整合。
 ```
+
+### 3.1 詳細版（M4.2 — 完了）
+
+M4.2 全文は [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md) **テンプレート 13** を参照。再生成は `uv run python tools/build_web_static.py`。
 
 ## 4. 変更履歴
 
@@ -45,3 +49,4 @@ SSOT: @docs/design/08_ui_mockup.md @docs/design/10_functions_data_model.md @src/
 |------|------|
 | 2026-05-28 | 初版（T3.9 新規） |
 | 2026-05-28 | PHASE 3 コード Exit 反映、M4.1 前倒し注記、依頼テンプレを M4.2 結線に更新 |
+| 2026-05-28 | M4.2 完了反映、§3.1 → テンプレ 13、短文テンプレを M4.3 向けに更新 |

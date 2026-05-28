@@ -96,6 +96,8 @@ copy config\yoruu.yaml.example config\yoruu.yaml
 uv run yoruu config validate
 uv run yoruu db init
 uv run yoruu paper evaluate-once
+uv run yoruu serve
+# UI: http://127.0.0.1:8765/pages/index.html  (?mock=1 でモック SSE のみ)
 uv run yoruu nightly generate
 uv run yoruu strategy apply path\to\proposal.json --by USER
 uv run pytest -q
@@ -103,7 +105,7 @@ uv run pytest -q
 
 設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)。PHASE 3 コード Exit: [`docs/design/PHASE3_EXIT_DECLARATION.md`](docs/design/PHASE3_EXIT_DECLARATION.md)。
 
-**テスト**: `uv run pytest -q` — **114** passed、カバレッジ **≈88%**、`fail_under` **80**（ch23 §23.3）。**lab 24h paper**: `uv run yoruu paper-24h`（`--max-cycles` で smoke 可）。
+**テスト**: `uv run pytest -q` — **119** passed、カバレッジ **≈88%**、`fail_under` **80**。**静的 UI 再生成**: `uv run python tools/build_web_static.py`（`docs/mockups/` 正本は保持）。
 
 ---
 
