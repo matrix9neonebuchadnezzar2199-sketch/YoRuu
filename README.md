@@ -61,16 +61,27 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 3** コア実装（Track 1 完了 `f499778`、Web UI は PHASE 4） |
+| **現フェーズ** | **PHASE 3** コア実装（Track 1・2 完了、モック契約 T4.1 着手前、Web UI は PHASE 4） |
 | **テスト** | `pytest` 20 passed、カバレッジ ≈65%、`fail_under` **55** → 70 → 80 |
 
-### Track 1 判定サマリ（Q1〜Q3）
+### PHASE 3 トラック進捗（2026-05-28）
 
-| ID | 判定 | 実装要点 |
+| Track | 内容 | 状態 | 参照コミット |
+|:---|:---|:---:|:---|
+| 1 | A-HIGH 8 + Q1〜Q3 実装 | 完了 | `f499778` |
+| 2 | 設計書ローリング（ch3/10/13/16/22/08/11/14/15/18） | 完了 | `c8fa393` |
+| 3 | README / INDEX / ROADMAP / CHECKLIST | 完了 | `085cad5` |
+| 4 | モック後修正（§F T4.1〜T4.9） | **次**: T4.1 SSE（B1） | — |
+
+並列投入テンプレ: [`docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
+
+### マスター判定サマリ（Q1〜Q3）
+
+| ID | 判定 | 設計 / 実装要点 |
 |:---|:---|:---|
-| Q1 | A | `W_NIGHTLY_001` → `E_NIGHTLY_008` 統合（夜間 Apply 警告） |
-| Q2 | A | `FillModel` 既定値は ch22 SSOT 維持 |
-| Q3 | A | open 時 `balance` 減算、close 時加算 + **INV-D-06** |
+| Q1 | A | `W_NIGHTLY_001` → `E_NIGHTLY_008`（†10% WARN / ‡20% ERROR、ch18 §18.3.4） |
+| Q2 | A | `FillModel` 既定値は ch22 §22.2.1 SSOT |
+| Q3 | A | open 時 `balance` 減算、close 時加算 + **INV-D-06**（ch16 §16.3.1） |
 
 ---
 
@@ -256,7 +267,7 @@ flowchart TB
 | 1 | レポートをコピー（または添付） | ローカル保存のみ（NW 不要） |
 | 2 | AI 分析 → JSON を取得 | 人間が内容を確認 |
 | 3 | Web UI に貼り付け | 即時スキーマ検証 + 差分表示 |
-| 4 | Apply 確定 | 範囲検証 · 変化率 ±10% · バックアップ |
+| 4 | Apply 確定 | 範囲検証 · `E_NIGHTLY_008`（±10% 警告 / ±20% 拒否）· バックアップ |
 
 ---
 
@@ -267,12 +278,13 @@ flowchart TB
 | 設計指示書（第1〜7章） | [`docs/design/00_INSTRUCTIONS_ch01-07.md`](docs/design/00_INSTRUCTIONS_ch01-07.md) | Cursor / Opus 4.7 向け生成仕様 |
 | レビュー用チェックリスト | [`docs/design/REVIEW_CHECKLIST_ch01-07.md`](docs/design/REVIEW_CHECKLIST_ch01-07.md) | 第1〜7章の人間レビュー基準 |
 | 開発日記 | [`docs/2026-05-27_開発日記.html`](docs/2026-05-27_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | 設計判断の時系列ログ |
-| UI モックアップ | `docs/mockups/` | 単一 HTML · オフライン動作（準備中） |
+| UI モックアップ | [`docs/mockups/`](docs/mockups/) | HTML 11/11 · オフライン動作（PHASE 2 完了） |
 | 設計 INDEX | [`docs/design/INDEX.md`](docs/design/INDEX.md) | 24章 + 付録 A APPROVED |
 | PHASE 3 監査 | [`docs/design/PHASE3_QUALITY_AUDIT.md`](docs/design/PHASE3_QUALITY_AUDIT.md) | A-HIGH / 4 Track |
-| 開発日記 | [`docs/2026-05-28_開発日記.html`](docs/2026-05-28_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | Track 1 実装ログ |
+| 並列チャットテンプレ | [`docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md) | docs-sync / Q3-MOCK / Track 2 / T4.1 |
+| 開発日記 | [`docs/2026-05-28_開発日記.html`](docs/2026-05-28_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | Track 1〜2 ローリングログ |
 
-### 設計書 24章（予定）
+### 設計書 24章（APPROVED）
 
 <details>
 <summary><strong>章一覧を表示</strong></summary>
@@ -322,8 +334,8 @@ YoRuu/
 | **PHASE 0** | ch1〜7 基盤合意 | 完了 |
 | **PHASE 1** | 設計書 24章 + 付録 A | 完了（2026-05-27） |
 | **PHASE 2** | HTML モック 11画面 | 完了（2026-05-27） |
-| **PHASE 3** | コア CLI（paper / nightly / strategy） | 着手中（Track 1 完了） |
-| **PHASE 4** | FastAPI Web UI + SSE | 予定 |
+| **PHASE 3** | コア CLI + 品質トラック | 着手中（Track 1・2 完了、T4.1 SSE 次） |
+| **PHASE 4** | FastAPI Web UI + SSE | 予定（T4.1 完了後） |
 | **PHASE 5〜7** | 統合テスト · ペーパー運用 · live | 予定 |
 
 詳細: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
@@ -369,6 +381,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.3.0 · PHASE 3 · last updated 2026-05-28</sub>
+<sub>README · v0.3.0 · PHASE 3 · Track 2 完了 · last updated 2026-05-28</sub>
 
 </div>
