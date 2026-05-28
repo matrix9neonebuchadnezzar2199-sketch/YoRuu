@@ -28,7 +28,7 @@ class ApplyValidationResult:
 
 
 class ApplyValidator:
-    """Validate Opus proposal JSON before apply."""
+    """Validate external AI proposal JSON before apply."""
 
     def validate(
         self,

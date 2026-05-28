@@ -24,7 +24,7 @@
 [![Mockups](https://img.shields.io/badge/UI-HTML_mockups_12%2F12_(HUD)-d68910?style=flat-square&logo=html5&logoColor=white)](docs/mockups/)
 [![Modes](https://img.shields.io/badge/modes-4_(backtest·paper·simmer·live)-2c5f8d?style=flat-square)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Infra](https://img.shields.io/badge/deploy-Hetzner_VPS_|_local-24292f?style=flat-square&logo=serverless&logoColor=white)](https://www.hetzner.com/)
-[![Review](https://img.shields.io/badge/nightly_review-human_+_Opus_4.7-a78bfa?style=flat-square&logo=anthropic&logoColor=white)](docs/design/00_INSTRUCTIONS_ch01-07.md)
+[![Review](https://img.shields.io/badge/nightly_review-human_+_AI_review-a78bfa?style=flat-square)](docs/design/00_INSTRUCTIONS_ch01-07.md)
 [![Risk](https://img.shields.io/badge/⚠_not_financial_advice-self_responsibility-c0392b?style=flat-square)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 
 <br>
@@ -51,15 +51,15 @@
 「夜（Yo）」とループ感のある響き（Ruu）から名付けられた通り、**1日1回の夜間レビュー**で戦略パラメータを人間が監督しながら進化させる——安全とコスト効率を両立する設計が核となる。
 
 > **設計思想**  
-> Bonereaper 系エージェントの「再現」ではなく、本質（Markov + Kelly・低コスト運用）を抽出した **自分用の実装**。  
-> Telegram 通知は廃止し、**Web UI + ローカルファイル + CLI** に集約する。
+> マスターによる **オリジナル設計**（Markov + Kelly・ランタイム LLM 不使用・低コスト運用）。  
+> 通知と操作は **Web UI + ローカルファイル + CLI** に集約し、夜間レビューは **人間監督 + 外部 AI** で行う。
 
 | | |
 |---|---|
 | **対象市場** | Polymarket · BTC 5分 Up/Down |
 | **判定頻度** | 5分ごと（最大 288 回/日） |
 | **戦略** | Markov persistence + Kelly sizing |
-| **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
+| **夜間レビュー** | レポート JSON → 外部 AI（手動）→ Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
 | **現フェーズ** | **PHASE 5 着手** — OHLC HUD · SSE severity · ADR-001 |
 | **テスト** | `pytest` **146** passed、カバレッジ **≈88%**、`fail_under` **80** |
@@ -214,8 +214,8 @@ uv run pytest -q
 
 ### シンプル & 低コスト
 
-- ランタイム LLM API コスト **$0**（夜間レビューは既存 Genspark 契約）
-- Python 単体（Hermes 等のエージェント基盤なし）
+- ランタイム LLM API コスト **$0**（夜間レビューは利用者が選ぶ外部 AI・手動）
+- Python 単体（エージェント基盤なし）
 - SQLite + JSON · 単一 `yoruu.yaml` 設定
 - UI は **Vanilla HTML/CSS/JS**（モックアップから本実装へ移植）
 
@@ -256,7 +256,7 @@ flowchart TB
     subgraph External["外部（非信頼）"]
         BN[Binance WS]
         PM[Polymarket CLOB]
-        AI[Opus 4.7 via Genspark]
+        AI[外部 AI チャット<br/>人間が仲介]
     end
 
     subgraph YoRuu["YoRuu Core"]
@@ -337,10 +337,10 @@ flowchart TB
 ## 夜間レビュー
 
 毎日、設定時刻に `report_YYYY-MM-DD.json`（集計データ + AI 用プロンプト）をローカル出力。  
-人間が Genspark 経由で **Opus 4.7** に分析を依頼し、返却 JSON を Web UI で検証・二重承認のうえ `strategy.json` に反映する。
+人間が **外部 AI**（ブラウザ上のチャット等）に分析を依頼し、返却 JSON を Web UI で検証・二重承認のうえ `strategy.json` に反映する。
 
 ```
-  report.json ──copy──▶ Opus 4.7 ──copy──▶ Web UI (/review)
+  report.json ──copy──▶ 外部 AI ──copy──▶ Web UI (/review)
        ▲                      │                    │
        │                      │                    ▼
   Scheduler              人間が監督          Schema + Range 検証
@@ -363,7 +363,7 @@ flowchart TB
 
 | 種別 | パス | 説明 |
 |:---|:---|:---|
-| 設計指示書（第1〜7章） | [`docs/design/00_INSTRUCTIONS_ch01-07.md`](docs/design/00_INSTRUCTIONS_ch01-07.md) | Cursor / Opus 4.7 向け生成仕様 |
+| 設計指示書（第1〜7章） | [`docs/design/00_INSTRUCTIONS_ch01-07.md`](docs/design/00_INSTRUCTIONS_ch01-07.md) | 設計書生成・レビュー用仕様 |
 | レビュー用チェックリスト | [`docs/design/REVIEW_CHECKLIST_ch01-07.md`](docs/design/REVIEW_CHECKLIST_ch01-07.md) | 第1〜7章の人間レビュー基準 |
 | 開発日記 | [`docs/2026-05-27_開発日記.html`](docs/2026-05-27_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | 設計判断の時系列ログ |
 | UI モックアップ | [`docs/mockups/`](docs/mockups/) | HTML **12** 画面（HUD + Hub + 10）· serve 対応 |

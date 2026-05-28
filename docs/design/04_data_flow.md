@@ -13,7 +13,7 @@ flowchart LR
     POLY[Polymarket]
     CL[Chainlink]
     USER[ユーザー]
-    OPUS[Opus 4.7 via Genspark]
+    AI[外部 AI チャット]
 
     YORUU{{YoRuu System}}
 
@@ -23,13 +23,13 @@ flowchart LR
     CL -->|決済価格 参照のみ| YORUU
     USER -->|操作・Apply JSON| YORUU
     YORUU -->|ステータス・レポート| USER
-    USER -->|Daily Report| OPUS
-    OPUS -->|分析結果 JSON| USER
+    USER -->|Daily Report| AI
+    AI -->|分析結果 JSON| USER
 ```
 
 *図 4-1: DFD レベル0 コンテキスト図*
 
-YoRuu と Opus 4.7 は**直接通信しない**。常に人間が間を仲介する。これは第5章 (信頼境界線) の Zone 3 境界と整合する。
+YoRuu と外部 AI は**直接通信しない**。常に人間が間を仲介する。これは第5章 (信頼境界線) の Zone 3 境界と整合する。
 
 ## 4.2 DFD レベル1 (主要プロセス)
 
@@ -41,7 +41,7 @@ flowchart TB
         BIN[Binance]
         POLY[Polymarket]
         USER[ユーザー]
-        OPUS[Opus 4.7]
+        AI[外部 AI]
     end
 
     P1[P1: Price Ingestion]
@@ -76,8 +76,8 @@ flowchart TB
     P5 -->|position close| P6
     D1 -->|trades| P7
     P7 -->|JSON report| D3
-    USER -->|daily report| OPUS
-    OPUS -->|new params JSON| USER
+    USER -->|daily report| AI
+    AI -->|new params JSON| USER
     USER -->|paste JSON| P8
     D2 -->|current params| P8
     P8 -->|validated params| D2
@@ -127,7 +127,7 @@ flowchart TB
 | Polymarket 板 JSON → `Orderbook` | Polymarket CLOB レスポンス | `Orderbook(market_id, bids, asks, ts)` | `exchange/polymarket_client.py` |
 | Polymarket 注文応答 → `Trade` | 注文 API レスポンス | `Trade(order_id, market_id, side, size, price, ts, status)` | `exchange/polymarket_client.py` |
 | Polymarket 決済通知 → `Resolution` | WS 通知 | `Resolution(market_id, outcome, ts)` | `exchange/clob_ws.py` |
-| Opus JSON → `StrategyUpdate` | UI 経由のテキスト入力 | 検証済 `StrategyUpdate(min_prob, min_edge, kelly_fraction, persistence_threshold, reason)` | `review/apply_validator.py` |
+| AI 提案 JSON → `StrategyUpdate` | UI 経由のテキスト入力 | 検証済 `StrategyUpdate(min_prob, min_edge, kelly_fraction, persistence_threshold, reason)` | `review/apply_validator.py` |
 | 内部 `Trade` → 日次レポート JSON | DB レコード群 | レポート JSON (→ 第15章スキーマ) | `review/report_generator.py` |
 | 内部 `Trade` → CSV | DB レコード群 | CSV ファイル | `web/routes/trades.py` |
 

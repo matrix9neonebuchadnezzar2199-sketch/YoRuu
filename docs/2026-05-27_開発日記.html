@@ -536,7 +536,7 @@ body.diary > footer {
   <p>
     Polymarket の BTC 5分 Up/Down 市場に対する自動取引Botのプロジェクト名を <strong>YoRuu</strong>（ヨルー）に確定。
     「夜」+ ループ感のある "uu" で、<em class="term">夜間レビューで進化するシステム</em>という設計思想を音にも反映させた。
-    同時に、当初想定していた Telegram Bot による通知・操作経路を削除し、よりシンプルな構成（CLI + ローカルファイル + 既存契約の Genspark Opus 4.7）に切り替える判断を行った。
+    同時に、当初想定していた Telegram Bot による通知・操作経路を削除し、よりシンプルな構成（CLI + ローカルファイル + 外部 AI（手動・チャット））に切り替える判断を行った。
   </p>
 
   <h3>設計判断</h3>
@@ -592,7 +592,7 @@ body.diary > footer {
   <p><strong>朝のルーチン（3ステップ）</strong></p>
   <ol>
     <li><code>report_YYYY-MM-DD.json</code> を開いてコピー（または添付）</li>
-    <li>AI（Genspark Opus 4.7）に貼って分析 → 返ってきた JSON をコピー</li>
+    <li>外部 AI に貼って分析 → 返ってきた JSON をコピー</li>
     <li>ターミナルで <code>yoruu apply</code> 実行 → <code>y</code> で確定</li>
   </ol>
 
@@ -605,7 +605,7 @@ body.diary > footer {
       <tr><td>取引判定</td><td>Markov 2状態遷移 + Kelly基準（Python数式のみ、LLM不使用）</td></tr>
       <tr><td>判定頻度</td><td>5分ごと（1日288回）</td></tr>
       <tr><td>夜間レビュー</td><td>1日1回、ユーザー設定時刻に JSON + プロンプトをローカル出力</td></tr>
-      <tr><td>レビュー実行者</td><td>人間が Genspark Opus 4.7 にコピペ</td></tr>
+      <tr><td>レビュー実行者</td><td>人間が外部 AI にコピペ</td></tr>
       <tr><td>結果反映</td><td><code>yoruu apply</code> コマンドでクリップボードから検証→反映</td></tr>
       <tr><td>動作モード</td><td>backtest / paper / simmer / live の 4 モード</td></tr>
       <tr><td>初期ペーパー残高</td><td>ユーザー指定（例: 1万円相当 ≈ $66）</td></tr>
@@ -615,7 +615,7 @@ body.diary > footer {
       <tr><td>言語</td><td>Python</td></tr>
       <tr><td>IDE</td><td>Cursor（設計=Opus 4.7、実装=Composer 2.5）</td></tr>
       <tr><td>データ永続化</td><td>SQLite + JSON ファイル</td></tr>
-      <tr><td>コスト目標</td><td>LLM API $0（Genspark既存契約活用）、VPS $6/月のみ</td></tr>
+      <tr><td>コスト目標</td><td>LLM API $0（ランタイム不使用）、VPS $6/月のみ</td></tr>
     </tbody>
   </table>
 
@@ -914,13 +914,13 @@ body.diary > footer {
       <tr><td>章構成</td><td>24 章（第8章で全モック初版作成）</td></tr>
       <tr><td>進め方</td><td>章ごとに区切って提示、フィードバック反映</td></tr>
       <tr><td>Cursor 運用</td><td>設計=Opus 4.7、実装=Composer 2.5、ルールは <code>.cursor/rules/project.md</code> に明文化</td></tr>
-      <tr><td>夜間レビュー</td><td>ローカル保存 → Genspark Opus 4.7 でコピペ分析 → Web UI で apply</td></tr>
+      <tr><td>夜間レビュー</td><td>ローカル保存 → 外部 AI でコピペ分析 → Web UI で apply</td></tr>
     </tbody>
   </table>
 
   <h3>第1章「概要」に含める予定</h3>
   <ul>
-    <li>システムの目的（Bonereaper の再現ではなく、自分のための BTC 5分予測 Bot）</li>
+    <li>システムの目的（オリジナルの BTC 5分予測 Bot）</li>
     <li>画像オリジナルとの明示的な差分（Telegram 削除、人間レビュー、4 モード対応）</li>
     <li>想定ユーザー（技術リテラシー高い個人開発者＝マスター本人）</li>
     <li>設計原則（シンプルさ・安全性・テスト可能性・低コスト運用）</li>
@@ -983,7 +983,7 @@ body.diary > footer {
   <table>
     <thead><tr><th>章</th><th>ファイル</th><th>主題</th></tr></thead>
     <tbody>
-      <tr><td>1</td><td><code>01_overview.md</code></td><td>概要・本家差分・想定ユーザー・設計5原則・スコープ・用語集</td></tr>
+      <tr><td>1</td><td><code>01_overview.md</code></td><td>概要・設計選択・想定ユーザー・設計5原則・スコープ・用語集</td></tr>
       <tr><td>2</td><td><code>02_architecture.md</code></td><td>全体アーキ図・技術スタック・デプロイ構成・ディレクトリ構造・横断的関心事</td></tr>
       <tr><td>3</td><td><code>03_state_diagram.md</code></td><td>8 状態の <code>stateDiagram-v2</code>、遷移条件・副作用・禁止遷移</td></tr>
       <tr><td>4</td><td><code>04_data_flow.md</code></td><td>DFD レベル0/1、データ寿命表、変換ポイント</td></tr>

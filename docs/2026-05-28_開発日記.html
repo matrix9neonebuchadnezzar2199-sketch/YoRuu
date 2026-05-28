@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>16:45</td>
+        <td>表記整理 — 第三者製品名を除去・オリジナル表現</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1645">#entry-1645</a></td>
+      </tr>
+      <tr>
         <td>16:37</td>
         <td>PHASE 5 着手 — README 全PHASE · OHLC · SSE severity</td>
         <td><span class="pill pill-ok">ok</span></td>
@@ -1009,7 +1015,7 @@ body.diary > footer {
     <span class="tag tag-ok">ok</span>
   </div>
   <h3>観察</h3>
-  <p>参照画像（Hermes 型・情報密集型シングル HUD）と <code>docs/mockups/01_dashboard.html</code> を 10 要素で突き合わせ。構造ギャップ: 参照は 1 画面集約、現状は 10 画面分散。ギャップ <strong>×</strong> が多い（ヒーロー残高、戦略式、シグナル、ローソク、システム 4 枠、夜間 CD 等）。<code>shared/mock-data.js</code>（~27KB）と <code>locales/ja.bundle.js</code> 構成を確認済み。</p>
+  <p>参照画像（情報密集型シングル HUD）と <code>docs/mockups/01_dashboard.html</code> を 10 要素で突き合わせ。構造ギャップ: 参照は 1 画面集約、現状は 10 画面分散。ギャップ <strong>×</strong> が多い（ヒーロー残高、戦略式、シグナル、ローソク、システム 4 枠、夜間 CD 等）。<code>shared/mock-data.js</code>（~27KB）と <code>locales/ja.bundle.js</code> 構成を確認済み。</p>
   <h3>変更ファイル</h3>
   <ul class="changes">
     <li><span class="op op-add">+</span> docs/mockups/REF_IMAGE_GAP_MATRIX_v1.md</li>
@@ -1260,7 +1266,7 @@ body.diary > footer {
     <span class="tag tag-ok">ok</span>
   </div>
   <h3>概要</h3>
-  <p>Hermes 型 <strong>情報密集 HUD</strong> を <code>docs/mockups/00_hud.html</code> で新設。総資産ヒーロー・元本/累積 PnL・統計 4 枚・Markov/戦略/シグナル・システム 6 枠・夜間 CD・約定ミニ。USD/JPY トグル（<code>localStorage</code>）、入出金モックボタン、チャート placeholder。Hub と相互リンク（I-1）。</p>
+  <p><strong>情報密集 HUD</strong>（オリジナルレイアウト） を <code>docs/mockups/00_hud.html</code> で新設。総資産ヒーロー・元本/累積 PnL・統計 4 枚・Markov/戦略/シグナル・システム 6 枠・夜間 CD・約定ミニ。USD/JPY トグル（<code>localStorage</code>）、入出金モックボタン、チャート placeholder。Hub と相互リンク（I-1）。</p>
   <h3>変更ファイル</h3>
   <ul class="changes">
     <li><span class="op op-add">+</span> docs/mockups/00_hud.html、style.css（hud-layout）</li>
@@ -1313,6 +1319,24 @@ body.diary > footer {
   <p><code>build_web_static</code>、<code>uv run pytest -q</code> — <strong>146 passed</strong>、coverage ≈88%。Commit: <code>9fb57a9</code>。</p>
   <h3>残課題</h3>
   <p>M5.1 設計章本体マージ（5 章）、M5.6 lab 24h 実行、M5.7 Exit / v0.6.0。</p>
+</section>
+
+<section class="entry" id="entry-1645">
+  <h2>表記整理 — Bonereaper / Genspark / Hermes 除去<a href="#entry-1645" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 16:45 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>マスター方針に合わせ、README・ch1/ch15 等から <strong>Bonereaper</strong>・<strong>Genspark</strong>・<strong>Hermes</strong>・「本家」表記を削除。YoRuu を <strong>オリジナル設計</strong>、夜間レビューを <strong>外部 AI（手動）</strong> に統一。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> README.md、01_overview.md、15_nightly_review.md、00_INSTRUCTIONS、02/04/05/07/08 設計章</li>
+    <li><span class="op op-mod">~</span> 2026-05-27 開発日記（該当エントリ）、REF_IMAGE_GAP_MATRIX_v1.md</li>
+    <li><span class="op op-mod">~</span> apply_validator.py docstring、00_hud.html コメント</li>
+  </ul>
 </section>
 </main>
 

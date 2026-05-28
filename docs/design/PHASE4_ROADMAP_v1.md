@@ -27,7 +27,7 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 
 ## ゴール
 
-参照画像（Hermes 型 HUD）相当の **単一画面体験** を、**元本概念（A-2/B-2）** を正しく扱う形で実現する。
+情報密集型 **単一画面 HUD** 体験 を、**元本概念（A-2/B-2）** を正しく扱う形で実現する。
 
 ---
 
@@ -56,7 +56,7 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 | **M4.4** | 元本コア実装 | Composer | **✅ 完了** | migrate / PrincipalService / INV-D-06 v2 + 07/08/09、127 pytest・≈88% |
 | **M4.5** | REST + CLI + SSE `principal_changed` | Composer | **✅ 完了** | principal/fx REST、CLI 4 本、SSE #12、**141** pytest |
 | **M4.6** | `mock-data.js` 拡張 | Composer | **✅ 完了** | principal 5 値 / FX mock / SSE #12 mock / HUD aggregates、10 画面不変 |
-| **M4.7** | `00_hud.html` 新規 | Composer | **✅ 完了** | Hermes 型 HUD、I-1 相互リンク、principal/FX 表示、チャート placeholder |
+| **M4.7** | `00_hud.html` 新規 | Composer | **✅ 完了** | 情報密集 HUD、I-1 相互リンク、principal/FX 表示、チャート placeholder |
 | **M4.8** | i18n + static 反映 | Composer | **✅ 完了** | en.json 手訳、placeholder lint、12 画面 serve、ルート→HUD |
 | **M4.9** | PHASE 4 Exit 宣言 | Composer | **✅ 完了** | [`PHASE4_EXIT_DECLARATION.md`](./PHASE4_EXIT_DECLARATION.md)、v0.5.0 |
 

@@ -2,9 +2,9 @@
 
 ## このドキュメントの目的
 
-このファイルは、YoRuu (Polymarket BTC 5-min Up/Down 自動売買Bot) の設計書 **第1章〜第7章** を生成するための、Cursor / Opus 4.7 向け指示書です。
+このファイルは、YoRuu (Polymarket BTC 5-min Up/Down 自動売買Bot) の設計書 **第1章〜第7章** を生成するための、Cursor 等の **設計用 AI** 向け指示書です。
 
-Cursorで使用するモデル: **Claude Opus 4.7** (設計フェーズ)
+Cursor で使用する AI: **設計フェーズ用の LLM**（利用者が選択）
 出力先: `docs/design/01_overview.md` 〜 `docs/design/07_io_diagram.md` (章ごとにファイル分割)
 
 ---
@@ -66,20 +66,20 @@ docs/design/
 - YoRuu は Polymarket の BTC 5分 Up/Down 市場向けの自動売買Bot
 - 個人開発者 1名 (本人) が自宅PCまたは VPS で運用することを前提
 - 商用化・複数ユーザー対応は **スコープ外**
-- 設計のインスピレーション元として "Claude × Hermes BTC 5-MIN Polymarket Agent (@Bonereaper)" の画像があるが、これを「再現」するのではなく**本質を抽出した自分用の実装**である旨を明記
+- YoRuu は本人による **オリジナル設計** である旨を明記（第三者プロダクトの再現・派生ではない）
 
-#### 1.2 本家との差分 (重要)
-以下の表形式で記載すること。
+#### 1.2 主要な設計選択 (重要)
+以下の表形式で記載すること（YoRuu 単独の方針。他製品との比較表は不要）。
 
-| 項目 | Bonereaper (オリジナル) | YoRuu (本実装) | 差分の理由 |
-|---|---|---|---|
-| 取引判定 | Markov + Kelly (LLM不使用) | 同じ | — |
-| 夜間レビュー実行 | Claude Opus 4.7 が自動実行 | 人間が Genspark経由でOpus 4.7に手動依頼 | コストゼロ + 安全性向上 |
-| 通知 | Telegram Bot | なし、すべて Web UI で完結 | シンプル化 |
-| エージェント基盤 | Hermes Agent (NousResearch) | なし、Python単体 | 不要な複雑性の排除 |
-| インフラ | Hetzner VPS | Hetzner VPS または ローカルPC | 同じ |
-| モード | live のみ | backtest / paper / simmer / live の4モード | テスト可能性 |
-| パラメータ適用 | 完全自動 | 検証 + 二重承認を経て適用 | 暴走防止 |
+| 項目 | YoRuu の方針 | 理由 |
+|---|---|---|
+| 取引判定 | Markov + Kelly（ランタイム LLM 不使用） | 再現性・低コスト |
+| 夜間レビュー | レポート JSON を人間が外部 AI に手動投入し、Web UI で検証適用 | ランタイム API コストゼロ + 安全性 |
+| 通知 | Web UI（SSE）+ ローカルログ | シンプル化 |
+| 実装形態 | Python 単体（エージェント基盤なし） | 不要な複雑性の排除 |
+| インフラ | Hetzner VPS またはローカル PC | 柔軟性 |
+| モード | backtest / paper / simmer / live の 4 モード | テスト可能性 |
+| パラメータ適用 | 検証 + 二重承認を経て適用 | 暴走防止 |
 
 #### 1.3 想定ユーザー
 - 1名のみ (本人)
@@ -102,7 +102,7 @@ docs/design/
 - Markov + Kelly 戦略
 - 4モード (backtest / paper / simmer / live)
 - Web UI による操作・監視
-- 夜間レビュー機構 (Opus 4.7 への手動連携)
+- 夜間レビュー機構 (外部 AI への手動連携)
 - 戦略パラメータの安全な書き換え
 - 監査ログ・キル・スイッチ
 
@@ -154,7 +154,7 @@ Mermaidで以下の構造を描画。
 - **モード層**: Backtest / Paper / Simmer / Live の各 Executor (戦略結果を実際に何にするかを分岐)
 - **永続化層**: SQLite (取引ログ・状態・監査), JSON (strategy.json, reports)
 - **UI層**: Web UI (FastAPI + Vanilla HTML/CSS/JS)
-- **レビュー層**: Daily Report Generator → ローカルファイル出力 → 人間 → Opus 4.7 → 戻り JSON → Apply Validator → strategy.json
+- **レビュー層**: Daily Report Generator → ローカルファイル出力 → 人間 → 外部 AI → 戻り JSON → Apply Validator → strategy.json
 - **横断的関心事**: Scheduler (cron), Logger, Audit Logger, Emergency Stop Monitor
 
 矢印の方向と「誰が誰を呼ぶか」が一目でわかるレイアウトにする。
@@ -291,7 +291,7 @@ Mermaidで、YoRuuを1つの箱として外部エンティティとのデータ�
 - Polymarket (板情報、注文、約定)
 - Chainlink (決済価格、参照のみ)
 - ユーザー (Web UI操作、apply入力)
-- Opus 4.7 (Genspark経由、人間が仲介)
+- 外部 AI (外部 AI経由、人間が仲介)
 
 #### 4.2 DFDレベル1 (主要プロセス)
 YoRuu内部を以下のプロセスに分解して描画。
@@ -342,7 +342,7 @@ YoRuu内部を以下のプロセスに分解して描画。
 - **Zone 0 (最高機密)**: 秘密鍵、APIキー、wallet seed
 - **Zone 1 (内部信頼)**: YoRuu Bot プロセス内、メモリ・DB
 - **Zone 2 (準信頼)**: ローカルファイルシステム (設定、ログ、レポート)
-- **Zone 3 (非信頼)**: 外部API応答 (Polymarket, Binance, Chainlink), Opus 4.7 からの戻り JSON, ユーザー入力
+- **Zone 3 (非信頼)**: 外部API応答 (Polymarket, Binance, Chainlink), 外部 AI からの戻り JSON, ユーザー入力
 
 #### 5.2 信頼境界線図
 Mermaidで4ゾーンを箱で表現し、ゾーン間のデータ授受に**検証関数**を必ず配置する図を描画。
@@ -480,7 +480,7 @@ Mermaidで4ゾーンを箱で表現し、ゾーン間のデータ授受に**検�
 
 ## 各章の品質チェックリスト
 
-Opus 4.7 は各章を書き終わったら、以下を自己チェックして章末に `## 品質チェック` セクションを設けて記載すること。
+外部 AI は各章を書き終わったら、以下を自己チェックして章末に `## 品質チェック` セクションを設けて記載すること。
 
 - [ ] 章の冒頭に「この章の目的」を記載した
 - [ ] 図はすべて Mermaid または ASCII で描画した
@@ -553,4 +553,4 @@ Opus 4.7 は各章を書き終わったら、以下を自己チェックして�
 
 ---
 
-以上が第1〜7章の生成指示である。Opus 4.7 はこの指示書に従い、`docs/design/` 以下に7ファイルを生成すること。
+以上が第1〜7章の生成指示である。外部 AI はこの指示書に従い、`docs/design/` 以下に7ファイルを生成すること。

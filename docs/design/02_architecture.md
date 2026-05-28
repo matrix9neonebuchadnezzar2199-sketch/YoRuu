@@ -14,7 +14,7 @@ flowchart TB
         POLY[Polymarket CLOB]
         CL[Chainlink 参照のみ]
         USER[ユーザー]
-        OPUS[Opus 4.7 / Genspark]
+        AI[外部 AI チャット<br/>人間が仲介]
     end
 
     subgraph DATA[データソース層]
@@ -90,8 +90,8 @@ flowchart TB
     WS --> DB
     WS --> SJ
     WS --> AV
-    USER --> OPUS
-    OPUS --> USER
+    USER --> AI
+    AI --> USER
     USER --> WV
     AV --> SW
     SW --> SJ

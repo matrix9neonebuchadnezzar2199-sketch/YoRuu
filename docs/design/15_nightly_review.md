@@ -16,7 +16,7 @@
 YoRuu の **夜間自己学習ループ**（ch1 §1.2）の手順を SSOT として確定する。具体的には:
 
 1. 04:00 JST に Bot が当日の取引を集計し、構造化レポート（JSON）を生成する
-2. ユーザーが当該 JSON を **手動で** Genspark 経由 Claude Opus 4.7 に投入し、戦略パラメータの改善提案を JSON として受け取る
+2. ユーザーが当該 JSON を **手動で** 利用する **外部 AI（チャット等）** に投入し、戦略パラメータの改善提案を JSON として受け取る
 3. 提案 JSON を UI（§8.14）に貼付し、差分プレビュー → 二重承認 → Apply で `strategy.json` を更新する
 4. 全工程を `daily_reports` / `strategy_versions` / `audit_log` に永続化し、ロールバック可能な状態を保つ
 
@@ -44,9 +44,9 @@ UI レイアウトの変更は ch8 で行い、本章は変更しない。逆に
 
 | 項目 | 担当章 |
 |---|---|
-| LLM API の自動呼び出し（YoRuu 本体から Anthropic API を直接叩く実装） | **将来機能（PHASE 7 以降）。本章では明示的に禁止** |
+| LLM API の自動呼び出し（YoRuu 本体から 外部 LLM API を直接叩く実装） | **将来機能（PHASE 7 以降）。本章では明示的に禁止** |
 | Telegram / Slack 等の通知連携 | v1.1 以降検討（§15.9） |
-| 提案 JSON の文面ロジック（Opus 側プロンプト工夫） | ユーザー責任、本章は雛形のみ提供 |
+| 提案 JSON の文面ロジック（AI 側プロンプト工夫） | ユーザー責任、本章は雛形のみ提供 |
 | 戦略アルゴリズム本体（Markov / Kelly） | ch11 |
 | HTML 実装・JavaScript | PHASE 2 / PHASE 4 |
 | 監査ログのスキーマ詳細 | ch20（本章は書込項目のみ規定） |
@@ -59,7 +59,7 @@ UI レイアウトの変更は ch8 で行い、本章は変更しない。逆に
 | 1 | **安全性優先** | LLM が不適切な提案を返しても、Apply 前の二重検証（範囲・必須キー・変化率）で阻止できる。LLM 単独で `strategy.json` を書き換える経路は **存在しない** |
 | 2 | **人間 in the loop** | レポート → LLM → 提案 → 差分確認 → Apply の各段階に **必ず人間の操作** が挟まる。自動化は §15.3 のレポート生成のみ |
 | 3 | **検証付き Apply** | 提案 JSON は `StrategyValidator`（ch10 §10.11.1）で範囲チェック → `StrategyApplier.preview_diff`（ch10 §10.10.2）で差分生成 → Apply API で再検証、の 3 段検証を経る |
-| 4 | **監査可能性** | 生成・LLM 送付（手動マーク）・提案受領・Apply・ロールバックの全イベントを `audit_log` と `daily_reports.proposed_strategy_json` に永続化し、いつ何を Opus から受け取ったか後から追える |
+| 4 | **監査可能性** | 生成・LLM 送付（手動マーク）・提案受領・Apply・ロールバックの全イベントを `audit_log` と `daily_reports.proposed_strategy_json` に永続化し、いつ何を AI から受け取ったか後から追える |
 | 5 | **ロールバック可能** | Apply 後 24 時間は直前バージョンを `strategy_versions` から即時呼び出せる（§15.8.5）。ロールバックも新バージョンとして履歴に残す（破壊的変更なし） |
 
 これらは **トレードオフ**として「完全自動化の利便性」を犠牲にして「事故時の説明可能性と取り返し可能性」を取る、という判断である（ch1 §1.2 の合意）。
@@ -87,10 +87,10 @@ flowchart TD
     end
 
     subgraph S3[段階3: LLM 分析 手動 外部]
-        B3 --> C1[別タブで Genspark 開く]
-        C1 --> C2[新規チャットで Claude Opus 4.7 指定]
+        B3 --> C1[別タブで 外部 AI チャット 開く]
+        C1 --> C2[新規チャットで 外部 AI（LLM） 指定]
         C2 --> C3[コピー内容をペースト送信]
-        C3 --> C4[Opus が提案 JSON 返答]
+        C3 --> C4[AI が提案 JSON 返答]
         C4 --> C5[提案 JSON をコピー]
     end
 
@@ -122,10 +122,10 @@ flowchart TD
 |------|-----------|----------|-----------|
 | 1. レポート生成 | 自動（スケジューラ） | DB のみ | **本章 §15.3 / §15.4**、ch10 §10.3.10 |
 | 2. ユーザーコピー | 手動（コピペ） | ブラウザ | ch8 §8.14, ch9 §9.6.3 ステップ G |
-| 3. LLM 分析 | 手動 | Genspark + Opus 4.7 | **本章 §15.5**（YoRuu 本体は関与しない） |
+| 3. LLM 分析 | 手動 | 外部 AI チャット + 外部 AI | **本章 §15.5**（YoRuu 本体は関与しない） |
 | 4. 貼付・Apply | 手動 | DB + ファイル書込 | **本章 §15.6〜§15.8**、ch6 §6.5、ch10 §10.6.4、ch8 §8.14.8 |
 
-**設計判断**: 段階 3（LLM 連携）を YoRuu 本体から完全に切り離す理由は、(1) 本番 API キーをサーバーに置かないことで漏洩リスクを下げる、(2) Opus 出力のレートリミットや失敗を YoRuu 内のリトライ機構で扱わずに済む、(3) ユーザーが Opus 出力を「読んで判断する」プロセスを構造的に強制できる、の 3 点。
+**設計判断**: 段階 3（LLM 連携）を YoRuu 本体から完全に切り離す理由は、(1) 本番 API キーをサーバーに置かないことで漏洩リスクを下げる、(2) AI 出力のレートリミットや失敗を YoRuu 内のリトライ機構で扱わずに済む、(3) ユーザーが AI 出力を「読んで判断する」プロセスを構造的に強制できる、の 3 点。
 
 ---
 
@@ -179,7 +179,7 @@ flowchart LR
 
 `pause_trading_during_review = true`（既定）の場合、`NIGHTLY_REVIEW` 状態中は `IDLE → TRADING` 遷移が抑制される。生成自体は数秒〜数十秒（ch6 §6.4）で完了するため通常は影響しないが、04:00 JST 直後の 5 分窓は実質スキップされる可能性がある。
 
-`false` の場合は生成と並行して取引判定を実行するが、Apply 待機中（§15.8 完了まで）も `IDLE` に戻り取引を継続する点に注意。**設計判断**: 既定 `true` を採用。夜間の流動性低下と Opus 解析中の人間判断を考えると、年単位で見て取引機会の損失より「Apply タイミングの予測可能性」が勝る。
+`false` の場合は生成と並行して取引判定を実行するが、Apply 待機中（§15.8 完了まで）も `IDLE` に戻り取引を継続する点に注意。**設計判断**: 既定 `true` を採用。夜間の流動性低下と AI 解析中の人間判断を考えると、年単位で見て取引機会の損失より「Apply タイミングの予測可能性」が勝る。
 
 ### 15.3.5 生成失敗時の扱い
 
@@ -227,7 +227,7 @@ flowchart LR
 | `performance` | object | ✓ | 当日パフォーマンス（§15.4.4） |
 | `markov_snapshot` | object | ✓ | 当日終盤の Markov 状態（§15.4.5） |
 | `trade_breakdown` | object | ✓ | 取引明細サマリ（§15.4.6） |
-| `constraints` | object | ✓ | パラメータ範囲制約（§15.4.7、Opus への明示用に再掲） |
+| `constraints` | object | ✓ | パラメータ範囲制約（§15.4.7、AI への明示用に再掲） |
 | `notes` | array<string> | – | 自動付加メモ（取引数 0、WS 切断発生等） |
 
 ### 15.4.3 `current_strategy`
@@ -251,7 +251,7 @@ ch10 §10.4.1 の `strategy.json` 全体を **そのまま埋め込む**:
 }
 ```
 
-`constraints` フィールドは `current_strategy` 内ではなくトップレベル `constraints`（§15.4.7）に分離する。Opus が「現在値」と「許容範囲」を独立に読み取りやすくするため。
+`constraints` フィールドは `current_strategy` 内ではなくトップレベル `constraints`（§15.4.7）に分離する。AI が「現在値」と「許容範囲」を独立に読み取りやすくするため。
 
 ### 15.4.4 `performance`
 
@@ -335,7 +335,7 @@ ch10 §10.4.1 の `strategy.json` 全体を **そのまま埋め込む**:
 }
 ```
 
-`wait_reason_distribution` は当日の `evaluator.evaluate()` で `should_enter=false` だった回数を `wait_reason`（ch10 §10.7.4 / §10.5.3 `markov_update`）別に集計。Opus が「どのゲートで弾かれているか」を把握しやすくするため。
+`wait_reason_distribution` は当日の `evaluator.evaluate()` で `should_enter=false` だった回数を `wait_reason`（ch10 §10.7.4 / §10.5.3 `markov_update`）別に集計。AI が「どのゲートで弾かれているか」を把握しやすくするため。
 
 ### 15.4.7 `constraints`
 
@@ -348,7 +348,7 @@ ch10 §10.4.1 の `strategy.json` 全体を **そのまま埋め込む**:
 }
 ```
 
-ch10 §10.4.1 / ch11 §11.10 と完全一致。Opus に「この範囲外を提案するな」と明示的に制約として渡す目的。**ch10 / ch11 を更新した場合は本フィールドも自動的に追従するよう、`NightlyReporter.generate()` 実装時にハードコードせず `StrategyConfig.constraints` から読み込むこと**（ch10 §10.11.4）。
+ch10 §10.4.1 / ch11 §11.10 と完全一致。AI に「この範囲外を提案するな」と明示的に制約として渡す目的。**ch10 / ch11 を更新した場合は本フィールドも自動的に追従するよう、`NightlyReporter.generate()` 実装時にハードコードせず `StrategyConfig.constraints` から読み込むこと**（ch10 §10.11.4）。
 
 ### 15.4.8 マスク済み完全サンプル
 
@@ -440,14 +440,14 @@ ch10 §10.4.1 / ch11 §11.10 と完全一致。Opus に「この範囲外を提�
 ```mermaid
 flowchart LR
     YR[YoRuu UI 夜間レビュー画面] -- 1 全選択コピー --> CB[クリップボード]
-    CB -- 2 ペースト --> GS[Genspark チャット]
-    GS -- 3 Opus 4.7 指定して送信 --> OP[Claude Opus 4.7]
+    CB -- 2 ペースト --> GS[外部 AI チャット チャット]
+    GS -- 3 外部 AI 指定して送信 --> OP[外部 AI（LLM）]
     OP -- 4 提案 JSON 返答 --> GS
     GS -- 5 提案 JSON コピー --> CB2[クリップボード]
     CB2 -- 6 ペースト --> YR
 ```
 
-YoRuu 本体から外部 API への発信は **発生しない**。Genspark / Anthropic 側のレートリミット・障害は YoRuu の責務外。
+YoRuu 本体から外部 API への発信は **発生しない**。外部 AI チャット / 各 AI サービス側のレートリミット・障害は YoRuu の責務外。
 
 ### 15.5.2 プロンプト雛形
 
@@ -480,15 +480,15 @@ UI（§8.14、`action.copy_all`）が以下を 1 つのテキストブロック�
 <ここに §15.4 の JSON 全体が挿入される>
 ````
 
-**設計判断**: `rationale` を必須にして提案根拠を `daily_reports.proposed_strategy_json.rationale` に保存する（後日「v4 を Apply した時 Opus は何と言っていたか」を監査可能にする）。
+**設計判断**: `rationale` を必須にして提案根拠を `daily_reports.proposed_strategy_json.rationale` に保存する（後日「v4 を Apply した時 AI は何と言っていたか」を監査可能にする）。
 
 ### 15.5.3 ユーザー操作手順
 
 1. `nightly_report_ready` SSE 受信 → サイドバー「未消化」バッジ表示（ch9 §9.6.3 ステップ B-C）
 2. ユーザーが夜間レビュー画面を開く → 「📋 全選択コピー」押下（ch8 §8.14.7、§15.5.2 のプロンプトがコピーされる）
-3. 別タブで Genspark を開く → モデルピッカーで **Claude Opus 4.7（Thinking 可）** を選択
+3. 別タブで 外部 AI チャット を開く → モデルピッカーで **外部 AI（LLM）（Thinking 可）** を選択
 4. 新規チャットを作成し、ペースト → 送信
-5. 数十秒〜数分で提案 JSON が返る（応答時間は Genspark / Anthropic 側に依存）
+5. 数十秒〜数分で提案 JSON が返る（応答時間は 外部 AI チャット / 各 AI サービス側に依存）
 6. 提案 JSON 部分のみをコピー（説明文が混入していたら手動で除去 or 「JSON のみ再出力」と再依頼）
 7. YoRuu 画面に戻り `nightly.paste_area` にペースト → 「差分確認」押下（§15.7）
 
@@ -496,10 +496,10 @@ UI（§8.14、`action.copy_all`）が以下を 1 つのテキストブロック�
 
 | 項目 | 規律 |
 |------|------|
-| 本番 API キー | Genspark チャットに **絶対に貼らない**（雛形に含まれない設計）。万一漏洩リスクを下げるため、レポート JSON にはキー名すら含まない |
+| 本番 API キー | 外部 AI チャット チャットに **絶対に貼らない**（雛形に含まれない設計）。万一漏洩リスクを下げるため、レポート JSON にはキー名すら含まない |
 | 実 URL / IP | レポート JSON には `polymarket_url` / `binance_url` 等の本番エンドポイントを含めない（§15.4 のスキーマは含まない設計） |
 | 残高情報 | `balance_*_usd` は USD 額のみで通貨単位以上の口座識別子を含めない |
-| Opus 出力に含まれる文 | `rationale` を **そのまま `audit_log` に保存** する。日本語以外（プロンプトインジェクション目的の文字列等）が来た場合は §15.10.4 の検知に該当 |
+| AI 出力に含まれる文 | `rationale` を **そのまま `audit_log` に保存** する。日本語以外（プロンプトインジェクション目的の文字列等）が来た場合は §15.10.4 の検知に該当 |
 | ローカル保存 | 段階 3 のクリップボードペーストは OS のクリップボードを経由する。マルチユーザー環境では個別に注意（YoRuu の前提は単一ユーザー、ch5） |
 
 ---
@@ -548,15 +548,15 @@ UI（§8.14、`action.copy_all`）が以下を 1 つのテキストブロック�
 | `mode` / `risk.*` / `websocket.*` | 即時危険・別エンドポイント（`POST /api/v1/settings`、ch10 §10.6.10）| **422 `E_NIGHTLY_006`** |
 | `daily_loss_limit_usd` 等 yoruu.yaml 由来キー | 戦略パラメータではない | **422 `E_NIGHTLY_006`** |
 
-**設計判断**: `constraints` 変更を Apply API で受けないのは、Opus が「制約を緩めれば提案可能」と判断して制約自体を書き換える攻撃を防ぐため。範囲拡張が必要な場合は人間がコードレビュー込みで `02-coding-style` の手順で更新する。
+**設計判断**: `constraints` 変更を Apply API で受けないのは、AI が「制約を緩めれば提案可能」と判断して制約自体を書き換える攻撃を防ぐため。範囲拡張が必要な場合は人間がコードレビュー込みで `02-coding-style` の手順で更新する。
 
 ### 15.6.4 部分 Apply の禁止
 
 `parameters` の 4 キーは **全て必須**。3 つだけ提案して 1 つを「省略 = 現行値維持」と解釈する設計は採らない:
 
 - 理由 1: Apply 時の差分が「省略によるもの」か「明示的な維持」か曖昧になる
-- 理由 2: Opus が一部キーを忘れた時にサイレントに進行するリスク
-- 理由 3: 監査ログの `proposed_strategy_json` で「Opus が何を提案したか」が完全に再現できなくなる
+- 理由 2: AI が一部キーを忘れた時にサイレントに進行するリスク
+- 理由 3: 監査ログの `proposed_strategy_json` で「AI が何を提案したか」が完全に再現できなくなる
 
 代替: §15.5.2 の雛形で「変更不要なキーは現行値をそのまま記載」と明示している。
 
@@ -743,7 +743,7 @@ INSERT INTO strategy_versions (
 );
 ```
 
-`applied_by='NIGHTLY_REVIEW'` で起源を識別。`performance_summary_json` には Opus の `rationale` と `source_report_id` を保存。
+`applied_by='NIGHTLY_REVIEW'` で起源を識別。`performance_summary_json` には AI の `rationale` と `source_report_id` を保存。
 
 #### `daily_reports` 更新
 
@@ -754,7 +754,7 @@ UPDATE daily_reports SET
 WHERE id = 7;
 ```
 
-`proposed_strategy_json` は §15.6.1 のリクエストボディ全体（rationale 含む）。後日「Opus は何を提案して、Apply されたか」を 1 行で参照可能。
+`proposed_strategy_json` は §15.6.1 のリクエストボディ全体（rationale 含む）。後日「AI は何を提案して、Apply されたか」を 1 行で参照可能。
 
 #### `audit_log` 書込（ch10 §10.3.12、ch20）
 
@@ -852,8 +852,8 @@ v1.0 で実装しない理由: (1) 日次データ 30 日分が貯まるまで�
 | 1 生成 | DB 集計エラー | 例外 | アラート ERROR | `E_NIGHTLY_002` |
 | 1 生成 | `daily_reports` INSERT 失敗 | DB エラー | CRITICAL アラート、`ERROR` 状態 | `E_NIGHTLY_003` |
 | 1 生成 | summary_json 生成例外 | 例外 | アラート ERROR、`IDLE` 復帰 | `E_NIGHTLY_004` |
-| 3 LLM | Opus 応答異常（JSON 不正） | UI バリデーション | ペーストエリア赤エラー | – （UI 側のみ、`E_NIGHTLY_007` で兼ねる） |
-| 3 LLM | Opus 応答に説明文混入 | UI 側 JSON.parse 失敗 | 「JSON のみ抽出してください」 | – |
+| 3 LLM | AI 応答異常（JSON 不正） | UI バリデーション | ペーストエリア赤エラー | – （UI 側のみ、`E_NIGHTLY_007` で兼ねる） |
+| 3 LLM | AI 応答に説明文混入 | UI 側 JSON.parse 失敗 | 「JSON のみ抽出してください」 | – |
 | 4 提案 | `constraints` 等の禁止キー含有 | API 422 | エラー詳細表示 | `E_NIGHTLY_005` / `E_NIGHTLY_006` |
 | 4 差分 | 範囲外 | API 422 | 該当キー赤表示 | `E_NIGHTLY_007` |
 | 4 差分 | ±20% 超 | API 422 | 強制承認不可 | `E_NIGHTLY_008` |
@@ -868,9 +868,9 @@ v1.0 で実装しない理由: (1) 日次データ 30 日分が貯まるまで�
 
 | 症状 | 対処 |
 |------|------|
-| JSON 構文エラー | UI 側 `JSON.parse` で検知 → ペーストエリア下に行番号付き赤エラー（ch9 §9.6.5）。Opus に「JSON のみ再出力」と依頼 |
+| JSON 構文エラー | UI 側 `JSON.parse` で検知 → ペーストエリア下に行番号付き赤エラー（ch9 §9.6.5）。AI に「JSON のみ再出力」と依頼 |
 | 必須キー不足 | バリデーションエラー → §15.10.1 `E_NIGHTLY_009` |
-| 範囲外値 | バリデーションエラー → `E_NIGHTLY_007`。Opus に範囲を再提示して再依頼（プロンプト雛形の `constraints` を強調） |
+| 範囲外値 | バリデーションエラー → `E_NIGHTLY_007`。AI に範囲を再提示して再依頼（プロンプト雛形の `constraints` を強調） |
 | プロンプトインジェクション疑い | `rationale` に明らかに無関係な文字列（実 URL、コマンド片）が混入。**Apply 前に人間が目視チェック**（自動検知は v1.1 検討）。OPSEC 観点で `audit_log` には保存するが、ユーザーは Apply を取りやめる判断を取れる |
 
 ### 15.10.3 状態不整合

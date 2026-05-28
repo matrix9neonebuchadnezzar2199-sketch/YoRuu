@@ -12,7 +12,7 @@ YoRuu は4つの信頼ゾーンを定義する。
 | Zone 0 | 最高機密 | 秘密鍵、API キー、wallet seed | 最大限保護 |
 | Zone 1 | 内部信頼 | YoRuu プロセス内のメモリ、内部関数間のデータ | 信頼する |
 | Zone 2 | 準信頼 | ローカルファイルシステム (設定、ログ、レポート、DB) | 条件付き信頼 |
-| Zone 3 | 非信頼 | 外部 API 応答、Opus 4.7 からの戻り JSON、UI からの入力 | 全て検証 |
+| Zone 3 | 非信頼 | 外部 API 応答、外部 AI からの戻り JSON、UI からの入力 | 全て検証 |
 
 ## 5.2 信頼境界線図
 
@@ -20,7 +20,7 @@ YoRuu は4つの信頼ゾーンを定義する。
 flowchart TB
     subgraph Z3[Zone 3: 非信頼]
         EXT_API[Polymarket / Binance API 応答]
-        OPUS_OUT[Opus 4.7 戻りJSON]
+        AI_OUT[外部 AI 戻りJSON]
         UI_IN[Web UI 入力]
     end
 
@@ -43,7 +43,7 @@ flowchart TB
     end
 
     EXT_API -->|スキーマ検証\n範囲チェック| V1{Validator 1}
-    OPUS_OUT -->|スキーマ検証\n範囲チェック\n変化率チェック| V2{Validator 2}
+    AI_OUT -->|スキーマ検証\n範囲チェック\n変化率チェック| V2{Validator 2}
     UI_IN -->|サーバ側再検証| V3{Validator 3}
     V1 --> Z1
     V2 --> Z1
@@ -84,7 +84,7 @@ flowchart TB
 | Polymarket 板情報 | スキーマ検証、bid <= ask、価格が `[0.01, 0.99]` 範囲内 | 異常データスキップ + WARN ログ |
 | Binance 価格応答 | スキーマ検証、`close > 0`、前値からの変動が ±5% 以内 | 異常値スキップ + WARN ログ、3回連続で WS 再接続 |
 | Chainlink 価格 (オンチェーン) | スキーマ検証、ステイル判定 (heartbeat 超過) | ステイル時は使用しない |
-| Opus 4.7 戻り JSON | スキーマ検証、必須キー (`MIN_PROB`, `MIN_EDGE`, `KELLY_FRACTION`, `PERSISTENCE_THRESHOLD`)、各値の範囲、前値からの変化率 ±10% 以内 | apply 拒否 + UI に詳細エラー表示 |
+| 外部 AI 戻り JSON | スキーマ検証、必須キー (`MIN_PROB`, `MIN_EDGE`, `KELLY_FRACTION`, `PERSISTENCE_THRESHOLD`)、各値の範囲、前値からの変化率 ±10% 以内 | apply 拒否 + UI に詳細エラー表示 |
 | Web UI 入力 (フォーム) | サーバ側で必ず再検証 (クライアント検証は信用しない)、CSRF トークン確認 | HTTP 422 エラー応答 + UI に詳細表示 |
 | Web UI 入力 (モード切替の "LIVE") | 厳密な文字列一致 (大文字小文字区別)、CSRF トークン | 拒否、UI に再入力を促す |
 
