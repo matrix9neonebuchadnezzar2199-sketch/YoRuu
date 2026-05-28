@@ -61,8 +61,8 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 4** — HUD + 元本（M4.1〜M4.7 完了、M4.8 static/i18n 着手可） |
-| **テスト** | `pytest` **141** passed、カバレッジ **≈88%**、`fail_under` **80** |
+| **現フェーズ** | **PHASE 4 完了** — PHASE 5（ローソク足・lab 24h）着手可 |
+| **テスト** | `pytest` **142** passed、カバレッジ **≈88%**、`fail_under` **80** |
 | **会計（H-1）** | `balance` = 自由資金、`principal` = 累積入出金、`total_assets` = balance + locked |
 
 ### PHASE 4 マイルストン（2026-05-28）
@@ -76,7 +76,8 @@
 | M4.5 | principal REST/CLI/SSE + `GET /fx/usd_jpy` | ✅ |
 | M4.6 | mock-data principal/FX/HUD aggregates | ✅ |
 | M4.7 | `00_hud.html` 主入口 HUD | ✅ |
-| M4.8〜M4.9 | static/i18n · Exit | 予定 |
+| M4.8 | en i18n + serve smoke | ✅ |
+| M4.9 | PHASE 4 Exit 宣言 | ✅ |
 
 正本: [`docs/design/PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md) · テンプレ 14: [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
 
@@ -99,8 +100,9 @@ uv run yoruu db migrate --dry-run
 uv run yoruu db migrate
 uv run yoruu paper evaluate-once
 uv run yoruu serve
-# Hub: http://127.0.0.1:8765/pages/index.html
-# HUD 主入口: docs/mockups/00_hud.html  (serve: /pages/00_hud.html)
+# HUD 主入口: http://127.0.0.1:8765/pages/00_hud.html  (ルート / も同じへリダイレクト)
+# Hub (10画面): http://127.0.0.1:8765/pages/index.html
+# 言語: 各画面の EN/JA トグル、または DevTools で localStorage yoruu.lang = "en"
 uv run yoruu nightly generate
 uv run yoruu strategy apply path\to\proposal.json --by USER
 uv run pytest -q
@@ -288,7 +290,7 @@ flowchart TB
 | 設計指示書（第1〜7章） | [`docs/design/00_INSTRUCTIONS_ch01-07.md`](docs/design/00_INSTRUCTIONS_ch01-07.md) | Cursor / Opus 4.7 向け生成仕様 |
 | レビュー用チェックリスト | [`docs/design/REVIEW_CHECKLIST_ch01-07.md`](docs/design/REVIEW_CHECKLIST_ch01-07.md) | 第1〜7章の人間レビュー基準 |
 | 開発日記 | [`docs/2026-05-27_開発日記.html`](docs/2026-05-27_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | 設計判断の時系列ログ |
-| UI モックアップ | [`docs/mockups/`](docs/mockups/) | HTML 11/11 · オフライン動作（PHASE 2 完了） |
+| UI モックアップ | [`docs/mockups/`](docs/mockups/) | HTML **12** 画面（HUD + Hub + 10）· serve 対応 |
 | 設計 INDEX | [`docs/design/INDEX.md`](docs/design/INDEX.md) | 24章 + 付録 A APPROVED |
 | PHASE 3 監査 | [`docs/design/PHASE3_QUALITY_AUDIT.md`](docs/design/PHASE3_QUALITY_AUDIT.md) | A-HIGH / 4 Track |
 | PHASE 4 ロードマップ | [`docs/design/PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md) | HUD · 元本 · FX 表示 |
@@ -348,7 +350,7 @@ YoRuu/
 | **PHASE 1** | 設計書 24章 + 付録 A | 完了（2026-05-27） |
 | **PHASE 2** | HTML モック 11画面 | 完了（2026-05-27） |
 | **PHASE 3** | コア CLI + 品質トラック | 完了（[`PHASE3_EXIT_DECLARATION`](docs/design/PHASE3_EXIT_DECLARATION.md)） |
-| **PHASE 4** | HUD + 元本 + 静的 UI | **着手中**（M4.1〜M4.7 ✅、M4.8 次） |
+| **PHASE 4** | HUD + 元本 + 静的 UI | **完了**（[`PHASE4_EXIT_DECLARATION.md`](docs/design/PHASE4_EXIT_DECLARATION.md)） |
 | **PHASE 5〜7** | ローソク足 · lab 24h · live | 予定 |
 
 詳細: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
@@ -394,6 +396,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.4.0 · PHASE 4 · M4.7 HUD · last updated 2026-05-28</sub>
+<sub>README · v0.5.0 · PHASE 4 Exit · last updated 2026-05-28</sub>
 
 </div>

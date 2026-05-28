@@ -20,7 +20,9 @@
 | PHASE 4 M4.5 | **完了** — principal REST/CLI/SSE + FX API |
 | PHASE 4 M4.6 | **✅ 完了** — mock-data principal/FX/HUD aggregates |
 | PHASE 4 M4.7 | **✅ 完了** — `00_hud.html` 主入口 HUD |
-| PHASE 4 M4.8 | **着手可** — static serve / en i18n |
+| PHASE 4 M4.8 | **✅ 完了** — en i18n + 12 画面 serve |
+| PHASE 4 M4.9 | **✅ 完了** — [`PHASE4_EXIT_DECLARATION.md`](./PHASE4_EXIT_DECLARATION.md) |
+| PHASE 5 | **着手可** — ローソク足・lab 24h（仮） |
 | pytest | **119** passed、カバレッジ **≈88%** |
 | `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
 | INV 実装 | **19 / 19**（設計一致） |

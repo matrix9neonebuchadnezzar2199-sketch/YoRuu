@@ -1,5 +1,13 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — M4.8 en i18n + serve smoke
+
+| 項目 | 内容 |
+|------|------|
+| en.json | 292 キー手訳（placeholder 排除） |
+| build_locales | `--check` に placeholder lint |
+| serve | `/` → `00_hud.html`、12 画面 pytest smoke |
+
 ## 2026-05-28 — M4.7 `00_hud.html` 主入口 HUD
 
 | 項目 | 内容 |

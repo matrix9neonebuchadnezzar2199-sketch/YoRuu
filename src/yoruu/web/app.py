@@ -30,7 +30,7 @@ def _error_response(exc: PrincipalError | FxError) -> JSONResponse:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="YoRuu API", version="0.4.0")
+    app = FastAPI(title="YoRuu API", version="0.5.0")
     app.include_router(api_v1_router)
     app.include_router(principal_router)
 
@@ -51,7 +51,7 @@ def create_app() -> FastAPI:
 
         @app.get("/")
         def root() -> RedirectResponse:
-            return RedirectResponse(url="/pages/index.html")
+            return RedirectResponse(url="/pages/00_hud.html")
 
     return app
 

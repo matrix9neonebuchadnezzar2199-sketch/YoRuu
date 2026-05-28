@@ -26,7 +26,6 @@ EN_OVERRIDES: dict[str, str] = {
     "health.degraded": "System health degraded",
 }
 
-
 def load_json(path: Path) -> dict[str, str]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
@@ -72,6 +71,133 @@ def write_bundle(ja: dict[str, str], en: dict[str, str]) -> None:
     BUNDLE_OUT.write_text(body, encoding="utf-8")
 
 
+# Leftover values from key_to_en() before M4.8 hand translation.
+SUSPECT_EN_VALUES: frozenset[str] = frozenset(
+    {
+        "Title",
+        "Subtitle",
+        "Label",
+        "Short",
+        "Upper",
+        "Desc",
+        "Preview",
+        "Goto Hud",
+        "Go Hud",
+        "Link Hub",
+        "Link Dashboard",
+        "Usd",
+        "Jpy",
+        "Stale",
+        "Placeholder",
+        "Cumulative Pnl",
+        "Total Assets",
+        "Max Win",
+        "Avg Size",
+        "Recent Trades",
+        "Goto Dashboard",
+        "Goto Trade Log",
+        "Goto Nightly Review",
+        "Goto Settings",
+        "Goto Strategy History",
+        "Goto Markov Live",
+        "Goto What If",
+        "Goto Alerts",
+        "Goto Mode Switch",
+        "Goto Hub",
+        "Export Csv",
+        "Export Json",
+        "Apply Filter",
+        "Prev Page",
+        "Next Page",
+        "Unread Count",
+        "Palette Placeholder",
+        "Shortcuts Title",
+        "Cmd K",
+        "Main Nav",
+        "Modal Label",
+        "Current Page",
+        "Scenario Select",
+        "Last Trade",
+        "Paste Label",
+        "Prompt Section",
+        "Report Date",
+        "Trades Total",
+        "Win Rate",
+        "Paste Area",
+        "Parse Ok",
+        "Parse Fail",
+        "Copy All",
+        "Copy All Done",
+        "Diff Check",
+        "Missing Key",
+        "Out Of Range",
+        "Parse Failed",
+        "Apply Title",
+        "Apply Body",
+        "Apply Ok",
+        "Rollback Title",
+        "Rollback Body",
+        "Version Card",
+        "Applied At",
+        "Matrix Title",
+        "From To",
+        "Persistence Chart",
+        "Edge Panel",
+        "Min Prob Panel",
+        "Window N",
+        "Threshold Line",
+        "Entry Ok",
+        "Insufficient Data",
+        "Apply Done",
+        "Rollback Done",
+        "Strategy Readonly",
+        "Yaml Editor",
+        "Link Strategy",
+        "Restart Required",
+        "Unread Only",
+        "Mark Read",
+        "Mark All Read",
+        "Switch To",
+        "Live Step1 Title",
+        "Live Step1 Body",
+        "Live Step1 Placeholder",
+        "Live Step2 Title",
+        "Live Step2 Body",
+        "Live Final Ok",
+        "Live Check Ws",
+        "Live Check Balance",
+        "Live Check Loss Limit",
+        "Live Check Emergency",
+        "Mode Simple",
+        "Live Text Mismatch",
+        "Mode Switch Idle Only",
+        "Emergency No Live",
+        "Emergency No Live Body",
+        "Mode Demo Idle",
+        "Mode Switched",
+        "Triggered At",
+        "Trigger Source",
+        "State Snapshot",
+        "Logs Download",
+        "Recovered",
+        "Whatif Recalc",
+        "Whatif Saved",
+    }
+)
+
+
+def find_placeholder_en(ja: dict[str, str], en: dict[str, str]) -> list[str]:
+    """Keys whose en value matches known auto-generated placeholders."""
+    suspects: list[str] = []
+    for key in sorted(ja):
+        if key.startswith("_meta."):
+            continue
+        val = en.get(key, "")
+        if not val or val in SUSPECT_EN_VALUES:
+            suspects.append(key)
+    return suspects
+
+
 def cmd_check() -> int:
     ja = load_json(JA_JSON)
     en = load_json(EN_JSON)
@@ -88,6 +214,12 @@ def cmd_check() -> int:
             print("Keys missing in ja.json:", file=sys.stderr)
             for key in only_en:
                 print(f"  - {key}", file=sys.stderr)
+        return 1
+    placeholders = find_placeholder_en(ja, en)
+    if placeholders:
+        print("Placeholder EN strings (fix en.json):", file=sys.stderr)
+        for key in placeholders:
+            print(f"  {key}: {en[key]!r}", file=sys.stderr)
         return 1
     print(f"OK: {len(ja_keys)} keys match between ja.json and en.json")
     return 0

@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>16:20</td>
+        <td>PHASE 4 Exit — M4.8 en i18n + M4.9 宣言 v0.5.0</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1620">#entry-1620</a></td>
+      </tr>
+      <tr>
         <td>16:05</td>
         <td>M4.7 完了 — 00_hud.html 主入口 HUD</td>
         <td><span class="pill pill-ok">ok</span></td>
@@ -1257,6 +1263,27 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p><code>build_locales --build</code>、<code>build_web_static</code>、<code>pytest -q</code> 141 passed。Commit: <code>a555097</code>。</p>
+</section>
+
+<section class="entry" id="entry-1620">
+  <h2>PHASE 4 Exit — M4.8 en i18n + M4.9 宣言<a href="#entry-1620" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 16:20 JST</span>
+    <span class="tag tag-type">release</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><strong>M4.8</strong>: <code>en.json</code> 292 キー手訳、<code>build_locales --check</code> placeholder lint、<code>/</code> → <code>00_hud.html</code>、12 画面 serve smoke。<strong>M4.9</strong>: <code>PHASE4_EXIT_DECLARATION.md</code>、<code>pyproject.toml</code> <strong>v0.5.0</strong>。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> locales/en.json、ja.bundle.js、build_locales.py</li>
+    <li><span class="op op-mod">~</span> web/app.py（ルート HUD）、test_static_serving.py</li>
+    <li><span class="op op-add">+</span> docs/design/PHASE4_EXIT_DECLARATION.md</li>
+    <li><span class="op op-mod">~</span> README、INDEX、00_ROADMAP、PHASE4_ROADMAP</li>
+  </ul>
+  <h3>検証</h3>
+  <p><code>uv run pytest -q</code> — <strong>142 passed</strong>。Commit: <code>pending</code>。</p>
 </section>
 </main>
 
