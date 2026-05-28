@@ -19,9 +19,9 @@
 | **M5.0** | ロードマップ確定 | **✅ 完了** | 本ファイル |
 | **M5.1** | ADR-001 + archive クリーンアップ | **✅ 完了** | M4.3 本体反映済み確認、draft → `archive/principal-rollout-2026-05-28/` |
 | **M5.2** | ローソク足 SSOT | **✅ 完了** | ch10 §10.3.15 + §10.6.14、`GET /api/v1/ohlc` |
-| **M5.3** | OHLC API | **着手** | `GET /api/v1/ohlc`、ring buffer 60 本 |
-| **M5.4** | HUD チャート SVG | **着手** | `00_hud.html` placeholder 置換 |
-| **M5.5** | SSE severity 必須 | **着手** | 12 イベント全モデル + fixtures |
+| **M5.3** | OHLC API | **✅ 完了** | `GET /api/v1/ohlc`、ring buffer 60 本 |
+| **M5.4** | HUD チャート SVG | **✅ 完了** | `00_hud.html` SVG + polling |
+| **M5.5** | SSE severity 必須 | **✅ 完了** | 12 イベント全モデル + fixtures |
 | **M5.6** | lab 24h paper | ⏳ 運用 | マスター実行 → `docs/operations/LAB_PAPER_24H_*.md` |
 | **M5.7** | PHASE 5 Exit | ⏳ | `PHASE5_EXIT_DECLARATION.md`、v0.6.0 |
 

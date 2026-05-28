@@ -5,6 +5,8 @@
 **Command**: `uv run yoruu paper-24h --config config/yoruu.yaml --hours 24 --interval-sec 300`  
 **Environment**: FLARE-VM / lab VM (isolated)
 
+Pre-flight（本番前）: [`LAB_PAPER_24H_PREFLIGHT.md`](./LAB_PAPER_24H_PREFLIGHT.md) — 短時間は `--max-cycles 2` 推奨。
+
 ## Summary
 
 | Field | Value |
