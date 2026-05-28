@@ -8,8 +8,8 @@
 
 <br>
 
-[![Status](https://img.shields.io/badge/status-PHASE_3_core-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/INDEX.md)
-[![Version](https://img.shields.io/badge/version-0.3.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
+[![Status](https://img.shields.io/badge/status-PHASE_4_(HUD+principal)-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/PHASE4_ROADMAP_v1.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-ready-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.40+-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
@@ -61,27 +61,22 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 3** コア実装（Track 1・2 完了、モック契約 T4.1 着手前、Web UI は PHASE 4） |
-| **テスト** | `pytest` 20 passed、カバレッジ ≈65%、`fail_under` **55** → 70 → 80 |
+| **現フェーズ** | **PHASE 4** — HUD + 元本概念（M4.1〜M4.4 完了、M4.5 API 着手可） |
+| **テスト** | `pytest` **127** passed、カバレッジ **≈88%**、`fail_under` **80** |
+| **会計（H-1）** | `balance` = 自由資金、`principal` = 累積入出金、`total_assets` = balance + locked |
 
-### PHASE 3 トラック進捗（2026-05-28）
+### PHASE 4 マイルストン（2026-05-28）
 
-| Track | 内容 | 状態 | 参照コミット |
-|:---|:---|:---:|:---|
-| 1 | A-HIGH 8 + Q1〜Q3 実装 | 完了 | `f499778` |
-| 2 | 設計書ローリング（ch3/10/13/16/22/08/11/14/15/18） | 完了 | `c8fa393` |
-| 3 | README / INDEX / ROADMAP / CHECKLIST | 完了 | `085cad5` |
-| 4 | モック後修正（§F T4.1〜T4.9） | **次**: T4.1 SSE（B1） | — |
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M4.1 | FastAPI + SSE 契約 | ✅ |
+| M4.2 | 静的モック + EventSource | ✅ |
+| M4.3 | 設計章追補（ch10/13/16/18/22 元本・FX） | ✅ |
+| M4.4 | 元本コア（migrate · PrincipalService · INV-D-06 v2） | ✅ |
+| M4.5 | principal REST/CLI/SSE | 着手可 |
+| M4.6〜M4.9 | mock-data · `00_hud.html` · i18n · Exit | 予定 |
 
-並列投入テンプレ: [`docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
-
-### マスター判定サマリ（Q1〜Q3）
-
-| ID | 判定 | 設計 / 実装要点 |
-|:---|:---|:---|
-| Q1 | A | `W_NIGHTLY_001` → `E_NIGHTLY_008`（†10% WARN / ‡20% ERROR、ch18 §18.3.4） |
-| Q2 | A | `FillModel` 既定値は ch22 §22.2.1 SSOT |
-| Q3 | A | open 時 `balance` 減算、close 時加算 + **INV-D-06**（ch16 §16.3.1） |
+正本: [`docs/design/PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md) · テンプレ 14: [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
 
 ---
 
@@ -95,17 +90,23 @@ uv sync
 copy config\yoruu.yaml.example config\yoruu.yaml
 uv run yoruu config validate
 uv run yoruu db init
+# 既存 DB（PHASE 3 以前）がある場合:
+uv run yoruu db migrate --dry-run
+uv run yoruu db migrate
 uv run yoruu paper evaluate-once
 uv run yoruu serve
-# UI: http://127.0.0.1:8765/pages/index.html  (?mock=1 でモック SSE のみ)
+# Hub: http://127.0.0.1:8765/pages/index.html
+# HUD 主入口（M4.7 予定）: docs/mockups/00_hud.html  (?mock=1 でモック SSE)
 uv run yoruu nightly generate
 uv run yoruu strategy apply path\to\proposal.json --by USER
 uv run pytest -q
 ```
 
-設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)。PHASE 3 コード Exit: [`docs/design/PHASE3_EXIT_DECLARATION.md`](docs/design/PHASE3_EXIT_DECLARATION.md)。
+設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)。PHASE 3 Exit: [`PHASE3_EXIT_DECLARATION.md`](docs/design/PHASE3_EXIT_DECLARATION.md)。PHASE 4: [`PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md)。
 
-**テスト**: `uv run pytest -q` — **119** passed、カバレッジ **≈88%**、`fail_under` **80**。**静的 UI 再生成**: `uv run python tools/build_web_static.py`（`docs/mockups/` 正本は保持）。
+**テスト**: `uv run pytest -q` — **127** passed、カバレッジ **≈88%**。**静的 UI 再生成**: `uv run python tools/build_web_static.py`（`docs/mockups/` 正本は保持）。
+
+**設定**: `initial_principal`（推奨）。`initial_balance` は後方互換のみ（DeprecationWarning）。入出金 API は M4.5 で公開予定（M4.4 では `PrincipalService` + CLI 内部）。
 
 ---
 
@@ -118,7 +119,8 @@ uv run pytest -q
 ### 安全性ファースト
 
 - 信頼境界線に基づく入力検証（外部 API · AI JSON · UI）
-- **不変条件**（`MIN_PROB` · `KELLY_FRACTION` 等）の機械的 assert
+- **不変条件**（`MIN_PROB` · `KELLY_FRACTION` · **INV-D-06 v2** 元本保存則 等）の機械的 assert
+- **元本**（`principal`）入出金と `balance`（自由資金）の分離（ch10 v1.2 / ch13 D11 v2）
 - **キル・スイッチ** · 二重承認（paper → live は `"LIVE"` 手入力）
 - `strategy.json` はバックアップ後にのみ上書き
 - 監査ログ（append-only）
@@ -283,8 +285,9 @@ flowchart TB
 | UI モックアップ | [`docs/mockups/`](docs/mockups/) | HTML 11/11 · オフライン動作（PHASE 2 完了） |
 | 設計 INDEX | [`docs/design/INDEX.md`](docs/design/INDEX.md) | 24章 + 付録 A APPROVED |
 | PHASE 3 監査 | [`docs/design/PHASE3_QUALITY_AUDIT.md`](docs/design/PHASE3_QUALITY_AUDIT.md) | A-HIGH / 4 Track |
-| 並列チャットテンプレ | [`docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md) | docs-sync / Q3-MOCK / Track 2 / T4.1 |
-| 開発日記 | [`docs/2026-05-28_開発日記.html`](docs/2026-05-28_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | Track 1〜2 ローリングログ |
+| PHASE 4 ロードマップ | [`docs/design/PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md) | HUD · 元本 · FX 表示 |
+| 並列チャットテンプレ | [`docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md) | テンプレ 14 `phase4-hud-principal` |
+| 開発日記 | [`docs/2026-05-28_開発日記.html`](docs/2026-05-28_%E9%96%8B%E7%99%BA%E6%97%A5%E8%A8%98.html) | M4.3〜M4.4 ローリング・実装ログ |
 
 ### 設計書 24章（APPROVED）
 
@@ -312,16 +315,18 @@ flowchart TB
 ```
 YoRuu/
 ├── README.md
-├── pyproject.toml            # v0.3.0, fail_under 55
-├── config/yoruu.yaml.example
+├── pyproject.toml            # v0.4.0, fail_under 80
+├── config/yoruu.yaml.example # initial_principal, principal.*, display.fx
 ├── docs/design/              # 設計書 24章 + 付録 A
 ├── docs/mockups/             # PHASE 2 モック 11画面
 ├── src/yoruu/
 │   ├── cli.py
 │   ├── core/                 # StateMachine, EventBus
 │   ├── strategy/             # Markov, Kelly, Evaluator
-│   ├── execution/            # PaperExecutor, FillModel
-│   ├── data/                 # SQLite schema
+│   ├── execution/            # PaperExecutor, FillModel, PrincipalService
+│   ├── data/                 # SQLite schema, migrate
+│   ├── api/sse/              # SSE 契約（M4.1）
+│   ├── web/                  # FastAPI + static（M4.2）
 │   ├── review/               # Nightly, Apply
 │   └── safety/               # Invariants
 └── tests/
@@ -336,9 +341,9 @@ YoRuu/
 | **PHASE 0** | ch1〜7 基盤合意 | 完了 |
 | **PHASE 1** | 設計書 24章 + 付録 A | 完了（2026-05-27） |
 | **PHASE 2** | HTML モック 11画面 | 完了（2026-05-27） |
-| **PHASE 3** | コア CLI + 品質トラック | 着手中（Track 1・2 完了、T4.1 SSE 次） |
-| **PHASE 4** | FastAPI Web UI + SSE | 予定（T4.1 完了後） |
-| **PHASE 5〜7** | 統合テスト · ペーパー運用 · live | 予定 |
+| **PHASE 3** | コア CLI + 品質トラック | 完了（[`PHASE3_EXIT_DECLARATION`](docs/design/PHASE3_EXIT_DECLARATION.md)） |
+| **PHASE 4** | HUD + 元本 + 静的 UI | **着手中**（M4.1〜M4.4 ✅、M4.5 次） |
+| **PHASE 5〜7** | ローソク足 · lab 24h · live | 予定 |
 
 詳細: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
 
@@ -383,6 +388,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.3.0 · PHASE 3 · Track 2 完了 · last updated 2026-05-28</sub>
+<sub>README · v0.4.0 · PHASE 4 · M4.4 principal core · last updated 2026-05-28</sub>
 
 </div>
