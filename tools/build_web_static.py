@@ -153,8 +153,8 @@ def _rewrite_asset_paths(text: str) -> str:
     )
     if 'src="/static/js/sse-client.js"' not in text:
         text = text.replace(
-            'src="/static/js/mock-data.js"',
-            'src="/static/js/mock-data.js"\n  <script src="/static/js/sse-client.js"',
+            'src="/static/js/mock-data.js"></script>',
+            'src="/static/js/mock-data.js"></script>\n  <script src="/static/js/sse-client.js"></script>',
         )
     return text
 
