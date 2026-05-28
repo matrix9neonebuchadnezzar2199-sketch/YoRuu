@@ -627,11 +627,23 @@ SSOT:
 
 ---
 
-## K. マスター向け 3 行サマリ
+## K. マスター向け 3 行サマリ（2026-05-28 更新）
 
-1. **コア骨格は SSOT 整合、ブロッカーは HIGH 17 件**（実装 8 / モック 3 / ドキュメント 6）。最重量は **InvariantChecker 12 件未実装 + 呼出ゼロ**（A5）— 安全装置が回路未接続
-2. **4 トラック並列で 4 日**（5/28〜5/31）で PHASE 3 Exit Criteria 到達可能。クリティカルパスは Track 1 T1.5。Track 2/3/4 は独立並列
-3. **Q1〜Q3 確定済**（A 案 ×3、I1〜I3 解消）。残未確認は **I4 / I5 のみ**（Composer 引き渡し前にマスター確認推奨）
+1. **PHASE 3 コード実装 Exit 達成**（[`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md)）— 114 tests / 87.89% / INV 19/19 / WS+CLOB+API+SSE+Strategy API
+2. **運用残 1 件**: lab VM で 24h paper 実運用（`yoruu paper-24h`、ハーネス・smoke UT 済）
+3. **設計任意**: ch10 v1.2 全 SSE severity 必須化は PHASE 4 キックオフ時 ADR 判断（現状 §10.5.3 準拠で実装完結）
+
+---
+
+## M. PHASE 3 Exit 宣言（2026-05-28）
+
+**正本**: [`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md)
+
+| 区分 | 状態 |
+|------|------|
+| コード Exit | ✅ `dea96e0` 時点 |
+| 運用 Exit（24h paper） | ⏳ lab 作業 |
+| PHASE 4 キックオフ | 準備可（[`PHASE4_KICKOFF_TEMPLATE.md`](./PHASE4_KICKOFF_TEMPLATE.md)） |
 
 ---
 
@@ -672,3 +684,4 @@ Track 2C §J.6 タスク 3「§13.9.2 保守的モデル原則の整合性確認
 | 2026-05-28 | v1.0 | 初版作成（3 並列 explore 監査、HIGH 17 件、4 トラック作業計画） |
 | 2026-05-28 | v1.1 | Q1〜Q3 確定（A 案 ×3）、D11 追加、§J 依頼テンプレ清書、§L 運用ガイド新設 |
 | 2026-05-28 | v1.2 | `PHASE3_PARALLEL_CHAT_TEMPLATES.md` 新設、§J.2/§J.3/§L 分離（Q3-MOCK vs §F T4.1）、T3.5 を fail_under 55 表記に修正 |
+| 2026-05-28 | v1.3 | §K 更新、§M Exit 宣言追加、`PHASE3_EXIT_DECLARATION.md` 参照 |

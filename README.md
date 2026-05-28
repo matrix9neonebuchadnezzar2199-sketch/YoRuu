@@ -101,9 +101,9 @@ uv run yoruu strategy apply path\to\proposal.json --by USER
 uv run pytest -q
 ```
 
-設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)、PHASE 3 監査: [`docs/design/PHASE3_QUALITY_AUDIT.md`](docs/design/PHASE3_QUALITY_AUDIT.md)。
+設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)。PHASE 3 コード Exit: [`docs/design/PHASE3_EXIT_DECLARATION.md`](docs/design/PHASE3_EXIT_DECLARATION.md)。
 
-**カバレッジ `fail_under`**: 現状 **55**（Track 1 後暫定）→ **70**（安定化後）→ **80**（PHASE 3 Exit、ch23 §23.3）。**50 は使用しない。**
+**テスト**: `uv run pytest -q` — **114** passed、カバレッジ **≈88%**、`fail_under` **80**（ch23 §23.3）。**lab 24h paper**: `uv run yoruu paper-24h`（`--max-cycles` で smoke 可）。
 
 ---
 

@@ -123,46 +123,55 @@ gantt
 - ブラウザ（Chrome / Firefox）でダブルクリック起動・動作確認済み
 - 外部CDN依存ゼロ確認
 
-### PHASE 3: コア実装（14日、2026-05-28 着手）
+### PHASE 3: コア実装（14日、2026-05-28 着手）— **コード実装 Exit（2026-05-28）**
 
-**目的**: 取引ロジックの実装（UI なし、CLI で動作）。
+**目的**: 取引ロジックの実装（UI なし、CLI + API で動作）。
 
-**成果物**: `src/yoruu/`（`core/`、`strategy/`、`execution/`、`data/`、`review/`、`safety/`）、`tests/`
+**成果物**: `src/yoruu/`（`core/`、`strategy/`、`execution/`、`data/`、`review/`、`safety/`、`infra/`、`web/`、`api/sse/`）、`tests/`
+
+**Exit 宣言**: [`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md)（`3f17b1d`）
 
 ### PHASE 3 品質トラック（監査書 §F）
 
 | Track | 内容 | 状態（2026-05-28） |
 |-------|------|-------------------|
-| 1 | A-HIGH 8 + Q1〜Q3 | **完了** `f499778` |
-| 2 | 設計書ローリング（2A〜2D） | **完了** `c8fa393`（2A `73ab8e8` / 2B `a535820` / 2C `cb09fdf`） |
-| 3 | README / INDEX / ROADMAP / CHECKLIST | **完了** `085cad5`（README 追補 `704e387`） |
-| 4 | モック後修正（§F T4.1〜） | Q3-MOCK **完了** `d5c44a8` → **次** T4.1 SSE（B1） |
+| 1 | A-HIGH 8 + Q1〜Q3 + 第二フェーズ | **完了** `579402f` |
+| 2 | 設計書ローリング（2A〜2D） | **完了** `c8fa393` |
+| 3 | README / INDEX / ROADMAP / CHECKLIST | **完了** `085cad5` |
+| 4 | モック（T4.1 B1 + T4.2 + INV-D-02） | **完了** `7cbfd49` / `55d1682` / `a2b6081` |
+| Exit A | WS → CLOB → FastAPI → 24h harness | **完了** `18fb05c` |
+| テンプレ 9 | FastAPI SSE 契約 + Strategy API | **完了** `dea96e0` |
 
-**カバレッジ `fail_under` 段階**: **55**（現状、`pyproject.toml`）→ **70**（Track 1 安定後）→ **80**（PHASE 3 Exit、ch23 §23.3）
+**カバレッジ `fail_under`**: **80** 到達（`pyproject.toml`、ch23 §23.3）
 
 **マイルストーン**:
 
 | ID | 内容 |
 |----|------|
-| M3.1 | データ取得層（Binance WS + Polymarket CLOB） | **一部**（`MockMarketProvider` + CLI mock。live WS は未接続） |
-| M3.2 | Markov 推定 + Kelly サイジング | **完了**（`src/yoruu/strategy/`） |
-| M3.3 | ペーパー約定エンジン（スリッページ・手数料・遅延モデル） | **完了**（`FillModel` / `PaperExecutor`） |
-| M3.4 | SQLite 永続化 + StateMachine | **完了**（`Database` + `StateMachine`） |
-| M3.5 | 夜間レポート生成（JSON 出力） | **完了**（`NightlyReporter` + CLI） |
-| M3.6 | 戦略 Apply ロジック（CLI から） | **完了**（`ApplyValidator` + `strategy apply`） |
+| M3.1 | データ取得層（Binance WS + Polymarket CLOB） | **完了**（lab URL + fixture、`yoruu market run`） |
+| M3.2 | Markov 推定 + Kelly サイジング | **完了** |
+| M3.3 | ペーパー約定エンジン | **完了** |
+| M3.4 | SQLite 永続化 + StateMachine | **完了** |
+| M3.5 | 夜間レポート生成 | **完了** |
+| M3.6 | 戦略 Apply（CLI + REST） | **完了** |
+| M3.7 | FastAPI + SSE 契約 | **完了**（PHASE 4 前倒し分） |
 
-**Exit Criteria**（具体化）:
+**Exit Criteria**:
 
-- ペーパーモードで **24 時間連続稼働**
-- ユニットテスト pass、**行カバレッジ ≥ 80%**（`fail_under` 80、ch23 §23.3）
-- 不変条件（ch16）**INV-* assertion 全件** pass
-- `pytest` 現状: 20 passed、≈65%（`fail_under` 55 暫定）
+| 区分 | 項目 | 状態 |
+|------|------|------|
+| コード | pytest pass、カバレッジ ≥ 80% | ✅ 114 tests / 87.89% |
+| コード | INV-* 全件 | ✅ 19/19 |
+| コード | WS / CLOB / REST / SSE / Strategy API | ✅ |
+| コード | 24h paper ハーネス | ✅ `paper-24h` + smoke UT |
+| **運用** | lab VM で 24h 連続実行 | ⏳ マスター作業 |
+| **任意** | ch10 v1.2 全 SSE severity 必須 | ⏸ PHASE 4 キックオフ時判断 |
 
 ### PHASE 4: UI実装（10日）
 
 **目的**: モックを実動 Web UI に変換。
 
-**成果物**: `yoruu/web/`（FastAPI + 静的 HTML + REST + SSE）
+**成果物**: `yoruu/web/`（FastAPI + 静的 HTML + REST + SSE）— **骨格は PHASE 3 で前倒し済**（`18fb05c` / `dea96e0`）。PHASE 4 は静的資産移植・ダッシュボード結線が主。
 
 **マイルストーン**:
 
@@ -292,3 +301,5 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-28 | v1.3 | **Track 1 完了**（A-HIGH 8 + Q1〜Q3、fail_under 55） | `f499778` |
 | 2026-05-28 | v1.3 | **Track 2 完了**（設計ローリング 2A〜2D、T4.2 ゲート成立） | `c8fa393` |
 | 2026-05-28 | v1.3 | README Track 進捗表 + ROADMAP Track 表同期 | `704e387` |
+| 2026-05-28 | v1.4 | **PHASE 3 コード Exit**（Exit A + テンプレ 9、114 tests / 87.89%） | `dea96e0` |
+| 2026-05-28 | v1.4 | PHASE3_EXIT_DECLARATION 新設 | （本コミット） |

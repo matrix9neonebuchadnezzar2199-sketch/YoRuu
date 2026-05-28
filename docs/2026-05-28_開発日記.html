@@ -471,6 +471,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1215">#entry-1215</a></td>
       </tr>
+      <tr>
+        <td>13:00</td>
+        <td>PHASE 3 コード Exit 宣言 + docs-sync</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1300">#entry-1300</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -825,6 +831,27 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>114 tests / coverage <strong>87.89%</strong>。Commit: <code>dea96e0</code>。</p>
+</section>
+
+<section class="entry" id="entry-1300">
+  <h2>PHASE 3 コード Exit 宣言 + docs-sync<a href="#entry-1300" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 13:00 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>マスター確認（段階 1/2 完了承認）に基づき推奨 <strong>3→4</strong> を実施。<code>PHASE3_EXIT_DECLARATION.md</code> でコード実装 Exit を宣言。INDEX / ROADMAP / README / 監査 §K・§M / PHASE4 キックオフを <code>3f17b1d</code> 実態に同期。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/PHASE3_EXIT_DECLARATION.md</li>
+    <li><span class="op op-mod">~</span> INDEX.md, 00_ROADMAP.md, README.md, PHASE3_QUALITY_AUDIT.md, PHASE4_KICKOFF_TEMPLATE.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>残 2 件を「運用 1 + 任意設計 1」に分離。ch10 v1.2 severity 全件必須は PHASE 3 Exit 必須から外し PHASE 4 キックオフ判断へ繰越。</p>
+  <h3>検証</h3>
+  <p>ドキュメントのみ。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

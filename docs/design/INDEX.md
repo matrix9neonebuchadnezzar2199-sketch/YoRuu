@@ -3,9 +3,9 @@
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
 **最終更新**: 2026-05-28  
-**現在 PHASE**: **PHASE 3 着手** — Track 1 A-HIGH 8 件完了（`f499778`）／PHASE 1・2 は **完了（2026-05-27）**  
+**現在 PHASE**: **PHASE 3 コード実装 Exit**（`3f17b1d`）— 運用残: lab 24h paper／PHASE 1・2 は **完了（2026-05-27）**  
 **M1.5**: a/b/c すべて完了（2026-05-27）  
-**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE3_QUALITY_AUDIT.md`](./PHASE3_QUALITY_AUDIT.md)、[`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch24.md`](./REVIEW_CHECKLIST_ch24.md)、[`REVIEW_CHECKLIST_appendix_a.md`](./REVIEW_CHECKLIST_appendix_a.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
+**関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md)、[`PHASE3_QUALITY_AUDIT.md`](./PHASE3_QUALITY_AUDIT.md)、[`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch24.md`](./REVIEW_CHECKLIST_ch24.md)、[`REVIEW_CHECKLIST_appendix_a.md`](./REVIEW_CHECKLIST_appendix_a.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
 ### PHASE 3 進捗（2026-05-28）
 
@@ -13,13 +13,12 @@
 |------|-----|
 | 設計書 APPROVED | **24 / 24** 章 + **付録 A** |
 | UI モック | **11 / 11**（PHASE 2 完了） |
-| Track 1（A-HIGH） | **8 / 8** 完了 → `f499778` |
-| Track 2（設計ローリング） | **4 / 4** 完了 → `c8fa393` |
-| Track 3（docs-sync） | 完了 → `085cad5` |
-| Track 4（モック） | Q3-MOCK 完了 `d5c44a8`、次 T4.1 SSE |
-| pytest | 20 passed、カバレッジ ≈65% |
-| `fail_under` | **55**（暫定）→ 70 → 80（Exit） |
-| 次の Exit | 24h paper + カバレッジ 80% + INV 全件 |
+| Track 1〜4 + Exit A + テンプレ 9 | **コード完了** → [`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md) |
+| pytest | **114** passed、カバレッジ **87.89%** |
+| `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
+| INV 実装 | **19 / 19**（設計一致） |
+| 運用残 | lab VM で **24h paper** 実運用（ハーネス済） |
+| PHASE 4 前提 | `src/yoruu/web/` + `api/sse/` 前倒し済 → キックオフ [`PHASE4_KICKOFF_TEMPLATE.md`](./PHASE4_KICKOFF_TEMPLATE.md) |
 
 ---
 
