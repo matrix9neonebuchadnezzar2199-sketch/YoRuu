@@ -495,6 +495,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1419">#entry-1419</a></td>
       </tr>
+      <tr>
+        <td>14:28</td>
+        <td>HUD/元本方針確定・突き合わせ v2・案 Z ロードマップ草案</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1428">#entry-1428</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -936,6 +942,31 @@ body.diary > footer {
   <p>アプローチ <strong>A</strong>（01 全面リライト）/ <strong>B</strong>（新規 HUD + 既存温存）と 5 判断項目を文書化。Telegram 通知枠は Q4 不採用のため SSE 等へ置換要。詳細突き合わせ（02〜10・ch10）は <strong>1 の承認後</strong>に実施。</p>
   <h3>検証</h3>
   <p>ドキュメントのみ。Commit: <code>458d009</code>。</p>
+</section>
+
+<section class="entry" id="entry-1428">
+  <h2>HUD/元本方針確定 — 突き合わせ v2・案 Z・テンプレ 14<a href="#entry-1428" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 14:28 JST</span>
+    <span class="tag tag-type">analysis</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>マスター確定: 新規 <code>00_hud.html</code>（既存 10 画面温存）、ヒーロー 2 段（残高+追加可能元本 / 累積 PnL）、夜間 CD のみ、SSE+稼働+その他複数枠、ローソクはプレースホルダ。元本 <strong>A-2</strong>（principal/locked/withdrawable）+ <strong>B-2</strong>（YoRuu 内自由元本）。案 <strong>Z</strong> で M4.3〜M4.9 ロードマップ改訂草案・テンプレ 14 清書。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/mockups/REF_IMAGE_GAP_MATRIX_v2.md</li>
+    <li><span class="op op-add">+</span> docs/design/PRINCIPAL_CONCEPT_V1_DRAFT.md</li>
+    <li><span class="op op-add">+</span> docs/design/PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md</li>
+    <li><span class="op op-mod">~</span> PHASE3_PARALLEL_CHAT_TEMPLATES.md（テンプレ 14）</li>
+    <li><span class="op op-mod">~</span> 00_ROADMAP.md（改訂草案へのポインタ）</li>
+    <li><span class="op op-mod">~</span> docs/mockups/CHANGELOG.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>確認 <strong>C</strong> 回答: 現行 ROADMAP は M4.2 まで完了・旧 M4.3〜5 表は名残。<strong>D</strong>（index vs hud）は <strong>I-1 推奨</strong>で未決。PHASE 3 残: lab 24h → PHASE 5、severity → M4.3 統合。</p>
+  <h3>検証</h3>
+  <p>ドキュメントのみ。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

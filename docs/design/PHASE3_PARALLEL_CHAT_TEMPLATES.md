@@ -488,6 +488,72 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 
 ---
 
+## テンプレート 14 — `phase4-hud-principal`（PHASE 4 M4.3〜M4.9 HUD + 元本）
+
+**チャット名**: `phase4-hud-principal`  
+**モデル**: Opus 4.7（M4.3 設計章）→ Composer 2.5（M4.4〜M4.8）  
+**投入**: M4.2 完了後（`02edfa0` / `458d009` 以降）、案 Z ロードマップ承認後
+
+**正本ドラフト**
+
+- [`PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](./PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)
+- [`PRINCIPAL_CONCEPT_V1_DRAFT.md`](./PRINCIPAL_CONCEPT_V1_DRAFT.md)
+- [`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)
+
+```
+# PHASE 4 M4.3〜M4.9: 参照 HUD + 元本概念（A-2/B-2）
+
+## 確定方針（再掲）
+- 新規 00_hud.html、既存 01〜10 + mock-data ロジック温存（集約ビューアのみ）
+- ヒーロー: balance + withdrawable_principal 併記 + 累積 PnL
+- 夜間: カウントダウンのみ → 03_nightly_review リンク
+- システム枠: SSE + 稼働 + その他（Telegram 不採用）
+- ローソク: HUD はプレースホルダのみ（PHASE 5）
+- index vs hud: 確認事項 D（推奨 I-1）確定後に hub リンク追加
+
+## 段階 1 — M4.3 設計章追補（Opus、実装触らない）
+1. ch10 v1.2: bot_state 列 + principal_transactions + severity 必須化（任意同梱）
+2. ch13 D11 v2: 入金/出金/open/close の principal/locked/balance 更新
+3. ch16 INV-D-06 v2 + invariant 3 件
+4. ch22: initial_principal + 旧キー後方互換
+5. INDEX / ROADMAP 差し替え（PHASE4_ROADMAP_REVISION 承認内容）
+
+## 段階 2 — M4.4 コア（Composer）
+- マイグレーション、PrincipalService、PaperExecutor D11 v2
+- InvariantChecker 拡張、単体テスト
+- 出口: pytest 全緑、coverage ≥ 80%
+
+## 段階 3 — M4.5 API/CLI（Composer）
+- POST/GET /api/v1/principal/*
+- SSE principal_changed（mock-data.js + api/sse/models.py + ValidatingEventBus）
+- yoruu principal deposit|withdraw|show
+
+## 段階 4 — M4.6 mock-data（Composer）
+- principal, locked_principal, withdrawable_principal, signal_counts, cumulative_stats, system_status
+- 既存 10 画面の mock 動作不変
+
+## 段階 5 — M4.7 HUD HTML（Composer）
+- docs/mockups/00_hud.html（参照レイアウト、shared/*.js 再利用）
+- 入金ボタン UI（API 呼び出しは M4.5 完了後に結線）
+
+## 段階 6 — M4.8 static + i18n（Composer）
+- ja bundle HUD キー、tools/build_web_static.py（00_hud 取り込み）
+- serve で HUD + principal_changed 反映
+
+## 段階 7 — M4.9 Exit（Opus）
+- PHASE4_EXIT_DECLARATION.md
+
+## 範囲外
+- ローソク足実装（PHASE 5）
+- 既存 01_dashboard.html 等の全面リライト
+- docs/mockups/ 削除
+
+## 完了報告（各段階）
+- commit hash、pytest 件数、coverage%、承認済み設計章 ID
+```
+
+---
+
 ## テンプレート 13 — `phase4-m42-static-ui`（PHASE 4 M4.2 静的 UI 結線）
 
 **チャット名**: `phase4-m42-static-ui`  
@@ -552,3 +618,4 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 | 2026-05-28 | テンプレ 7/8 完了状態反映、テンプレ 10 `phase2-i18n-palette`（T4.2）、11 `PHASE3-fix-inv-d02`（INV-D-02）追記 |
 | 2026-05-28 | テンプレ 12 `PHASE3-exit-route-a`（Exit 戦略 A: WS/CLOB/FastAPI/24h paper）追記、10/11 完了反映 |
 | 2026-05-28 | テンプレ 13 `phase4-m42-static-ui`（PHASE 4 M4.2）追記・完了反映 |
+| 2026-05-28 | テンプレ 14 `phase4-hud-principal`（M4.3〜M4.9 HUD+元本、案 Z）追記 |

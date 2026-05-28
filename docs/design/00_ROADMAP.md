@@ -173,11 +173,13 @@ gantt
 
 **成果物**: `yoruu/web/`（FastAPI + 静的 HTML + REST + SSE）
 
+> **2026-05-28 改訂**: M4.3 以降は参照 HUD + 元本概念（案 Z）に再編。**正本草案** → [`PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](./PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)（承認後に本節を差し替え）。突き合わせ確定版 → [`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)。
+
 | マイルストーン | 状態 |
 |----------------|------|
 | M4.1 FastAPI 骨格 + SSE 契約 | ✅ PHASE 3 前倒し（`dea96e0`） |
 | M4.2 静的モック移植 + EventSource | ✅ `tools/build_web_static.py` + `web/static/` |
-| M4.3 REST 初期データ結線 | 次 |
+| M4.3〜M4.9（HUD + principal） | ⏳ 改訂草案承認待ち |
 
 **マイルストーン**:
 

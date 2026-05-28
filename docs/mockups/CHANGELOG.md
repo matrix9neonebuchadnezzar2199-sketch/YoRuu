@@ -1,5 +1,13 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — 突き合わせ v2 + HUD/元本方針確定
+
+| 項目 | 内容 |
+|------|------|
+| `REF_IMAGE_GAP_MATRIX_v2.md` | アプローチ B、A-2/B-2、00_hud 配置表 |
+| 設計ドラフト | `docs/design/PRINCIPAL_CONCEPT_V1_DRAFT.md` |
+| ロードマップ | `PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`、テンプレ 14 |
+
 ## 2026-05-28 — 参照画像 ↔ 01_dashboard 突き合わせ初版
 
 | 項目 | 内容 |
