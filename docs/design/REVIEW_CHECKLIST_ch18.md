@@ -28,6 +28,6 @@
 
 | 日付 | バージョン | 内容 | コミット |
 |------|-----------|------|----------|
-| 2026-05-28 | v1.1.0 | Track 2D: §18.3 severity 列正式化、`E_NIGHTLY_008` ← `W_NIGHTLY_001`（Q1=A） | pending |
+| 2026-05-28 | v1.1.0 | Track 2D: §18.3 severity 列正式化、`E_NIGHTLY_008` ← `W_NIGHTLY_001`（Q1=A） | `c8fa393` |
 
 次工程: ch14 v1.0.2 で error.* 追補（PHASE 4 / T4.2）。
