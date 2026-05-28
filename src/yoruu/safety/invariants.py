@@ -10,6 +10,9 @@ from yoruu.errors import InvariantViolationError
 from yoruu.strategy.models import StrategyConfig
 from yoruu.types import Mode, State
 
+# ch16 §16.3.1 SSOT
+INV_D06_TOLERANCE_USD = 0.02
+
 if TYPE_CHECKING:
     from yoruu.execution.risk_guard import RiskGuard
 
@@ -151,7 +154,11 @@ class InvariantChecker:
     def inv_s04_no_mode_change_during_nightly(
         self, from_state: State, to_state: State
     ) -> InvariantViolation | None:
-        del to_state
+        if from_state == State.NIGHTLY_REVIEW and to_state in (
+            State.NIGHTLY_REVIEW,
+            State.IDLE,
+        ):
+            return None
         if from_state == State.NIGHTLY_REVIEW:
             return InvariantViolation(
                 inv_id="INV-S-04",
@@ -217,7 +224,7 @@ class InvariantChecker:
         balance = self._db.get_balance()
         open_total = self._db.open_positions_total_size()
         closed_sum = self._db.sum_closed_trade_pnl()
-        if abs(balance + open_total - (self._initial_balance + closed_sum)) > 0.01:
+        if abs(balance + open_total - (self._initial_balance + closed_sum)) > INV_D06_TOLERANCE_USD:
             return InvariantViolation(
                 inv_id="INV-D-06",
                 message=(

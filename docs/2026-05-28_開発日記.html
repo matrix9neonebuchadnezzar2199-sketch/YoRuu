@@ -435,6 +435,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1110">#entry-1110</a></td>
       </tr>
+      <tr>
+        <td>11:17</td>
+        <td>PHASE3-fix — coverage 80% + INV UT</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1117">#entry-1117</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -651,6 +657,29 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>Commit: <code>7cbfd49</code>。T4.2 申し送り: <code>nightly-review.js</code> の <code>W_NIGHTLY_001</code> は未着手。</p>
+</section>
+
+<section class="entry" id="entry-1117">
+  <h2>PHASE3-fix — Track 1 第二フェーズ（coverage 80% + InvariantChecker UT）<a href="#entry-1117" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 11:17 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>テンプレ 8 実施。<code>INV-D-06</code> 閾値を ch16 §16.3.1 準拠の <strong>0.02 USD</strong> に修正。<code>tests/safety/test_invariants_individual.py</code> で実装済み INV 18 メソッド（設計上 INV-D-02 は未実装）を個別 UT。<code>fail_under</code> を <strong>80</strong> に引き上げ、全体カバレッジ <strong>89%</strong>（86 tests）。<code>INV-S-04</code> は夜間レビュー完了時の <code>IDLE</code> 復帰を許可するよう修正。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> src/yoruu/safety/invariants.py（INV_D06_TOLERANCE_USD、INV-S-04）</li>
+    <li><span class="op op-add">+</span> tests/safety/test_invariants_individual.py, tests/helpers.py</li>
+    <li><span class="op op-add">+</span> tests/test_cli.py, test_paper_executor.py, test_risk_guard.py</li>
+    <li><span class="op op-mod">~</span> tests/test_fill_model.py, tests/conftest.py, pyproject.toml</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>A-MED（<code>time.sleep</code>→<code>asyncio.sleep</code>）: <code>src/</code> に sleep 残存なし → 対応不要。INV-D-02: コード未実装のため UT 対象外（ch16 設計 19 件のうち実装 18）。</p>
+  <h3>検証</h3>
+  <p><code>uv run pytest -q</code> — 86 passed、coverage 89.07%、<code>fail_under=80</code>。Commit: <em>pending</em>。</p>
 </section>
 </main>
 

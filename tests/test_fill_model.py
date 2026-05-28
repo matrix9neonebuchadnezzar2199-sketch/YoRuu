@@ -4,7 +4,7 @@ import pytest
 
 from yoruu.config.settings import PaperSettings
 from yoruu.execution.fill_model import FillModel
-from yoruu.types import OrderBook, Side
+from yoruu.types import CloseReason, OrderBook, Side
 
 
 def _book() -> OrderBook:
@@ -56,3 +56,25 @@ def test_open_fill_rejects_wide_spread() -> None:
     )
     with pytest.raises(ValueError, match="spread"):
         model.compute_open_fill(book=book, size_usd=5.0)
+
+
+def test_close_fill_expiration_yes() -> None:
+    model = FillModel(PaperSettings(), seed=1)
+    comp = model.compute_close_fill(
+        book=_book(),
+        size_usd=5.0,
+        side=Side.YES,
+        reason=CloseReason.EXPIRATION,
+    )
+    assert comp.fill_price == 1.0
+
+
+def test_close_fill_manual_slippage() -> None:
+    model = FillModel(PaperSettings(), seed=1)
+    comp = model.compute_close_fill(
+        book=_book(),
+        size_usd=5.0,
+        side=Side.YES,
+        reason=CloseReason.MANUAL,
+    )
+    assert comp.fill_price < comp.base_price
