@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>15:20</td>
+        <td>M4.3 完了 — ch16/ch18/ch22 本体ローリング + X-2 確定</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1520">#entry-1520</a></td>
+      </tr>
+      <tr>
         <td>14:46</td>
         <td>M4.3 ch10 v1.2 ローリング DRAFT（U 判断待ち）</td>
         <td><span class="pill pill-warn">warn</span></td>
@@ -1100,6 +1106,28 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>ドキュメントのみ。Commit: <code>e2c4d3c</code>。</p>
+</section>
+
+<section class="entry" id="entry-1520">
+  <h2>M4.3 完了 — 設計章追補一括ローリング<a href="#entry-1520" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 15:20 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><strong>M4.3 設計章追補を完了</strong>。W-2 に従い ch18 <code>E_PRINCIPAL_*</code>/<code>E_FX_*</code> 追補後、ch16 v1.0.3・ch22 v1.0.5・ch18 v1.1.1 を本体ローリング。INDEX / PHASE4 / 00_ROADMAP 更新。<strong>X-2</strong>（M4.4〜Composer 主導、Opus は SSOT 疑義時のみ）を確定。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> ch18_v1.1.1_ROLLING_DRAFT.md</li>
+    <li><span class="op op-mod">~</span> 16_invariants.md（v1.0.3）、22_config_spec.md（v1.0.5）、18_error_handling.md（v1.1.1）</li>
+    <li><span class="op op-mod">~</span> INDEX.md、PHASE4_ROADMAP_v1.md、00_ROADMAP.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>INV-D-06 v2 + INV-D-07/08/09。PRINCIPAL 6 件・FX 4 件エラーコード。M4.4 着手可。</p>
+  <h3>検証</h3>
+  <p>ドキュメントのみ。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

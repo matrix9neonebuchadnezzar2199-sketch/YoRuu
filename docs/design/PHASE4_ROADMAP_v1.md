@@ -21,6 +21,7 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 | D | Hub vs HUD | **I-1** 温存・相互リンク、主入口 `00_hud.html` |
 | P/Q | M4.6/M4.7 順 | **案 P** |
 | W | 本体ローリング順 | **W-2**（ch18 `E_PRINCIPAL_*` 先行 → ch10/13/16/18/22 一括） |
+| X | M4.3 完了後の Opus 関与 | **X-2** Composer が M4.4〜M4.6 を主導。SSOT 疑義時のみ Opus 判断 |
 
 ---
 
@@ -51,8 +52,8 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 |----|------|------|------|----------------|
 | M4.1 | FastAPI + SSE 契約 | Composer | ✅ `dea96e0` | |
 | M4.2 | 静的モック + EventSource | Composer | ✅ `02edfa0` | |
-| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **進行中** | ch10/13/16/22 ドラフト揃い → **W-2**: ch18 軽追補後に本体一括ローリング |
-| M4.4 | 元本コア実装 | Composer | ⏳ | DB、PrincipalService、D11 v2、INV 拡張、pytest 維持 |
+| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **✅ 完了** | ch10 v1.2 / ch13 v1.0.5 / ch16 v1.0.3 / ch18 v1.1.1 / ch22 v1.0.5 ローリング済 |
+| **M4.4** | 元本コア実装 | Composer | **着手可** | DB migrate、PrincipalService、D11 v2、INV 22 件、pytest 維持（**X-2**） |
 | M4.5 | REST + CLI + SSE `principal_changed` | Composer | ⏳ | API/CLI、SSE 契約 |
 | M4.6 | `mock-data.js` 拡張 | Composer | ⏳ | 既存 10 画面モック不変 |
 | M4.7 | `00_hud.html` 新規 | Composer | ⏳ | 参照 8 割一致、I-1 相互リンク、チャート placeholder |

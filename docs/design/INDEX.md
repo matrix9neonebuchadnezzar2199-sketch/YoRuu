@@ -15,7 +15,8 @@
 | UI モック | **11 / 11**（PHASE 2 完了） |
 | Track 1〜4 + Exit A + テンプレ 9 | **コード完了** → [`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md) |
 | PHASE 4 M4.2 | **完了** — `web/static/` + `yoruu serve` + EventSource |
-| PHASE 4 M4.3 | **進行中** — ch10 v1.2 / ch13 v1.0.5 ローリング済（ch16 次） |
+| PHASE 4 M4.3 | **完了** — ch10/13/16/18/22 ローリング済（`fca1306` 系 + 本バッチ） |
+| PHASE 4 M4.4 | **着手可** — Composer 主導（運用 **X-2**） |
 | pytest | **119** passed、カバレッジ **≈88%** |
 | `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
 | INV 実装 | **19 / 19**（設計一致） |
@@ -80,9 +81,9 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED | v1.0.2 · 2026-05-28 |
-| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | v1.0.2 · 2026-05-28 |
+| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | v1.0.3 · 2026-05-28 |
 | 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED | `ec08886` |
-| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | v1.1.0 · 2026-05-28 |
+| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | v1.1.1 · 2026-05-28 |
 | 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED | `ec08886` |
 
 </details>
@@ -94,7 +95,7 @@
 |---|----------|----------|-----------|----------|
 | 20 | 監査ログ | [`20_audit_log.md`](./20_audit_log.md) | APPROVED | `7ef71ba` |
 | 21 | 設定影響マトリクス | [`21_config_impact.md`](./21_config_impact.md) | APPROVED | `1117eca` |
-| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED | v1.0.4 · 2026-05-28 |
+| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED | v1.0.5 · 2026-05-28 |
 | 23 | テスト戦略（デプロイ・ロールバック統合） | [`23_test_strategy.md`](./23_test_strategy.md) | APPROVED | `7ef71ba` |
 | 24 | Polymarket CLOB クライアント詳細 | [`24_polymarket_clob.md`](./24_polymarket_clob.md) | APPROVED | `1117eca` |
 

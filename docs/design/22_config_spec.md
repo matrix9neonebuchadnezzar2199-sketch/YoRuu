@@ -1,8 +1,9 @@
 # 第22章 設定仕様（yoruu.yaml）
 
-- **バージョン**: v1.0.4
+- **バージョン**: v1.0.5
 - **作成日**: 2026-05-27
-- **ローリング更新**: 2026-05-28（Track 2C: **FillModel SSOT** — `paper.*` 既定値、lab 注記）
+- **ローリング更新**: 2026-05-28（v1.0.5: `principal` / `display.fx`、§22.9 マイグレーション CLI）
+- **v1.0.5 追補正本**: [`ch22_v1.0.5_ROLLING_DRAFT.md`](./ch22_v1.0.5_ROLLING_DRAFT.md)
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **関連章**: 10（§10.4.2 ドラフト）, 21（影響マトリクス）, 24（Polymarket 認証）
@@ -22,8 +23,21 @@
 ```yaml
 # YoRuu 設定 SSOT — 第22章
 mode: PAPER  # BACKTEST | PAPER | SIMMER | LIVE
-initial_balance: 1000.0
+initial_principal: 1000.0   # 推奨。initial_balance は後方互換（§22.2.2）
 currency: USD
+
+principal:
+  max_deposit_per_tx: 100000.0
+  max_withdraw_per_tx: 100000.0
+  require_confirm_on_withdraw: true
+
+display:
+  fx:
+    enabled: true
+    provider: exchangerate_host
+    cache_ttl_sec: 900
+    stale_after_sec: 1800
+    fallback_rate: 150.0
 
 market:
   id: BTC_5MIN_UPDOWN
@@ -101,15 +115,45 @@ paper:
 
 **実装マッピング**: `FillModel(settings: PaperSettings)`（`f499778`）。`spread_assumed` は PHASE 3 CLI では `OrderBook` 生成時に利用（BACKTEST / モック）。
 
-**cross-ref**: 第13章 §13.3.2（参照のみ）、§13.2.5（残高）、第16章 INV-D-06。
+**cross-ref**: 第13章 §13.3.2（参照のみ）、§13.2.5（残高）、第16章 INV-D-06 v2。
+
+### 22.2.2 元本設定（v1.0.5）
+
+| キー | 型 | 既定 | 説明 |
+|------|-----|------|------|
+| `initial_principal` | float | 1000.0 | 初回起動時の `bot_state.principal` |
+| `initial_balance` | float | — | **非推奨**。`initial_principal` 未設定時のみ読み取り（DeprecationWarning） |
+| `principal.max_deposit_per_tx` | float | 100000.0 | 1 回入金上限（USD） |
+| `principal.max_withdraw_per_tx` | float | 100000.0 | 1 回出金上限（USD） |
+| `principal.require_confirm_on_withdraw` | bool | true | `confirm: true` 必須（`E_PRINCIPAL_004`） |
+
+**cross-ref**: ch10 §10.6.12、ch13 §13.2.6、ch16 INV-D-06〜09、ch18 `E_PRINCIPAL_*`。
+
+### 22.2.3 表示換算（FX）（v1.0.5）
+
+| キー | 型 | 既定 | 説明 |
+|------|-----|------|------|
+| `display.fx.enabled` | bool | true | HUD JPY/USD トグル |
+| `display.fx.provider` | enum | `exchangerate_host` | 許容: `exchangerate_host` のみ（v1.0.5） |
+| `display.fx.cache_ttl_sec` | int | 900 | キャッシュ有効（15 分） |
+| `display.fx.stale_after_sec` | int | 1800 | stale 注記閾値 |
+| `display.fx.fallback_rate` | float | 150.0 | 取得失敗時固定レート |
+
+**フォールバック 5 段階**: (1) キャッシュ (2) `fallback_rate` (3) stale 表示継続 (4) USD 固定 (5) トグル無効化。詳細は `docs/design/FX_RATE_AUTO_FETCH_DRAFT.md`（M4.7）。
+
+**cross-ref**: ch10 §10.6.13、ch18 `E_FX_*`。
 
 ## 22.3 検証ルール
 
 | キー | 型 | 制約 |
 |------|-----|------|
 | `mode` | enum | 4 値のみ |
-| `initial_balance` | float | > 0 |
-| `risk.max_trade_size_usd` | float | > 0, ≤ initial_balance |
+| `initial_principal` | float | > 0 |
+| `initial_balance` | float | > 0（非推奨、principal 未設定時） |
+| `principal.max_deposit_per_tx` | float | > 0 |
+| `principal.max_withdraw_per_tx` | float | > 0 |
+| `display.fx.fallback_rate` | float | > 0 |
+| `risk.max_trade_size_usd` | float | > 0, ≤ initial_principal（または balance 基準） |
 | `risk.daily_loss_limit_usd` | float | > 0 |
 | `nightly_review.send_time` | HH:MM | 00:00〜23:59 |
 | `ui.port` | int | 1024〜65535 |
@@ -140,6 +184,31 @@ paper:
 | `YORUU_POLY_API_KEY` | polymarket（本文非格納） |
 
 優先順位: 環境変数 > yaml > ビルトイン既定。
+
+## 22.9 DB マイグレーション CLI（v1.0.5）
+
+```bash
+yoruu db migrate [--dry-run] [--db PATH]
+```
+
+| ステップ | 内容 |
+|----------|------|
+| 1 | `bot_state` に `principal REAL` 追加（NULL 許容） |
+| 2 | `principal_transactions` テーブル作成（ch10 §10.3.14） |
+| 3 | `principal IS NULL` 行を `initial_principal`（または `initial_balance`）で埋める |
+| 4 | `principal` を NOT NULL 化 |
+
+`--dry-run`: DDL と件数のみ表示。既存 `balance` / `trades` は変更しない。
+
+**cross-ref**: ch10 §10.3.14、ch13 §13.2.6、M4.4 実装。
+
+## 22.10 章間参照（v1.0.5 追加分）
+
+| 本章 | 参照先 |
+|------|--------|
+| §22.2.2 | ch10 §10.6.12、ch16 INV-D-06〜09 |
+| §22.2.3 | ch10 §10.6.13、ch18 `E_FX_*` |
+| §22.9 | ch10 §10.3.14 |
 
 ## 22.7 章間参照
 

@@ -181,7 +181,8 @@ gantt
 |----|------|------|
 | M4.1 | FastAPI + SSE 契約 | ✅ `dea96e0` |
 | M4.2 | 静的モック + EventSource | ✅ `02edfa0` |
-| M4.3 | 設計章追補（ch10 v1.2 / ch13 v1.0.5 / ch16 次） | **進行中**（ch10/ch13 ローリング済） |
+| M4.3 | 設計章追補（ch10/13/16/18/22） | **完了**（2026-05-28） |
+| M4.4 | 元本コア実装 | **着手可**（Composer、X-2） |
 | M4.4 | 元本コア（DB、PrincipalService、D11 v2） | ⏳ |
 | M4.5 | REST/CLI + SSE `principal_changed` | ⏳ |
 | M4.6 | `mock-data.js` 拡張 | ⏳ |

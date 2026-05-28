@@ -1,8 +1,9 @@
 # 第16章 不変条件
 
-- **バージョン**: v1.0.2
+- **バージョン**: v1.0.3
 - **作成日**: 2026-05-27
-- **ローリング更新**: 2026-05-28（Track 2C: **INV-D-06** 正式登録）
+- **ローリング更新**: 2026-05-28（v1.0.3: INV-D-06 v2、INV-D-07/08/09 追加、InvariantChecker 22 件）
+- **v1.0.3 追補正本**: [`ch16_v1.0.3_ROLLING_DRAFT.md`](./ch16_v1.0.3_ROLLING_DRAFT.md)
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **関連章**: 3（状態）, 10（データモデル）, 11（戦略）, 15（Apply）, 17（リスク）, 19（キル）
@@ -41,33 +42,35 @@
 | INV-D-03 | `strategy.json.version` == `bot_state.current_strategy_version`（起動時、ch20 §20.6） |
 | INV-D-04 | `audit_log` に成功した `STRATEGY_APPLY` がある場合、対応する `strategy_versions` 行が存在 |
 | INV-D-05 | LIVE モードの `trades` は `executor=live` のみ |
-| INV-D-06 | **残高保存則**: `balance + Σ(open.size_usd) ≈ initial_balance + Σ(closed.pnl)`（閾値 **0.02 USD**） |
+| INV-D-06 | **残高保存則 v2**: `balance + Σ(open.size_usd) ≈ principal + Σ(closed.pnl)`（**0.02 USD**） |
+| INV-D-07 | **principal 保存則**: `principal == Σ(DEPOSIT) − Σ(WITHDRAW)`（**0.01 USD**） |
+| INV-D-08 | **withdraw 制約**: 全 WITHDRAW で `amount <= balance_before` |
+| INV-D-09 | **非負性**: `principal >= 0` かつ `balance >= 0` |
 
-### 16.3.1 INV-D-06（残高保存則）— 正式定義
+### 16.3.1 INV-D-06（残高保存則 v2）— v1.0.3 改訂
 
-**適用**: PAPER / SIMMER（内部台帳）。BACKTEST は別集計、LIVE は API 残高が主だが内部台帳も整合を推奨。
+**適用**: PAPER / SIMMER。H-1: `balance` = 自由資金、`locked_principal` = `Σ(open.size_usd)`（派生列なし）。
 
-**式**:
+**一次形式**: `total_assets ≈ principal + Σ(closed.pnl)`  
+**展開形式**: `balance + Σ(open.size_usd) ≈ principal + Σ(closed.pnl)`
 
-```
-balance + Σ(open_positions.size_usd) ≈ initial_balance + Σ(closed_trades.pnl)
-```
+v1 後方互換: 入出金履歴が空、またはマイグレーション直後は `principal == initial_balance` 相当で v1 と等価。
 
-| 項 | 意味 |
-|----|------|
-| `balance` | `bot_state.balance` 現在値 |
-| `Σ(open.size_usd)` | 未決済ポジションの建玉サイズ合計 |
-| `initial_balance` | 起動時（またはセッション開始時）の基準残高 |
-| `Σ(closed.pnl)` | 決済済み `trades.pnl` の累計 |
+**更新規則（ch13 §13.2.5 D11 v2）**: open/close は v1 維持。DEPOSIT/WITHDRAW で `balance`/`principal` 同額加減。
 
-**更新規則（SSOT: 第13章 §13.2.5）**:
+**検査**: `check_post_open` / `check_post_close` / `check_post_principal_change`（新規、M4.4）。severity: **ERROR**。
 
-- open 成功: `balance -= size_usd`
-- close 成功: `balance += size_usd + pnl`
+### 16.3.2 INV-D-07（principal 保存則）
 
-**検査**: `InvariantChecker.check_post_open` / `check_post_close`（`f499778`）。違反 severity: **ERROR**（§16.6）。
+`bot_state.principal` と `principal_transactions` の整合。許容誤差 **0.01 USD**。DEPOSIT/WITHDRAW 直後・5 分境界・起動時。severity: **ERROR**。
 
-**cross-ref**: 第13章 §13.2.5（D11）、`src/yoruu/execution/paper_executor.py`、`src/yoruu/safety/invariants.py`。
+### 16.3.3 INV-D-08（withdraw 制約）
+
+全 WITHDRAW で `amount <= balance_before`（= `withdrawable_principal`）。事前 `E_PRINCIPAL_001`、事後不変条件として ERROR。
+
+### 16.3.4 INV-D-09（非負性）
+
+`principal >= 0` かつ `balance >= 0`。5 分境界・資金操作直後。severity: **ERROR**。
 
 ## 16.4 戦略・リスク不変条件（INV-R）
 
@@ -106,19 +109,25 @@ InvariantViolation(inv_id, severity):
 | INV-D-02 | ERROR |
 | INV-D-03 | CRITICAL |
 | INV-D-06 | ERROR |
+| INV-D-07 | ERROR |
+| INV-D-08 | ERROR |
+| INV-D-09 | ERROR |
 | INV-R-02 境界 | CRITICAL（超過後） |
 | INV-R-05 | ERROR |
 
 ## 16.7 テストへのマッピング
 
-第23章 §23.4: 各 `INV-*` に対し最低 1 つのユニットまたは統合テストを要求。
+第23章 §23.4: 各 `INV-*` に対し最低 1 つのユニットまたは統合テストを要求。v1.0.3: `InvariantChecker` **19 → 22 件**（M4.4 で INV-D-06 v2 / 07 / 08 / 09 テスト追加）。
 
 ## 16.8 章間相互参照表
 
 | 本章節 | 参照先 | 内容 |
 |--------|--------|------|
 | INV-D-03 | ch20 §20.6 | 起動検査 |
-| INV-D-06 | ch13 §13.2.5 | open/close 後 |
+| INV-D-06 v2 | ch13 §13.2.5 D11 v2 | open/close/deposit/withdraw 後 |
+| INV-D-07 | ch10 §10.3.14 / ch13 §13.2.6 | principal_transactions |
+| INV-D-08 | ch13 §13.2.6 / ch18 E_PRINCIPAL_001 | withdraw |
+| INV-D-09 | ch13 §13.2.5 / §13.2.6 | 非負性 |
 | INV-R-* | ch11, ch17 | 戦略・リスク |
 | INV-M-* | ch12 | モード |
 | 違反応答 | ch19 §19.2 | AUTO_INVARIANT |

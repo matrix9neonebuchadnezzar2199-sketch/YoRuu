@@ -1,9 +1,10 @@
 # 第18章 エラーハンドリング + ログトリアージ
 
-- **バージョン**: v1.1.0
+- **バージョン**: v1.1.1
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
-- **最終更新**: 2026-05-28（v1.1.0: §18.3 severity 列正式化、`E_NIGHTLY_008` に `W_NIGHTLY_001` 統合、Q1=A）
+- **最終更新**: 2026-05-28（v1.1.1: `E_PRINCIPAL_*` / `E_FX_*` ドメイン追加）
+- **v1.1.1 追補正本**: [`ch18_v1.1.1_ROLLING_DRAFT.md`](./ch18_v1.1.1_ROLLING_DRAFT.md)
 - **ステータス**: APPROVED
 - **関連章**: 10（API 応答形式）, 14（i18n `error.*`）, 15（`E_NIGHTLY_*` 意味論）, 17（リスクマトリクス）
 
@@ -51,6 +52,8 @@ YoRuu 全体の**エラーコード体系**、**HTTP ステータスマッピン
 | `LIVE` | 001〜019 | Polymarket CLOB（ch24） |
 | `AUTH` | 001〜009 | API キー・署名 |
 | `WS` | 001〜009 | WebSocket |
+| `PRINCIPAL` | 001〜019 | 元本入出金（ch13 §13.2.6） |
+| `FX` | 001〜009 | 為替表示換算（ch10 §10.6.13） |
 
 ## 18.3 エラーコードカタログ（SSOT）
 
@@ -142,6 +145,34 @@ YoRuu 全体の**エラーコード体系**、**HTTP ステータスマッピン
 | `E_WS_001` | WARN | WebSocket 切断（再接続中） |
 | `E_WS_002` | ERROR | 再接続上限超過 |
 
+### 18.3.9 `E_PRINCIPAL_*`（v1.1.1）
+
+元本入出金。PrincipalService（ch13 §13.2.6）が発火源。
+
+| コード | severity | HTTP | 説明 | ユーザーアクション |
+|--------|----------|------|------|------------------|
+| `E_PRINCIPAL_001` | ERROR | 422 | withdraw > balance（INV-D-08 事前検証） | 出金額を `withdrawable_principal` 以下に |
+| `E_PRINCIPAL_002` | ERROR | 422 | amount <= 0 | 正の金額を指定 |
+| `E_PRINCIPAL_003` | ERROR | 422 | deposit > `principal.max_deposit_per_tx` | 分割または ch22 設定見直し |
+| `E_PRINCIPAL_004` | ERROR | 422 | withdraw で `confirm=false` | `confirm: true` で再送 |
+| `E_PRINCIPAL_005` | ERROR | 500 | DB トランザクション失敗 | 再試行・ログ確認 |
+| `E_PRINCIPAL_006` | ERROR | 422 | withdraw > `principal.max_withdraw_per_tx` | 分割または ch22 設定見直し |
+
+`E_PRINCIPAL_005` はログに `E_DB_001` 詳細を併記可。**cross-ref**: ch10 §10.6.12、ch13 §13.2.6、ch16 INV-D-06〜09、ch22 §22.2.2。
+
+### 18.3.10 `E_FX_*`（v1.1.1）
+
+HUD の JPY 換算のみ。取引・principal には影響しない。
+
+| コード | severity | HTTP | 説明 | ユーザーアクション |
+|--------|----------|------|------|------------------|
+| `E_FX_001` | WARN | 503 | 外部 FX 取得失敗 | キャッシュ/フォールバック継続、stale 注記 |
+| `E_FX_002` | ERROR | 500 | 未知プロバイダ | ch22 §22.2.3 許容一覧を確認 |
+| `E_FX_003` | WARN | 422 | 応答パース失敗 | フォールバック継続、ログ確認 |
+| `E_FX_004` | WARN | 503 | `display.fx.enabled=false` 時の API 呼び出し | HUD/ch22 設定確認 |
+
+**cross-ref**: ch10 §10.6.13、ch22 §22.2.3、`FX_RATE_AUTO_FETCH_DRAFT.md`。
+
 ## 18.4 ログトリアージ
 
 ### 18.4.1 ログファイル構成
@@ -182,9 +213,11 @@ YoRuu 全体の**エラーコード体系**、**HTTP ステータスマッピン
 |--------|-----------------|
 | `E_FILL_001` | `error.e_fill_001` |
 | `E_MODE_001` | `error.e_mode_001` |
+| `E_PRINCIPAL_001`〜`006` | `error.e_principal_001`〜`006` |
+| `E_FX_001`〜`004` | `error.e_fx_001`〜`004` |
 | … | 全コードで `error.e_<domain>_<nnn>` |
 
-PHASE 3 実装時: `src/yoruu/ui/locales/ja.json` に §18.3 全件を追加。`en.json` は v1.0 で空オブジェクト可（ch14）。
+PHASE 4 M4.8: `ja.json` に §18.3.9/10 を追加。`en.json` は v1.0 と同条件で空可（ch14）。
 
 ## 18.6 章間相互参照表
 
@@ -193,6 +226,8 @@ PHASE 3 実装時: `src/yoruu/ui/locales/ja.json` に §18.3 全件を追加。`
 | §18.3.3 | ch13 §13.8 | Fill 失敗 |
 | §18.3.4 | ch15 §15.10 | Nightly 意味論 |
 | §18.3.2 | ch12 §12.5.2 | モード 409 |
+| §18.3.9 | ch13 §13.2.6 / ch10 §10.6.12 / ch16 §16.3 | 元本入出金 |
+| §18.3.10 | ch10 §10.6.13 / ch22 §22.2.3 | FX 取得 |
 | §18.4 | ch5 §5.2 | 秘密マスク |
 | §18.5 | ch14 §14.10.8 | error.* |
 
@@ -204,6 +239,7 @@ PHASE 3 実装時: `src/yoruu/ui/locales/ja.json` に §18.3 全件を追加。`
 - [x] ch13 E_FILL_001〜010 掲載
 - [x] HTTP と FillResult の使い分け明記
 - [x] i18n キー規則と一致
+- [x] `E_PRINCIPAL_*` / `E_FX_*` 追加、ch10/13/16/22 v1.2 群と整合（v1.1.1）
 
 ### 18.7.2 レビュー判定（7項目）
 
