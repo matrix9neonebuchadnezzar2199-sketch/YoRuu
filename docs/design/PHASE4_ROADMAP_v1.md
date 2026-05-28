@@ -50,7 +50,7 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 |----|------|------|------|----------------|
 | M4.1 | FastAPI + SSE 契約 | Composer | ✅ `dea96e0` | |
 | M4.2 | 静的モック + EventSource | Composer | ✅ `02edfa0` | |
-| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **進行中** | ch10 **v1.2** / ch13 **v1.0.5** ローリング済 → ch16 INV-D-06 v2 次 |
+| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **進行中** | ch10/ch13 ローリング済、[`ch16_v1.0.3_ROLLING_DRAFT.md`](./ch16_v1.0.3_ROLLING_DRAFT.md) → ch22 次 |
 | M4.4 | 元本コア実装 | Composer | ⏳ | DB、PrincipalService、D11 v2、INV 拡張、pytest 維持 |
 | M4.5 | REST + CLI + SSE `principal_changed` | Composer | ⏳ | API/CLI、SSE 契約 |
 | M4.6 | `mock-data.js` 拡張 | Composer | ⏳ | 既存 10 画面モック不変 |
