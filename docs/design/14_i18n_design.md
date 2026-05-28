@@ -1,8 +1,9 @@
 # 第14章 i18n 設計
 
-- **バージョン**: v1.0.1
+- **バージョン**: v1.0.2
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
+- **最終更新**: 2026-05-28（v1.0.2: §14.5 ja/en フォールバック明文化、§14.11.4 bundle 同期 CI）
 - **ステータス**: APPROVED
 - **関連章**: 1（概要 §1.2）, 8（UI モック §8.8 / §8.20.5.1）, 9（ユーザーフロー §9.13）, 10（関数・データモデル §10.6.11 / §10.11.5）, 18（エラーコード）
 - **新設章**（旧構成にはなし、ch24 再編で追加）
@@ -158,9 +159,13 @@ PHASE 2 のモックでは：
 
 ```
 docs/mockups/shared/locales/
-├─ ja.json
-└─ en.json
+├─ ja.json          # SSOT（編集対象）
+├─ en.json          # SSOT（キー枠、値は空可）
+├─ ja.bundle.js     # file:// 用ビルド成果物（ja.json から生成）
+└─ en.bundle.js     # 同上（PHASE 4 以降）
 ```
+
+`ja.bundle.js` / `en.bundle.js` は **手編集禁止**。`tools/build_locales.py`（PHASE 3 実装予定）で JSON → bundle を再生成する（§14.11.4）。
 
 ### 14.4.2 ファイル形式
 
@@ -220,20 +225,24 @@ JSON、UTF-8、フラットなキー→値マップ：
 
 ### 14.5.1 解決順序
 
-`t(key, lang)` の解決：
+`t(key, lang)` の解決。**一次言語は `ja`、英語は `en` フォールバック**（Track 2D / T4.2 前提）。
 
 ```
-1. <lang>.json に key 存在 → 値返却
-2. ja.json に key 存在 → 値返却（警告ログ）
-3. key そのまま返却（開発者向け、ERROR ログ）
+1. <lang>.json に key が存在し値が非空 → 値返却
+2. lang != ja かつ ja.json に key 存在 → 値返却（en フォールバック時は WARN ログ、§14.5.2）
+3. lang == ja かつ en.json に key 存在 → 値返却（開発用・WARN ログ）
+4. key 文字列そのまま返却（ERROR ログ）
 ```
+
+`lang=en` で `en.json` が空 `{}` の期間は、手順 1 をスキップし手順 2 で常に `ja` に落ちる（§14.2.4）。
 
 ### 14.5.2 フォールバック時のログ
 
 | 状況 | ログレベル | 出力先 |
 |------|----------|-------|
-| `en` で `ja` フォールバック | DEBUG（既定オフ） | コンソール |
-| `ja` でキー不在 | ERROR | コンソール + サーバー `alerts`（PHASE 5 以降検討） |
+| `en` 表示で `ja` にフォールバック（手順 2） | **WARN** | コンソール |
+| `ja` 表示で `en` にフォールバック（手順 3） | WARN | コンソール |
+| 手順 4（キーそのまま） | ERROR | コンソール + サーバー `alerts`（PHASE 5 以降検討） |
 | 言語コード不正（`zh` 等） | WARN、`ja` で表示 | コンソール |
 
 ### 14.5.3 UI 表示時のフォールバック明示
@@ -633,12 +642,21 @@ new Intl.NumberFormat(currentLang, {
 
 ### 14.11.4 CI/CD でのバリデーション
 
-PHASE 4 以降で以下を CI 化：
+PHASE 4 以降で以下を CI 化（**差分時 fail**）：
 
-- `ja.json` と `en.json` のキー集合が一致するか（空値許容）
-- 全ての `data-i18n` 属性に対応するキーが存在するか
-- 未使用キー検出（UI 側からの参照なし）
-- 重複キー検出
+1. **キー集合同期**: `ja.json` と `en.json` のキー集合が完全一致（`en` の値は空文字列可）
+2. **bundle 同期**: `ja.bundle.js` / `en.bundle.js` が直近 `build_locales` 出力と一致
+3. **HTML 参照**: 全 `data-i18n` に対応キーが `ja.json` に存在
+4. 未使用キー検出（警告）、重複キー検出（fail）
+
+検査手順例（リポジトリルート）:
+
+```bash
+python tools/build_locales.py --check
+# 内部: json.load → キー集合 diff → bundle ハッシュ比較 → exit 1 on mismatch
+```
+
+`tools/build_locales.py` は `ja.json` → `ja.bundle.js`（`window.YORUU_LOCALES_ja = {...}`）を生成し、`--write` で上書き、`--check` で CI 用検証のみ行う。pre-commit フック登録は T4.9（別タスク）。
 
 ### 14.11.5 キー数モニタリング
 

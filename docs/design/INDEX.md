@@ -52,7 +52,7 @@
 
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
-| 8 | UIモックアップ（11画面） | [`08_ui_mockup.md`](./08_ui_mockup.md) | APPROVED | `832ad1e` |
+| 8 | UIモックアップ（11画面） | [`08_ui_mockup.md`](./08_ui_mockup.md) | APPROVED | v1.2.3 · 2026-05-28 |
 
 </details>
 
@@ -63,10 +63,10 @@
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
 | 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.1 · 2026-05-28 |
-| 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `d405f0c` |
+| 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | v1.0.2 · 2026-05-28 |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
 | 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | v1.0.4 · 2026-05-28 |
-| 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED | `3e16689` |
+| 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED | v1.0.2 · 2026-05-28 |
 
 </details>
 
@@ -75,10 +75,10 @@
 
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
-| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED | `5212e3a` |
+| 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED | v1.0.2 · 2026-05-28 |
 | 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | v1.0.1 · 2026-05-28 |
 | 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED | `ec08886` |
-| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | `ec08886` |
+| 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | v1.1.0 · 2026-05-28 |
 | 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED | `ec08886` |
 
 </details>

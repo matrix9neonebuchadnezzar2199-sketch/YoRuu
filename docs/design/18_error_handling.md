@@ -1,8 +1,9 @@
 # 第18章 エラーハンドリング + ログトリアージ
 
-- **バージョン**: v1.0.0
+- **バージョン**: v1.1.0
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
+- **最終更新**: 2026-05-28（v1.1.0: §18.3 severity 列正式化、`E_NIGHTLY_008` に `W_NIGHTLY_001` 統合、Q1=A）
 - **ステータス**: APPROVED
 - **関連章**: 10（API 応答形式）, 14（i18n `error.*`）, 15（`E_NIGHTLY_*` 意味論）, 17（リスクマトリクス）
 
@@ -18,7 +19,8 @@ YoRuu 全体の**エラーコード体系**、**HTTP ステータスマッピン
 |------|------|
 | コード | `E_<DOMAIN>_<NNN>` — DOMAIN は大文字、NNN は 3 桁ゼロ埋め |
 | i18n キー | `error.e_<domain>_<nnn>` — 小文字・ドット区切り（第14章 §14.10.8） |
-| severity | `INFO` \| `WARN` \| `ERROR` \| `CRITICAL`（ch10 §10.2） |
+| severity | `WARN` \| `ERROR` \| `CRITICAL`（§18.3 表の列。`INFO` は将来拡張用で v1.1 未使用） |
+| `W_*` 警告コード | **非採用**。旧 `W_NIGHTLY_001` は `E_NIGHTLY_008` に統合（Track 2D / Q1=A） |
 
 ### 18.1.3 API 応答形式（再掲）
 
@@ -35,6 +37,8 @@ YoRuu 全体の**エラーコード体系**、**HTTP ステータスマッピン
 `message` は英語（開発用）。UI は `code` から i18n を解決する。
 
 ## 18.2 ドメイン一覧
+
+エラーコードの **severity / HTTP / 説明** の SSOT は §18.3 のカタログ表。本章 §18.2 はドメイン境界の索引のみ。
 
 | ドメイン | 範囲 | 主な発生源 |
 |----------|------|------------|
@@ -92,7 +96,7 @@ YoRuu 全体の**エラーコード体系**、**HTTP ステータスマッピン
 | `E_NIGHTLY_005` | WARN | 422 | 提案 JSON に `constraints` 禁止キー |
 | `E_NIGHTLY_006` | WARN | 422 | 提案 JSON に yoruu.yaml 系キー |
 | `E_NIGHTLY_007` | WARN | 422 | パラメータ範囲外 |
-| `E_NIGHTLY_008` | WARN | 422 | 変化率 ±20% 超 |
+| `E_NIGHTLY_008` | WARN† / ERROR‡ | 422 | パラメータ変化率しきい値超過（†10%超→`warnings[]`、‡20%超→`errors[]`・Apply 不可） |
 | `E_NIGHTLY_009` | WARN | 422 | 必須キー欠落 |
 | `E_NIGHTLY_010` | ERROR | 500 | Apply: strategy_versions INSERT 失敗 |
 | `E_NIGHTLY_011` | ERROR | 500 | Apply: バックアップ失敗 |

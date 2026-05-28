@@ -1,8 +1,8 @@
 # 第11章 戦略ロジック
 
-- **バージョン**: v1.0.1
+- **バージョン**: v1.0.2
 - **作成日**: 2026-05-27
-- **最終更新**: 2026-05-27（v1.0.1: R11-1〜3 横断 SSOT 整合、ch7/ch8/ch10 追補）
+- **最終更新**: 2026-05-28（v1.0.2: §11.7.7 Evaluator / RiskGuard 層分担、ch18 severity 経路）
 - **ステータス**: APPROVED
 - **関連章**: 3（状態遷移）, 6（シーケンス）, 7（I/O 図）, 9（ユーザーフロー §9.10）, 10（関数・データモデル §10.7.4 / §10.9 / §10.4.1）, 12（モード仕様）, 13（ペーパー約定）, 15（夜間レビュー）
 - **旧 ch12 「Strategy」を本章に統合**
@@ -274,6 +274,25 @@ EvaluationResult(
 - 判定毎に `audit_log` に `result=SUCCESS|FAILURE` で 1 行追加（`action=evaluate_entry`）
 - エントリー成立時のみ `position_opened` SSE 発火（OM 経由、§10.5.3）
 - 待機時は `markov_update` SSE 内の `threshold_met` で UI に通知
+
+### 11.7.7 Evaluator / RiskGuard 層分担
+
+| 層 | コンポーネント | 責務 | 主な出力 |
+|----|---------------|------|----------|
+| 評価 | `StrategyEvaluator`（§11.7.2 C1〜C3） | Markov 予測、Persistence ゲート、Edge 計算、Kelly サイジング | `EvaluationResult`（`should_enter`, `wait_reason`） |
+| リスク | `RiskGuard`（C4、`check_pre_trade`） | 日次損失・残予算・不変条件連携（ch16）、取引前ブロック | `RiskCheckResult.ok` / `reason` |
+| 統合 | `OrderManager` + `InvariantChecker` | 約定後検査、緊急停止、severity に応じた UI/SSE | `E_*` / 監査ログ |
+
+**ch18 severity 経路（参考）**:
+
+| 経路 | severity | 例 | UI 色（ch08 §8.4.3） |
+|------|----------|-----|---------------------|
+| 取引待機（`wait_reason`） | —（エラーコードなし） | `persistence` / `edge` | ダッシュボード表示のみ |
+| 夜間 Apply 警告 | WARN | `E_NIGHTLY_008`（10%超、`warnings[]`） | `--attention-fg` / `--severity-warn-bg` |
+| 夜間 Apply 拒否 | ERROR | `E_NIGHTLY_008`（20%超）、`E_NIGHTLY_007` | 赤背景・Apply 無効 |
+| 緊急停止 | ERROR / CRITICAL | ch19 | `--danger-fg`（§8.7.4） |
+
+`StrategyEvaluator.evaluate(..., risk_guard=...)` は C4 をオプション注入（`f499778`）。`risk_guard=None` の単体テストでは C4 をスキップ可能。
 
 ## 11.8 決済判定
 
