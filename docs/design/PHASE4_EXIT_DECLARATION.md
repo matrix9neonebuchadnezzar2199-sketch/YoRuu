@@ -2,7 +2,7 @@
 
 > **日付**: 2026-05-28  
 > **対象**: `f:\Cursor\YoRuu` / `main`  
-> **前提コミット**: `1dc90f7` 系（M4.7 HUD）→ 本 Exit コミットで確定
+> **前提コミット**: `feaa328`（M4.8–M4.9 Exit）
 
 ---
 
@@ -44,7 +44,7 @@
 | `87747cb` | M4.5 | principal API/CLI/SSE/FX |
 | `18e5e14` | M4.6 | mock-data principal/FX |
 | `a555097` | M4.7 | `00_hud.html` |
-| （本 Exit） | M4.8–M4.9 | en i18n、serve、Exit 宣言、v0.5.0 |
+| `feaa328` | M4.8–M4.9 | en i18n、serve、Exit 宣言、v0.5.0 |
 
 ---
 
