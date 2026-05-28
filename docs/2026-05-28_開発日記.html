@@ -489,6 +489,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1331">#entry-1331</a></td>
       </tr>
+      <tr>
+        <td>14:19</td>
+        <td>参照 HUD 突き合わせ表初版（01_dashboard）</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1419">#entry-1419</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -908,6 +914,28 @@ body.diary > footer {
   <p>119 tests / 88.01%（マスター受領 + ローカル再実行一致）。手動: <code>yoruu serve</code> で hub・各ページ 200。Commit: <code>76dd89b</code>（fix）、<code>9715660</code>（日記）。</p>
   <h3>残課題</h3>
   <p>lab <code>paper-24h</code> 実運用、M4.3 REST 初期データ結線、ch10 v1.2 severity（PHASE 4 キックオフ判断）。</p>
+</section>
+
+<section class="entry" id="entry-1419">
+  <h2>参照 HUD ↔ 01_dashboard 突き合わせ表（初版）<a href="#entry-1419" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 14:19 JST</span>
+    <span class="tag tag-type">analysis</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>観察</h3>
+  <p>参照画像（Hermes 型・情報密集型シングル HUD）と <code>docs/mockups/01_dashboard.html</code> を 10 要素で突き合わせ。構造ギャップ: 参照は 1 画面集約、現状は 10 画面分散。ギャップ <strong>×</strong> が多い（ヒーロー残高、戦略式、シグナル、ローソク、システム 4 枠、夜間 CD 等）。<code>shared/mock-data.js</code>（~27KB）と <code>locales/ja.bundle.js</code> 構成を確認済み。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/mockups/REF_IMAGE_GAP_MATRIX_v1.md</li>
+    <li><span class="op op-add">+</span> docs/mockups/reference/hermes-hud-ref.png</li>
+    <li><span class="op op-mod">~</span> docs/mockups/CHANGELOG.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>アプローチ <strong>A</strong>（01 全面リライト）/ <strong>B</strong>（新規 HUD + 既存温存）と 5 判断項目を文書化。Telegram 通知枠は Q4 不採用のため SSE 等へ置換要。詳細突き合わせ（02〜10・ch10）は <strong>1 の承認後</strong>に実施。</p>
+  <h3>検証</h3>
+  <p>ドキュメントのみ。Commit: <code>a5d7d14</code>。</p>
 </section>
 </main>
 

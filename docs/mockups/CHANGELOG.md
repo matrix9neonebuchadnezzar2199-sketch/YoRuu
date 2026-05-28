@@ -1,5 +1,13 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — 参照画像 ↔ 01_dashboard 突き合わせ初版
+
+| 項目 | 内容 |
+|------|------|
+| ドキュメント | `REF_IMAGE_GAP_MATRIX_v1.md` |
+| 参照画像 | `reference/hermes-hud-ref.png` |
+| 論点 | シングル HUD vs 10 画面分散、アプローチ A/B、判断 5 項目 |
+
 ## 2026-05-28 — §F T4.2 i18n / パレット / nightly 整合
 
 **スコープ**: Track 2D 実装適用。`W_NIGHTLY_001` 廃止、`E_NIGHTLY_008` 二段義（10% WARN / 20% ERROR）。
