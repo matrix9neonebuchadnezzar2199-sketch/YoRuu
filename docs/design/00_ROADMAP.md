@@ -134,9 +134,9 @@ gantt
 | Track | 内容 | 状態（2026-05-28） |
 |-------|------|-------------------|
 | 1 | A-HIGH 8 + Q1〜Q3 | **完了** `f499778` |
-| 2 | 設計書ローリング（Opus ch3〜） | 未着手 |
-| 3 | README / INDEX / ROADMAP / CHECKLIST | Track 3 docs-sync |
-| 4 | モック後修正（§F T4.1〜） | Q3-MOCK 先行可、SSE は別チャット |
+| 2 | 設計書ローリング（2A〜2D） | **完了** `c8fa393`（2A `73ab8e8` / 2B `a535820` / 2C `cb09fdf`） |
+| 3 | README / INDEX / ROADMAP / CHECKLIST | **完了** `085cad5`（README 追補 `704e387`） |
+| 4 | モック後修正（§F T4.1〜） | Q3-MOCK **完了** `d5c44a8` → **次** T4.1 SSE（B1） |
 
 **カバレッジ `fail_under` 段階**: **55**（現状、`pyproject.toml`）→ **70**（Track 1 安定後）→ **80**（PHASE 3 Exit、ch23 §23.3）
 
@@ -290,3 +290,5 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-27 | v1.2 | PHASE 3 scaffold（CLI + paper + nightly） | `005fdcd` |
 | 2026-05-27 | v1.2 | PHASE 3 `src/yoruu/data/` 追加 | `a040f41` |
 | 2026-05-28 | v1.3 | **Track 1 完了**（A-HIGH 8 + Q1〜Q3、fail_under 55） | `f499778` |
+| 2026-05-28 | v1.3 | **Track 2 完了**（設計ローリング 2A〜2D、T4.2 ゲート成立） | `c8fa393` |
+| 2026-05-28 | v1.3 | README Track 進捗表 + ROADMAP Track 表同期 | `704e387` |

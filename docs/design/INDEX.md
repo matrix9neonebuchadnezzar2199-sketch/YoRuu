@@ -14,6 +14,9 @@
 | 設計書 APPROVED | **24 / 24** 章 + **付録 A** |
 | UI モック | **11 / 11**（PHASE 2 完了） |
 | Track 1（A-HIGH） | **8 / 8** 完了 → `f499778` |
+| Track 2（設計ローリング） | **4 / 4** 完了 → `c8fa393` |
+| Track 3（docs-sync） | 完了 → `085cad5` |
+| Track 4（モック） | Q3-MOCK 完了 `d5c44a8`、次 T4.1 SSE |
 | pytest | 20 passed、カバレッジ ≈65% |
 | `fail_under` | **55**（暫定）→ 70 → 80（Exit） |
 | 次の Exit | 24h paper + カバレッジ 80% + INV 全件 |
