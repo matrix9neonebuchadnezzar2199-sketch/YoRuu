@@ -1,5 +1,18 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — §F T4.2 i18n / パレット / nightly 整合
+
+**スコープ**: Track 2D 実装適用。`W_NIGHTLY_001` 廃止、`E_NIGHTLY_008` 二段義（10% WARN / 20% ERROR）。
+
+| 項目 | 内容 |
+|------|------|
+| `nightly-review.js` | 警告/拒否とも `E_NIGHTLY_008` + `:WARN` / `:ERROR` サフィックス |
+| i18n | `error.e_nightly_008.warn` / `.error`、ja→en→key フォールバック |
+| パレット | `--severity-error-color` / `--severity-warn-color`、`severity.js` 完全一致判定 |
+| CI | `tools/build_locales.py --check`、`.github/workflows/mock-locales.yml` |
+
+**変更ファイル**: `nightly-review.js`, `i18n.js`, `style.css`, `severity.js`, `app.js`, `03_nightly_review.html`, `locales/*`, `tools/build_locales.py`
+
 ## 2026-05-28 — §F T4.1 SSE_PAYLOADS（B1）
 
 **スコープ**: 監査 B1。ch10 §10.5.3 / ch8 §8.9 とモック SSE 契約を一致。
@@ -15,8 +28,6 @@
 - `shared/mock-data.js` — `SSE_PAYLOADS`（11 件）、`ssePayload()`、`mockSSE` 統合
 - `shared/app.js` — 緊急停止 FAB
 - `03_nightly_review.html` / `05_strategy_history.html` / `07_mode_switch.html`
-
-**申し送り**: T4.2（`nightly-review.js` の `W_NIGHTLY_001`、`error.e_nightly_008`、パレット、`build_locales.py`）は別チャット。
 
 ## 2026-05-28 — Q3-MOCK 残高整合
 

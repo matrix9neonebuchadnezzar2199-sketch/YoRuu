@@ -453,6 +453,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1130">#entry-1130</a></td>
       </tr>
+      <tr>
+        <td>11:39</td>
+        <td>T4.2 + INV-D-02 並列実装</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1139">#entry-1139</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -746,6 +752,20 @@ body.diary > footer {
   <p>テンプレ 10 + 11 は §L 並列 2 枠で同時投入可。投入待ち: マスターが各 Composer チャットへ貼り付け。</p>
   <h3>検証</h3>
   <p>Commit: <code>23c7eeb</code>。</p>
+</section>
+
+<section class="entry" id="entry-1139">
+  <h2>テンプレ 10/11 並列実装 — T4.2 + INV-D-02<a href="#entry-1139" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 11:39 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>テンプレ <strong>10</strong>: <code>W_NIGHTLY_001</code> 排除、<code>E_NIGHTLY_008</code> 二段義、i18n フォールバック、severity パレット、<code>build_locales.py --check</code> + CI。テンプレ <strong>11</strong>: <code>inv_d02_daily_pnl_consistency</code>、日次集計 SQL、UT 3 件、ch16 v1.0.2。INV 実装 <strong>19/19</strong>。</p>
+  <h3>検証</h3>
+  <p>89 tests / coverage 89.05%。locales 261 keys。Commit: <em>pending</em>。</p>
 </section>
 </main>
 

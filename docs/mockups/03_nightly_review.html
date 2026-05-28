@@ -185,15 +185,19 @@
         msgEl.innerHTML = "";
         preview.warnings.forEach(function (w) {
           var p = document.createElement("p");
-          p.className = "warn";
-          p.textContent = i18n.t("warning.large_change") + " (" + w + ")";
+          p.className = "warn severity-warn";
+          if (w.indexOf("E_NIGHTLY_008") >= 0) {
+            p.textContent = i18n.t("error.e_nightly_008.warn") + " (" + w + ")";
+          } else {
+            p.textContent = i18n.t("warning.large_change") + " (" + w + ")";
+          }
           msgEl.appendChild(p);
         });
         preview.errors.forEach(function (e) {
           var p = document.createElement("p");
-          p.className = "err";
+          p.className = "err severity-error";
           if (e.indexOf("E_NIGHTLY_008") >= 0) {
-            p.textContent = i18n.t("error.reject_large_change") + " (" + e + ")";
+            p.textContent = i18n.t("error.e_nightly_008.error") + " (" + e + ")";
           } else if (e.indexOf("E_NIGHTLY_007") >= 0) {
             p.textContent = i18n.t("error.out_of_range") + " (" + e + ")";
           } else if (e.indexOf("E_NIGHTLY_009") >= 0) {

@@ -28,7 +28,15 @@
       return;
     }
     banner.classList.remove("hidden");
-    banner.dataset.severity = data.health.severity || "warn";
+    const sev = (data.health.severity || "WARN").toUpperCase();
+    banner.dataset.severity = sev;
+    banner.classList.remove("severity-error", "severity-warn", "severity-info");
+    if (global.YoRuuSeverity) {
+      const sevClass = global.YoRuuSeverity.cssClassForSeverity(sev);
+      if (sevClass) {
+        banner.classList.add(sevClass);
+      }
+    }
     banner.textContent =
       global.YoRuuI18n.t("health.degraded") + ": " + data.health.message;
     global.document.body.classList.add("has-banner");

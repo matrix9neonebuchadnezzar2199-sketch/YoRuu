@@ -23,11 +23,23 @@
     const lg = lang || currentLang;
     const jaDict = getDict("ja");
     const enDict = getDict("en");
-    let text =
-      getDict(lg)[key] ||
-      (lg !== "ja" ? enDict[key] : "") ||
-      jaDict[key] ||
-      key;
+    let text;
+    if (lg === "ja") {
+      if (Object.prototype.hasOwnProperty.call(jaDict, key)) {
+        text = jaDict[key];
+      } else if (Object.prototype.hasOwnProperty.call(enDict, key)) {
+        console.warn("[YoRuu i18n] en fallback for key:", key);
+        text = enDict[key];
+      } else {
+        text = key;
+      }
+    } else if (Object.prototype.hasOwnProperty.call(enDict, key)) {
+      text = enDict[key];
+    } else if (Object.prototype.hasOwnProperty.call(jaDict, key)) {
+      text = jaDict[key];
+    } else {
+      text = key;
+    }
 
     if (vars && typeof text === "string") {
       Object.keys(vars).forEach(function (k) {

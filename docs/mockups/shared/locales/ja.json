@@ -179,6 +179,8 @@
   "error.out_of_range": "範囲外の値です",
   "error.parse_failed": "JSON の解析に失敗しました",
   "error.reject_large_change": "変化率 ±20% 超のため Apply 不可",
+  "error.e_nightly_008.warn": "パラメータ変化率が ±10% を超えています（警告）",
+  "error.e_nightly_008.error": "パラメータ変化率が ±20% を超えているため Apply できません",
   "warning.large_change": "変化率 ±10% 超（警告）",
 
   "confirm.apply_title": "戦略を適用しますか？",

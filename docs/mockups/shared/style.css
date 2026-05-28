@@ -25,6 +25,8 @@
   --severity-success-bg: #3fb9501a;
   --severity-warn-bg: #d299221a;
   --severity-danger-bg: #f851491a;
+  --severity-error-color: var(--danger-fg);
+  --severity-warn-color: var(--attention-fg);
   --z-banner: 100;
   --z-sidebar: 90;
   --z-fab: 80;
@@ -99,9 +101,20 @@ a:hover {
   color: var(--text-primary);
 }
 
-.health-banner[data-severity="danger"] {
+.health-banner[data-severity="danger"],
+.health-banner[data-severity="ERROR"],
+.health-banner[data-severity="CRITICAL"],
+.health-banner.severity-error {
   background: var(--severity-danger-bg);
-  border-bottom-color: var(--danger-fg);
+  border-bottom-color: var(--severity-error-color);
+  color: var(--severity-error-color);
+}
+
+.health-banner[data-severity="WARN"],
+.health-banner.severity-warn {
+  background: var(--severity-warn-bg);
+  border-bottom-color: var(--severity-warn-color);
+  color: var(--severity-warn-color);
 }
 
 .health-banner[data-severity="info"] {

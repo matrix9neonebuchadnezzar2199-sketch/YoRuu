@@ -140,10 +140,10 @@
       let warnLarge = false;
       if (!unchanged && deltaPct > 10) {
         warnLarge = true;
-        warnings.push("W_NIGHTLY_001:" + key);
+        warnings.push("E_NIGHTLY_008:" + key + ":WARN");
       }
       if (!unchanged && deltaPct > 20) {
-        errors.push("E_NIGHTLY_008:" + key);
+        errors.push("E_NIGHTLY_008:" + key + ":ERROR");
       }
       diff.push({
         key: key,
