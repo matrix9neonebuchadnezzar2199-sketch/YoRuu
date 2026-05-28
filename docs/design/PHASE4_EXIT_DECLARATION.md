@@ -52,11 +52,11 @@
 
 | 章 | ドラフト | 本体反映 |
 |----|----------|----------|
-| ch10 v1.2 | `ch10_v1.2_ROLLING_DRAFT.md` | PHASE 5 ADR でマージ予定 |
-| ch13 v1.0.5 | `ch13_v1.0.5_ROLLING_DRAFT.md` | 同上 |
-| ch16 v1.0.3 | `ch16_v1.0.3_ROLLING_DRAFT.md` | 同上 |
-| ch18 v1.1.1 | `ch18_v1.1.1_ROLLING_DRAFT.md` | 同上 |
-| ch22 v1.0.5 | `ch22_v1.0.5_ROLLING_DRAFT.md` | 同上 |
+| ch10 v1.2 | `archive/principal-rollout-2026-05-28/ch10_v1.2_ROLLING_DRAFT.md` | M4.3 本体反映済み、M5.1 archive |
+| ch13 v1.0.5 | `archive/.../ch13_v1.0.5_ROLLING_DRAFT.md` | 同上 |
+| ch16 v1.0.3 | `archive/.../ch16_v1.0.3_ROLLING_DRAFT.md` | 同上 |
+| ch18 v1.1.1 | `archive/.../ch18_v1.1.1_ROLLING_DRAFT.md` | 同上 |
+| ch22 v1.0.5 | `archive/.../ch22_v1.0.5_ROLLING_DRAFT.md` | 同上 |
 
 正本ロードマップ: [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md)（案 P / I-1 / W-2 / X-2 確定）
 

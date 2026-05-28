@@ -3,7 +3,7 @@
 - **バージョン**: v1.0.3
 - **作成日**: 2026-05-27
 - **ローリング更新**: 2026-05-28（v1.0.3: INV-D-06 v2、INV-D-07/08/09 追加、InvariantChecker 22 件）
-- **v1.0.3 追補正本**: [`ch16_v1.0.3_ROLLING_DRAFT.md`](./ch16_v1.0.3_ROLLING_DRAFT.md)
+- **v1.0.3 追補アーカイブ**: [`archive/principal-rollout-2026-05-28/ch16_v1.0.3_ROLLING_DRAFT.md`](./archive/principal-rollout-2026-05-28/ch16_v1.0.3_ROLLING_DRAFT.md)
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **関連章**: 3（状態）, 10（データモデル）, 11（戦略）, 15（Apply）, 17（リスク）, 19（キル）

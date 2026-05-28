@@ -1,8 +1,7 @@
 # ADR-001: Principal concept design rollup (ch10/13/16/18/22)
 
 **Status**: Accepted (2026-05-28)  
-**Context**: PHASE 4 M4.3 produced rolling drafts; implementation (M4.4–M4.7) is complete.  
-**Decision**: Merge approved rolling content into canonical design chapters in one changeset.
+**Implementation note (M5.1, 2026-05-28)**: Canonical chapters were updated during M4.3 (`fca1306`, `cbe24f3`). Rolling drafts are archived under `docs/design/archive/principal-rollout-2026-05-28/`.
 
 ## Context
 
@@ -12,20 +11,21 @@
 
 ## Decision
 
-1. Roll `ch10_v1.2`, `ch13_v1.0.5`, `ch16_v1.0.3`, `ch18_v1.1.1`, `ch22_v1.0.5` **rolling drafts** into:
-   - `10_functions_data_model.md`
-   - `13_paper_execution.md`
-   - `16_invariants.md` (or equivalent filename in repo)
-   - `18_api_errors.md`
-   - `22_configuration.md`
-2. Move superseded `*_ROLLING_DRAFT.md` files to `docs/design/archive/`.
+1. Roll `ch10_v1.2`, `ch13_v1.0.5`, `ch16_v1.0.3`, `ch18_v1.1.1`, `ch22_v1.0.5` **rolling drafts** into canonical chapters (completed M4.3):
+   - `docs/design/10_functions_data_model.md`
+   - `docs/design/13_paper_execution.md`
+   - `docs/design/16_invariants.md`
+   - `docs/design/18_error_handling.md`
+   - `docs/design/22_config_spec.md`
+2. Move superseded `*_ROLLING_DRAFT.md` files to  
+   **`docs/design/archive/principal-rollout-2026-05-28/`** (completed PHASE 5 M5.1).
 3. Keep cross-references in `INDEX.md` and `00_ROADMAP.md` pointing to canonical chapters only.
 
 ## Consequences
 
 - **Positive**: Single SSOT per topic; reviewers read one file per chapter.
-- **Negative**: Large diff in design docs; requires careful diff review.
-- **Implementation**: Already aligned in `src/yoruu/` (M4.4–M4.5).
+- **Negative**: Large diff in design docs during M4.3; archive preserves history.
+- **Implementation**: Aligned in `src/yoruu/` (M4.4–M4.5).
 
 ## Alternatives considered
 
@@ -36,3 +36,4 @@
 
 - [`PHASE4_EXIT_DECLARATION.md`](../design/PHASE4_EXIT_DECLARATION.md)
 - [`PRINCIPAL_CONCEPT_V1_DRAFT.md`](../design/PRINCIPAL_CONCEPT_V1_DRAFT.md)
+- Archive README: [`../design/archive/principal-rollout-2026-05-28/README.md`](../design/archive/principal-rollout-2026-05-28/README.md)

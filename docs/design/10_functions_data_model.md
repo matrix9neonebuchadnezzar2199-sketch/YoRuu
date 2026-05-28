@@ -1,10 +1,10 @@
 # 第10章 関数・データモデル
 
-- **バージョン**: v1.2
+- **バージョン**: v1.3.0
 - **作成日**: 2026-05-27
-- **最終更新**: 2026-05-28（v1.2: 元本 principal / `principal_transactions`、SSE #12 `principal_changed`、severity 必須化、principal REST — H-1/U-2）
-- **ローリング履歴**: v1.0.1 → v1.0.2 → v1.0.3 → v1.1 → **v1.2**（追加のみ、APPROVED 維持）
-- **v1.2 追補正本**: [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md)
+- **最終更新**: 2026-05-28（v1.3.0: §10.3.15 インメモリ OHLC / `GET /api/v1/ohlc` — M5.2）
+- **ローリング履歴**: v1.0.1 → v1.0.2 → v1.0.3 → v1.1 → v1.2（principal/FX）→ **v1.3.0**（OHLC HUD）
+- **v1.2 追補アーカイブ**: [`archive/principal-rollout-2026-05-28/`](./archive/principal-rollout-2026-05-28/README.md)（M4.3 本体反映済み、M5.1 で退避）
 - **ステータス**: APPROVED
 - **関連章**: 2（アーキテクチャ）, 4（データフロー）, 6（シーケンス）, 7（I/O 図）, 11（戦略ロジック）, 12（モード仕様）, 13（ペーパー約定）, 14（i18n）, 15（夜間レビュー）, 18（エラーハンドリング）, 19（キルスイッチ）
 - **旧章統合**: 旧 ch11「Data Model」を §10.3（SQLite）／§10.4（`strategy.json`）に統合
@@ -362,6 +362,95 @@ CREATE INDEX idx_principal_tx_kind ON principal_transactions(kind);
 ```
 
 出入金監査用。**削除しない**（永続）。第13章 §13.2.6 `PrincipalService` が INSERT。cross-ref: ch16 INV-D-06 v2、ch18 `E_PRINCIPAL_*`。
+
+### 10.3.15 インメモリ OHLC（HUD・非 SQLite）（v1.3.0 新規）
+
+> **追補**: PHASE 5 M5.2/M5.3/M5.4。HUD チャート用。DB テーブルは作らない。
+> **SSOT 実装**: `src/yoruu/infra/ohlc_provider.py`、`get_ohlc` in `api_v1.py`。
+
+#### 10.3.15.1 目的・スコープ
+
+HUD（`docs/mockups/00_hud.html`）のローソク足に直近 BTC 5 分足 OHLC を供給する。データは **プロセス内リングバッファ** に保持し、空時は lab フィクスチャで自動シードする。プロセス再起動でバッファは消失する（永続化は非ゴール）。
+
+`get_ohlc_provider()`（`deps.py`）はモジュールスコープの **単一 `OhlcProvider` インスタンス**（lazy singleton）を返す。稼働中は同一バッファを共有し、`update_from_tick` で末尾バーを更新できる。
+
+#### 10.3.15.2 データモデル `OhlcBar`
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `ts` | str | UTC ISO 8601、5 分境界に整列 |
+| `open` | float | 始値（`round(_, 2)`） |
+| `high` | float | 高値（`round(_, 2)`） |
+| `low` | float | 安値（`round(_, 2)`） |
+| `close` | float | 終値（`round(_, 2)`） |
+| `volume` | float | 出来高（`round(_, 4)`、既定 0.0） |
+
+`to_dict()` 出力時に上記の桁丸めを適用する（`frozen=True` のデータクラス）。
+
+#### 10.3.15.3 `OhlcProvider` リングバッファ仕様
+
+- `max_bars`: 既定 **60**。
+- `seed_lab_fixture(base_price=68_250.0)`: 60 本の合成 5 分足を生成。
+  - 5 分境界整列: `second=microsecond=0`、`minute = (minute // 5) * 5`（UTC）。
+  - 各バー `i` のドリフト: `sin(i / 8.0) * 120.0 + (i % 7 - 3) * 15.0`。
+  - `open = 前バー close`（初回は `base_price`）、`close = open + drift`。
+  - `high = max(open, close) + |drift| * 0.15`、`low = min(open, close) - |drift| * 0.15`。
+  - `volume = 12.5 + (i % 5)`。
+  - `ts` は最古が `now - 5min * (max_bars - 1)`、5 分刻みで現在へ。
+- `ensure_seeded()`: バッファが空なら `seed_lab_fixture()`。
+- `get_bars(limit=None)`: `ensure_seeded()` 後、
+  `n = max(1, min(limit or max_bars, max_bars, len(bars)))`、**古い順**で末尾 `n` 本の `to_dict()`。
+- `update_from_tick(price, ts_iso=None)`: 現行バーへ tick マージ（PHASE 5 本番経路は未接続、API は将来用）。
+
+#### 10.3.15.4 REST 契約 `GET /api/v1/ohlc`
+
+| 項目 | 仕様 |
+|------|------|
+| メソッド | `GET` |
+| パス | `/api/v1/ohlc` |
+| Query `bars` | int、既定 60、**`ge=1, le=60`**。範囲外は FastAPI **422**（サーバ clamp なし） |
+| 依存 | `Depends(get_ohlc_provider)` |
+
+レスポンス例:
+
+```json
+{
+  "symbol": "BTCUSDT",
+  "interval": "5m",
+  "bars": [
+    {
+      "ts": "2026-05-28T12:00:00+00:00",
+      "open": 68250.0,
+      "high": 68310.5,
+      "low": 68190.2,
+      "close": 68295.1,
+      "volume": 12.5
+    }
+  ]
+}
+```
+
+`bars` は古い順。`symbol` / `interval` は固定（`BTCUSDT` / `5m`）。
+
+#### 10.3.15.5 HUD チャート（M5.4）
+
+- `00_hud.html` から `fetch("/api/v1/ohlc?bars=48")` を **5 秒間隔**でポーリング。
+- 描画は Vanilla JS + インライン SVG（CDN なし）。
+- エントリー参考線: モックでは `getData().current_position.entry` を水平破線で重畳（Polymarket 価格 0〜1 のため Y 軸は BTC 価格スケールと独立し、実装はチャート中央付近にフォールバック）。
+- `file://` 直開き時は `YoRuuMockData.labOhlcBars(48)` にフォールバック（`mock-data.js` エクスポート済み）。
+
+#### 10.3.15.6 非ゴール（PHASE 5）
+
+- OHLC の DB 永続化（§10.3 にテーブルなし）。
+- SSE による OHLC 増分配信。
+- 実 Binance 5 分足の本接続・バックフィル（PHASE 6/7 で検討）。
+
+#### 10.3.15.7 実装 cross-ref
+
+- `src/yoruu/infra/ohlc_provider.py`
+- `src/yoruu/web/routes/api_v1.py` — `get_ohlc`
+- `src/yoruu/web/deps.py` — `get_ohlc_provider`
+- `docs/mockups/00_hud.html`、`docs/mockups/shared/mock-data.js` — `labOhlcBars`
 
 ## 10.4 設定ファイルスキーマ（旧 ch11 統合）
 
@@ -828,6 +917,13 @@ v1.2 より全 SSE ペイロードに `severity`（`INFO` | `WARN` | `ERROR`）�
 - 取得: 外部 API（例: frankfurter.app / exchangerate.host）をサーバ側でキャッシュ
 - レスポンス `data` 例: `{ "pair": "USD/JPY", "rate": 156.50, "fetched_at": "2026-05-28T12:00:00Z", "source": "frankfurter" }`
 - UI トグル: localStorage `yoruu.display.currency`（`USD`|`JPY`）、ch14 `ui.currency.*`
+
+### 10.6.14 OHLC（v1.3.0 / M5.3）
+
+**`GET /api/v1/ohlc?bars=60`**
+- 用途: HUD ローソク足（§10.3.15）
+- Query `bars`: 1〜60、範囲外は 422
+- レスポンス: `{ "symbol": "BTCUSDT", "interval": "5m", "bars": [ ... ] }`（各 bar は §10.3.15.2）
 
 ---
 

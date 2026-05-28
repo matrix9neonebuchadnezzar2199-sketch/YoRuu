@@ -73,7 +73,7 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
-| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.2 · 2026-05-28 |
+| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.3.0 · 2026-05-28 |
 | 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | v1.0.2 · 2026-05-28 |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
 | 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | v1.0.5 · 2026-05-28 |

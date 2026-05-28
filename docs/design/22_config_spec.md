@@ -3,7 +3,7 @@
 - **バージョン**: v1.0.5
 - **作成日**: 2026-05-27
 - **ローリング更新**: 2026-05-28（v1.0.5: `principal` / `display.fx`、§22.9 マイグレーション CLI）
-- **v1.0.5 追補正本**: [`ch22_v1.0.5_ROLLING_DRAFT.md`](./ch22_v1.0.5_ROLLING_DRAFT.md)
+- **v1.0.5 追補アーカイブ**: [`archive/principal-rollout-2026-05-28/ch22_v1.0.5_ROLLING_DRAFT.md`](./archive/principal-rollout-2026-05-28/ch22_v1.0.5_ROLLING_DRAFT.md)
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **関連章**: 10（§10.4.2 ドラフト）, 21（影響マトリクス）, 24（Polymarket 認証）

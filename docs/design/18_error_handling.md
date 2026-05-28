@@ -4,7 +4,7 @@
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
 - **最終更新**: 2026-05-28（v1.1.1: `E_PRINCIPAL_*` / `E_FX_*` ドメイン追加）
-- **v1.1.1 追補正本**: [`ch18_v1.1.1_ROLLING_DRAFT.md`](./ch18_v1.1.1_ROLLING_DRAFT.md)
+- **v1.1.1 追補アーカイブ**: [`archive/principal-rollout-2026-05-28/ch18_v1.1.1_ROLLING_DRAFT.md`](./archive/principal-rollout-2026-05-28/ch18_v1.1.1_ROLLING_DRAFT.md)
 - **ステータス**: APPROVED
 - **関連章**: 10（API 応答形式）, 14（i18n `error.*`）, 15（`E_NIGHTLY_*` 意味論）, 17（リスクマトリクス）
 

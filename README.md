@@ -129,8 +129,8 @@
 | ID | 内容 | 状態 |
 |:---|:---|:---:|
 | M5.0 | `PHASE5_ROADMAP_v1.md` | ✅ |
-| M5.1 | ADR-001 + 設計章本体マージ | 🔄 |
-| M5.2 | ローソク足 SSOT（ch10 追補） | 🔄 |
+| M5.1 | ADR-001 + archive クリーンアップ | ✅ |
+| M5.2 | ローソク足 SSOT（ch10 §10.3.15） | ✅ |
 | M5.3 | `GET /api/v1/ohlc` + ring buffer | ✅ |
 | M5.4 | HUD SVG チャート + polling | ✅ |
 | M5.5 | SSE 全イベント `severity` 必須 | ✅ |

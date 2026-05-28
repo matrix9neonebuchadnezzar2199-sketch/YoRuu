@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>07:52</td>
+        <td>M5.1 archive + M5.2 ch10 §10.3.15 OHLC SSOT</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-0752">#entry-0752</a></td>
+      </tr>
+      <tr>
         <td>16:45</td>
         <td>表記整理 — 第三者製品名を除去・オリジナル表現</td>
         <td><span class="pill pill-ok">ok</span></td>
@@ -1318,7 +1324,28 @@ body.diary > footer {
   <h3>検証</h3>
   <p><code>build_web_static</code>、<code>uv run pytest -q</code> — <strong>146 passed</strong>、coverage ≈88%。Commit: <code>9fb57a9</code>。</p>
   <h3>残課題</h3>
-  <p>M5.1 設計章本体マージ（5 章）、M5.6 lab 24h 実行、M5.7 Exit / v0.6.0。</p>
+  <p>M5.6 lab 24h 実行、M5.7 Exit / v0.6.0（M5.1/M5.2 は <a href="#entry-0752">#entry-0752</a> で完了）。</p>
+</section>
+
+<section class="entry" id="entry-0752">
+  <h2>M5.1 archive クリーンアップ + M5.2 ch10 OHLC SSOT<a href="#entry-0752" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 07:52 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><strong>M5.1</strong>: M4.3 本体反映済みを確認。ROLLING 5 本を <code>archive/principal-rollout-2026-05-28/</code> へ退避、ADR-001 更新。<strong>M5.2</strong>: ch10 <strong>v1.3.0</strong> — §10.3.15 OHLC + §10.6.14（既存 §10.12 はライフサイクル節のため OHLC は §10.3.15 に配置）。</p>
+  <h3>検証（マスター指摘 2 点）</h3>
+  <p><code>labOhlcBars</code> 実在（<code>mock-data.js</code> エクスポート）。<code>get_ohlc_provider</code> は <code>deps.py</code> lazy singleton。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mv">→</span> 5× ROLLING → archive/</li>
+    <li><span class="op op-mod">~</span> ADR-001、10_functions_data_model.md、INDEX、PHASE5/README、ch13/16/18/22 ヘッダリンク</li>
+  </ul>
+  <h3>検証</h3>
+  <p>spot-check: principal / INV-D-07 — 欠落なし。Commit: <code>pending</code>。</p>
 </section>
 
 <section class="entry" id="entry-1645">

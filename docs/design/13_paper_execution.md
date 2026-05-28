@@ -5,7 +5,7 @@
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **ローリング履歴**: v1.0.3 CLOB→ch24（案 Y）／v1.0.4 Track 2C — FillModel→ch22 SSOT、§13.2.5 D11、§13.7 balance 列／**v1.0.5** D11 v2 入出金、§13.2.6 PrincipalService（H-1）
-- **v1.0.5 追補正本**: [`ch13_v1.0.5_ROLLING_DRAFT.md`](./ch13_v1.0.5_ROLLING_DRAFT.md)
+- **v1.0.5 追補アーカイブ**: [`archive/principal-rollout-2026-05-28/ch13_v1.0.5_ROLLING_DRAFT.md`](./archive/principal-rollout-2026-05-28/ch13_v1.0.5_ROLLING_DRAFT.md)
 - **関連章**: 3（状態遷移）, 6（シーケンス §6.3）, 10（関数・データモデル §10.3.4 / §10.7.6 / §10.7.7 / §10.7.8）, 11（戦略ロジック §11.6 / §11.8）, 12（モード仕様 §12.2 / §12.7）, 15（夜間レビュー）, 17（リスク管理）, 18（エラーコード）, **24（Polymarket CLOB クライアント詳細）**
 - **旧 ch14「Paper execution」を本章に統合**
 
