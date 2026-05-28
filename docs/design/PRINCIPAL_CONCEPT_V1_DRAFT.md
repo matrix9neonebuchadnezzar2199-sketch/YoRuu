@@ -27,10 +27,22 @@
 
 ### bot_state 列追加
 
-- `principal_jpy_cents` INTEGER NOT NULL DEFAULT 0
-- `locked_principal_jpy_cents` INTEGER NOT NULL DEFAULT 0
+**通貨単位（要マスター確定）**
 
-（通貨は設定に追随。USD 運用時は `_usd_cents` に読み替え — 正式章で確定）
+| 選択肢 | 内容 | 推奨 |
+|--------|------|------|
+| U-1 | 全金額 INTEGER cents | — |
+| **U-2** | **REAL 維持**（現行 `balance` と整合） | **Opus / 実装側推奨** |
+| U-3 | 今回 REAL、PHASE 5 で cents 化 | — |
+
+U-2 採用時:
+
+- `principal REAL NOT NULL DEFAULT 0`
+- `locked_principal REAL NOT NULL DEFAULT 0`
+
+U-1 採用時: 列名・型を cents 整数に統一（既存 REAL 列もマイグレーション対象）。
+
+ドラフト全文: [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md)
 
 ### 新規 `principal_transactions`
 

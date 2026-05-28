@@ -34,7 +34,7 @@
 |----|------|------|------|----------------|
 | M4.1 | FastAPI + SSE 契約 | Composer | ✅ `dea96e0` | |
 | M4.2 | 静的モック + EventSource | Composer | ✅ `02edfa0` | |
-| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **次** | ch10/13/16/22 APPROVED、INDEX 更新 |
+| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **進行中** | ch10 ドラフト [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md) レビュー待ち（U 判断含む） |
 | M4.4 | 元本コア実装 | Composer | ⏳ | DB、PrincipalService、D11 v2、INV 拡張、pytest 維持 |
 | M4.5 | REST + CLI + SSE `principal_changed` | Composer | ⏳ | API/CLI、SSE 契約 |
 | M4.6 | `mock-data.js` 拡張 | Composer | ⏳ | 既存 10 画面モック不変 |
