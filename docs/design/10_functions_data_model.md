@@ -1,8 +1,9 @@
 # 第10章 関数・データモデル
 
-- **バージョン**: v1.0.3
+- **バージョン**: v1.1
 - **作成日**: 2026-05-27
-- **最終更新**: 2026-05-27（v1.0.3: §10.3.13 `backtest_*` 名前規約注記、ch12 §12.8.4 連携）
+- **最終更新**: 2026-05-28（v1.1: Track 2B — `reports/regenerate` API、StrategyApplier / EventBus 規約、strategy_applied SSE 詳細）
+- **ローリング履歴**: v1.0.1 → v1.0.2 → v1.0.3 → **v1.1**（追加のみ、APPROVED 維持）
 - **ステータス**: APPROVED
 - **関連章**: 2（アーキテクチャ）, 4（データフロー）, 6（シーケンス）, 7（I/O 図）, 11（戦略ロジック）, 12（モード仕様）, 13（ペーパー約定）, 14（i18n）, 15（夜間レビュー）, 18（エラーハンドリング）, 19（キルスイッチ）
 - **旧章統合**: 旧 ch11「Data Model」を §10.3（SQLite）／§10.4（`strategy.json`）に統合
@@ -529,8 +530,17 @@ data: {"id":143,"code":"W_HEALTH_001","severity":"WARN","message":"WebSocket rec
 **`strategy_applied`**:
 ```
 event: strategy_applied
-data: {"new_version":4,"previous_version":3,"applied_by":"NIGHTLY_REVIEW","diff":{"MIN_PROB":[0.87,0.89]}}
+data: {
+  "new_version": 4,
+  "previous_version": 3,
+  "applied_by": "NIGHTLY_REVIEW",
+  "rationale": "勝率 60.9% のため MIN_PROB を 0.87→0.89 に微増",
+  "applied_at": "2026-05-28T04:15:00+09:00",
+  "diff": {"MIN_PROB": [0.87, 0.89]}
+}
 ```
+
+`rationale` は提案 JSON の必須フィールド（§15.6）。`applied_at` は `strategy_versions.applied_at` と同一タイムスタンプ。
 
 **`health_recovered`**: `health_degraded` と同形式、`component` と `recovery_duration_sec` を含む。
 
@@ -616,8 +626,10 @@ data: {"new_version":4,"previous_version":3,"applied_by":"NIGHTLY_REVIEW","diff"
 
 **`POST /api/v1/strategy/rollback`**
 - 用途: 過去バージョンへのロールバック（新バージョンとして適用）
-- リクエストボディ: `{"target_version": 1, "reason": "v3 で勝率低下"}`
+- リクエストボディ: `{"target_version": 1, "reason": "v3 で勝率低下", "confirm_repeated": false}`
 - 24 時間内の連続ロールバック検出時は `confirm_repeated: true` 必須
+- 成功レスポンス `data`: `{"new_version": 5, "previous_version": 4, "rolled_back_from": 1, "applied_by": "USER"}`
+- 失敗時: `StrategyApplyError` 系 → HTTP **422**、`error.code` は `E_NIGHTLY_005` / `E_NIGHTLY_006` / `E_NIGHTLY_008`（WARN 含む）/ `E_NIGHTLY_010`〜`013`（§18.2、Track 2D で severity 確定）
 
 ### 10.6.5 モード系
 
@@ -667,6 +679,14 @@ data: {"new_version":4,"previous_version":3,"applied_by":"NIGHTLY_REVIEW","diff"
 - 用途: Apply 前の差分プレビュー
 - リクエストボディ: `{"proposed_strategy": { ... }}`
 - レスポンス: 現在版との差分、警告フラグ（±10% 超等）
+
+**`POST /api/v1/reports/regenerate`**
+- 用途: 当日夜間レポートの手動再生成（第15章 §15.10.5）
+- リクエストボディ: `{"report_date": "2026-05-27", "force": false}`
+- `rationale` 不要（レポート生成のみ）
+- ガード: `bot_state.state == IDLE` でなければ **409**；当日レポートが既に存在し `force != true` の場合 **409**
+- 成功: **201**、`data.report_id` と `summary_url`（§10.5.3 `nightly_report_ready` 発火）
+- 失敗: `E_NIGHTLY_*` / `E_STATE_001` → **422** または **409**（§18.2）
 
 ### 10.6.9 What-If 系（PHASE 4 で実装、PHASE 2 はモック）
 
@@ -750,7 +770,7 @@ class StateMachine:
         """第3章 §3.2 の遷移表に基づく許可遷移リスト"""
 ```
 
-**State Enum と第3章の関係**: 第3章 §3.1 の 9 状態（`INITIALIZING` 〜 `EMERGENCY_STOP`）に加え、本章 `State` Enum では補助状態 `ERROR` / `SHUTDOWN` / `BACKTEST` を定義する。`BACKTEST` は StateMachine の外側で完結（§10.7.8・第3章 §3.3）。`ERROR` / `SHUTDOWN` は `bot_state.state` の CHECK 制約および第3章 §3.2 遷移表で使用。
+**State Enum と第3章の関係**: 第3章 §3.1 の **主状態 9 件**（`INITIALIZING` 〜 `EMERGENCY_STOP`）に加え、補助状態 `ERROR` / `SHUTDOWN` / `BACKTEST` を §3.1.1 で定義（**双方向 cross-ref**）。`NIGHTLY_REVIEW` は Track 1 実装で夜間 3 状態を集約（第3章 §3.1.2）。`BACKTEST` は StateMachine 外（§10.7.8・第12章 §12.2.1）。
 
 `StateViolationError` は `severity=ERROR` のアラートを生成し、第18章 `E_STATE_001` に対応。
 
@@ -984,34 +1004,49 @@ class NightlyReporter:
 
 LLM 連携はユーザー手動（コピペ）で行い、ボット側は受信のみ。詳細は第15章。
 
-### 10.10.2 StrategyApplier（`src/yoruu/strategy/applier.py`）
+### 10.10.2 StrategyApplier（`src/yoruu/review/strategy_applier.py`）
+
+PHASE 3 Track 1（`f499778`）実装 SSOT。§15.8 シーケンス（バックアップ → DB トランザクション → `strategy.json` 原子書き込み → `strategy_applied` SSE）。
 
 ```python
 class StrategyApplier:
-    def __init__(self, db: Database, validator: StrategyValidator) -> None: ...
-
-    def preview_diff(
+    def __init__(
         self,
-        current: dict[str, float],
-        proposed: dict[str, float],
-    ) -> StrategyDiff:
-        """差分プレビュー（変化率、警告フラグ含む）"""
+        db: Database,
+        writer: StrategyWriter,
+        *,
+        event_bus: EventBus | None = None,
+        history_dir: Path | None = None,
+    ) -> None: ...
 
     def apply(
         self,
-        proposed: dict[str, float],
-        applied_by: ApplySource,
-        force_large_change: bool = False,
-    ) -> int:
-        """新バージョン作成。戻り値: 新 version 番号"""
+        proposal: dict[str, Any],
+        current: StrategyConfig,
+        *,
+        state_machine: StateMachine | None = None,
+        report_date: str | None = None,
+    ) -> ApplyResult:
+        """ApplyValidator 検証後に適用。`rationale` 必須。排他ロック失敗時 E_NIGHTLY_013。"""
+
+    # PHASE 4 REST 層（計画 — §10.6.4 rollback / preview-apply と対）
+    def preview_diff(
+        self,
+        proposal: dict[str, Any],
+        current: StrategyConfig,
+    ) -> ApplyValidationResult: ...
 
     def rollback(
         self,
         target_version: int,
         reason: str,
+        *,
+        current: StrategyConfig,
         force_repeated: bool = False,
-    ) -> int: ...
+    ) -> ApplyResult: ...
 ```
+
+`ApplyResult`: `new_version`, `previous_version`, `applied_by`, `diff: dict[str, tuple[float, float]]`。
 
 ## 10.11 バリデーション・ユーティリティ関数
 
@@ -1031,13 +1066,18 @@ class StrategyValidator:
 
 ### 10.11.2 EventBus（`src/yoruu/core/event_bus.py`）
 
+**引数規約（Track 1 / Track 2B SSOT）**: 第1引数は **SSE `event:` 名**（スネークケース、§10.5.2 一覧と一致）。第2引数は JSON 直列化可能な `dict`。
+
 ```python
-class EventBus:
-    def subscribe(self, event_name: str, handler: Callable) -> SubscriptionId: ...
-    def unsubscribe(self, sub_id: SubscriptionId) -> None: ...
-    def publish(self, event_name: str, payload: dict) -> None:
-        """SSE エンドポイントと内部リスナー双方に配信"""
+class EventBus(Protocol):
+    def publish(self, event: str, payload: dict[str, Any]) -> None:
+        """例: publish("strategy_applied", {"new_version": 4, ...})"""
+
+class NoOpEventBus:
+    """PHASE 3 CLI 既定。PHASE 4 で SSE ブロードキャスト実装に差し替え。"""
 ```
+
+PHASE 4 以降、`subscribe` / `unsubscribe` を Web 層で追加してもよいが、**コア層は `publish(event, payload)` のみ**を必須とする。
 
 ### 10.11.3 Database（`src/yoruu/data/database.py`）
 

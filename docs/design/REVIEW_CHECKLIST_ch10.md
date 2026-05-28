@@ -48,5 +48,6 @@
 |------|-----------|------|----------|
 | 2026-05-27 | v1.0.2 | §10.7.4 `EvaluationResult` 拡張、§10.5.3 `wait_reason`（R11-3） | `d405f0c` |
 | 2026-05-27 | v1.0.3 | §10.3.13 `backtest_*` 名前規約注記（R12-6） | `b73fc18` |
+| 2026-05-28 | v1.1 | Track 2B: `POST /reports/regenerate`、StrategyApplier / EventBus / strategy_applied SSE | pending |
 
-次工程: M1.3 ch13（ペーパー約定）執筆。
+次工程: Track 2C（ch13/ch22 FillModel SSOT）。
