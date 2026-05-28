@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS bot_state (
   )),
   mode TEXT NOT NULL CHECK (mode IN ('BACKTEST', 'PAPER', 'SIMMER', 'LIVE')),
   balance REAL NOT NULL,
+  principal REAL NOT NULL DEFAULT 0,
   daily_pnl REAL NOT NULL DEFAULT 0,
   daily_loss_limit REAL NOT NULL,
   ws_polymarket_connected INTEGER NOT NULL DEFAULT 0,
@@ -156,4 +157,19 @@ CREATE TABLE IF NOT EXISTS what_if_scenarios (
 );
 
 CREATE INDEX IF NOT EXISTS idx_what_if_scenarios_created_at ON what_if_scenarios(created_at);
+
+CREATE TABLE IF NOT EXISTS principal_transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts_utc TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('DEPOSIT', 'WITHDRAW')),
+  amount REAL NOT NULL CHECK (amount > 0),
+  balance_before REAL NOT NULL,
+  balance_after REAL NOT NULL,
+  principal_before REAL NOT NULL,
+  principal_after REAL NOT NULL,
+  note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_principal_tx_ts ON principal_transactions(ts_utc);
+CREATE INDEX IF NOT EXISTS idx_principal_tx_kind ON principal_transactions(kind);
 """

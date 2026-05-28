@@ -53,8 +53,8 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 | M4.1 | FastAPI + SSE 契約 | Composer | ✅ `dea96e0` | |
 | M4.2 | 静的モック + EventSource | Composer | ✅ `02edfa0` | |
 | **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **✅ 完了** | ch10 v1.2 / ch13 v1.0.5 / ch16 v1.0.3 / ch18 v1.1.1 / ch22 v1.0.5 ローリング済 |
-| **M4.4** | 元本コア実装 | Composer | **着手可** | DB migrate、PrincipalService、D11 v2、INV 22 件、pytest 維持（**X-2**） |
-| M4.5 | REST + CLI + SSE `principal_changed` | Composer | ⏳ | API/CLI、SSE 契約 |
+| **M4.4** | 元本コア実装 | Composer | **✅ 完了** | migrate / PrincipalService / INV-D-06 v2 + 07/08/09、127 pytest・≈88% |
+| **M4.5** | REST + CLI + SSE `principal_changed` | Composer | **着手可** | API/CLI、SSE 契約 |
 | M4.6 | `mock-data.js` 拡張 | Composer | ⏳ | 既存 10 画面モック不変 |
 | M4.7 | `00_hud.html` 新規 | Composer | ⏳ | 参照 8 割一致、I-1 相互リンク、チャート placeholder |
 | M4.8 | i18n + static 反映 | Composer | ⏳ | `build_web_static`、serve で HUD |

@@ -53,3 +53,18 @@ class StrategyApplyError(YoRuuError):
     """Strategy apply validation or persistence failed."""
 
     code = "E_NIGHTLY_007"
+
+
+class PrincipalError(YoRuuError):
+    """Principal deposit/withdraw validation failed (ch18 E_PRINCIPAL_*)."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str = "E_PRINCIPAL_002",
+        severity: str = "ERROR",
+        details: dict | None = None,
+    ) -> None:
+        super().__init__(message, code=code, details=details)
+        self.severity = severity

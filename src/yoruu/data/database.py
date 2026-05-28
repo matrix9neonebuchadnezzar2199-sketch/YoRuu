@@ -23,8 +23,18 @@ class Database:
         self._conn = sqlite3.connect(self._path, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
 
+    @property
+    def connection(self) -> sqlite3.Connection:
+        """Underlying SQLite connection (migrations)."""
+
+        return self._conn
+
     def close(self) -> None:
         self._conn.close()
+
+    def has_column(self, table: str, column: str) -> bool:
+        rows = self._conn.execute(f"PRAGMA table_info({table})").fetchall()
+        return any(row[1] == column for row in rows)
 
     def commit(self) -> None:
         self._conn.commit()
@@ -49,29 +59,83 @@ class Database:
         balance: float,
         daily_loss_limit: float,
         strategy_version: int,
+        principal: float | None = None,
     ) -> None:
         now = datetime.now(UTC).isoformat()
+        principal_value = balance if principal is None else principal
         row = self._conn.execute("SELECT id FROM bot_state WHERE id = 1").fetchone()
         if row is None:
-            self._conn.execute(
-                """
-                INSERT INTO bot_state (
-                  id, state, mode, balance, daily_pnl, daily_loss_limit,
-                  ws_polymarket_connected, ws_binance_connected,
-                  current_strategy_version, last_updated, started_at
-                ) VALUES (1, ?, ?, ?, 0, ?, 0, 0, ?, ?, ?)
-                """,
-                (
-                    State.INITIALIZING.value,
-                    mode.value,
-                    balance,
-                    daily_loss_limit,
-                    strategy_version,
-                    now,
-                    now,
-                ),
-            )
+            if self.has_column("bot_state", "principal"):
+                self._conn.execute(
+                    """
+                    INSERT INTO bot_state (
+                      id, state, mode, balance, principal, daily_pnl, daily_loss_limit,
+                      ws_polymarket_connected, ws_binance_connected,
+                      current_strategy_version, last_updated, started_at
+                    ) VALUES (1, ?, ?, ?, ?, 0, ?, 0, 0, ?, ?, ?)
+                    """,
+                    (
+                        State.INITIALIZING.value,
+                        mode.value,
+                        balance,
+                        principal_value,
+                        daily_loss_limit,
+                        strategy_version,
+                        now,
+                        now,
+                    ),
+                )
+            else:
+                self._conn.execute(
+                    """
+                    INSERT INTO bot_state (
+                      id, state, mode, balance, daily_pnl, daily_loss_limit,
+                      ws_polymarket_connected, ws_binance_connected,
+                      current_strategy_version, last_updated, started_at
+                    ) VALUES (1, ?, ?, ?, 0, ?, 0, 0, ?, ?, ?)
+                    """,
+                    (
+                        State.INITIALIZING.value,
+                        mode.value,
+                        balance,
+                        daily_loss_limit,
+                        strategy_version,
+                        now,
+                        now,
+                    ),
+                )
             self._conn.commit()
+            self._seed_principal_bootstrap_if_needed(principal_value)
+
+    def _seed_principal_bootstrap_if_needed(self, principal_value: float) -> None:
+        """Initial DEPOSIT row so INV-D-07 holds for fresh bot_state (ch16)."""
+
+        tables = self._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='principal_transactions'"
+        ).fetchone()
+        if tables is None:
+            return
+        row = self._conn.execute("SELECT COUNT(*) AS c FROM principal_transactions").fetchone()
+        if row and int(row["c"]) > 0:
+            return
+        now = datetime.now(UTC).isoformat()
+        self._conn.execute(
+            """
+            INSERT INTO principal_transactions (
+              ts_utc, kind, amount, balance_before, balance_after,
+              principal_before, principal_after, note
+            ) VALUES (?, 'DEPOSIT', ?, ?, ?, 0, ?, ?)
+            """,
+            (
+                now,
+                principal_value,
+                principal_value,
+                principal_value,
+                principal_value,
+                "bootstrap:db_init",
+            ),
+        )
+        self._conn.commit()
 
     def _require_bot_row(self) -> sqlite3.Row:
         row = self._conn.execute("SELECT * FROM bot_state WHERE id = 1").fetchone()
@@ -94,6 +158,109 @@ class Database:
     def get_balance(self) -> float:
         row = self._require_bot_row()
         return float(row["balance"])
+
+    def get_principal(self) -> float:
+        row = self._require_bot_row()
+        if "principal" not in row.keys():
+            return float(row["balance"])
+        value = row["principal"]
+        if value is None:
+            return float(row["balance"])
+        return float(value)
+
+    def update_balance_and_principal(self, balance: float, principal: float) -> None:
+        now = datetime.now(UTC).isoformat()
+        if self.has_column("bot_state", "principal"):
+            self._conn.execute(
+                """
+                UPDATE bot_state SET balance = ?, principal = ?, last_updated = ? WHERE id = 1
+                """,
+                (balance, principal, now),
+            )
+        else:
+            self._conn.execute(
+                "UPDATE bot_state SET balance = ?, last_updated = ? WHERE id = 1",
+                (balance, now),
+            )
+
+    def sum_principal_deposits(self) -> float:
+        if not self.has_column("bot_state", "principal"):
+            return 0.0
+        tables = self._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='principal_transactions'"
+        ).fetchone()
+        if tables is None:
+            return 0.0
+        row = self._conn.execute(
+            """
+            SELECT COALESCE(SUM(amount), 0) AS s FROM principal_transactions
+            WHERE kind = 'DEPOSIT'
+            """
+        ).fetchone()
+        return float(row["s"]) if row else 0.0
+
+    def sum_principal_withdrawals(self) -> float:
+        tables = self._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='principal_transactions'"
+        ).fetchone()
+        if tables is None:
+            return 0.0
+        row = self._conn.execute(
+            """
+            SELECT COALESCE(SUM(amount), 0) AS s FROM principal_transactions
+            WHERE kind = 'WITHDRAW'
+            """
+        ).fetchone()
+        return float(row["s"]) if row else 0.0
+
+    def count_principal_withdraw_violations(self) -> int:
+        """Rows where WITHDRAW amount exceeded balance_before (INV-D-08)."""
+
+        tables = self._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='principal_transactions'"
+        ).fetchone()
+        if tables is None:
+            return 0
+        row = self._conn.execute(
+            """
+            SELECT COUNT(*) AS c FROM principal_transactions
+            WHERE kind = 'WITHDRAW' AND amount > balance_before + 0.0001
+            """
+        ).fetchone()
+        return int(row["c"]) if row else 0
+
+    def insert_principal_transaction(
+        self,
+        *,
+        kind: str,
+        amount: float,
+        balance_before: float,
+        balance_after: float,
+        principal_before: float,
+        principal_after: float,
+        note: str | None = None,
+        ts_utc: str | None = None,
+    ) -> int:
+        ts = ts_utc or datetime.now(UTC).isoformat()
+        cur = self._conn.execute(
+            """
+            INSERT INTO principal_transactions (
+              ts_utc, kind, amount, balance_before, balance_after,
+              principal_before, principal_after, note
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                ts,
+                kind,
+                amount,
+                balance_before,
+                balance_after,
+                principal_before,
+                principal_after,
+                note,
+            ),
+        )
+        return int(cur.lastrowid)
 
     def get_mode(self) -> Mode:
         row = self._require_bot_row()

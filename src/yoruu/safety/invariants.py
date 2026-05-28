@@ -14,6 +14,7 @@ from yoruu.types import Mode, State
 # ch16 §16.3 / §16.3.1 SSOT
 INV_D02_TOLERANCE_USD = 0.01
 INV_D06_TOLERANCE_USD = 0.02
+INV_D07_TOLERANCE_USD = 0.01
 
 if TYPE_CHECKING:
     from yoruu.execution.risk_guard import RiskGuard
@@ -46,9 +47,18 @@ def _raise_if(violation: InvariantViolation | None) -> None:
 class InvariantChecker:
     """Check INV-* rules at startup, transition, trade, and 5m boundaries."""
 
-    def __init__(self, db: Database, *, initial_balance: float | None = None) -> None:
+    def __init__(
+        self,
+        db: Database,
+        *,
+        initial_balance: float | None = None,
+        initial_principal: float | None = None,
+    ) -> None:
         self._db = db
-        self._initial_balance = initial_balance
+        # initial_balance は後方互換エイリアス（v1.0.3 以降は DB principal を優先）
+        self._initial_principal = (
+            initial_principal if initial_principal is not None else initial_balance
+        )
         self._last_entry_boundary: str | None = None
 
     def check_startup(self, strategy: StrategyConfig, strategy_path_version: int) -> None:
@@ -88,6 +98,14 @@ class InvariantChecker:
         """Balance conservation after close (INV-D-06)."""
 
         _raise_if(self.inv_d06_balance_conservation())
+
+    def check_post_principal_change(self) -> None:
+        """After deposit/withdraw (INV-D-06 v2, INV-D-07, INV-D-09)."""
+
+        _raise_if(self.inv_d06_balance_conservation())
+        _raise_if(self.inv_d07_principal_ledger_conservation())
+        _raise_if(self.inv_d09_non_negative_balances())
+        _raise_if(self.inv_d08_withdraw_constraints())
 
     def check_five_minute_boundary(self, *, boundary_key: str, entered: bool) -> None:
         """INV-R-05: no double entry in same 5m window."""
@@ -238,18 +256,66 @@ class InvariantChecker:
         return None
 
     def inv_d06_balance_conservation(self) -> InvariantViolation | None:
-        if self._initial_balance is None:
-            return None
-        balance = self._db.get_balance()
-        open_total = self._db.open_positions_total_size()
-        closed_sum = self._db.sum_closed_trade_pnl()
-        if abs(balance + open_total - (self._initial_balance + closed_sum)) > INV_D06_TOLERANCE_USD:
+        if not self._db.has_column("bot_state", "principal"):
+            if self._initial_principal is None:
+                return None
+            balance = self._db.get_balance()
+            open_total = self._db.open_positions_total_size()
+            closed_sum = self._db.sum_closed_trade_pnl()
+            expected = self._initial_principal + closed_sum
+        else:
+            balance = self._db.get_balance()
+            open_total = self._db.open_positions_total_size()
+            closed_sum = self._db.sum_closed_trade_pnl()
+            principal = self._db.get_principal()
+            expected = principal + closed_sum
+        if abs(balance + open_total - expected) > INV_D06_TOLERANCE_USD:
             return InvariantViolation(
                 inv_id="INV-D-06",
                 message=(
-                    f"balance conservation failed: balance={balance}, "
-                    f"open={open_total}, initial={self._initial_balance}, closed_pnl={closed_sum}"
+                    f"balance conservation failed: balance={balance}, open={open_total}, "
+                    f"expected_total={expected}, closed_pnl={closed_sum}"
                 ),
+                severity="ERROR",
+            )
+        return None
+
+    def inv_d07_principal_ledger_conservation(self) -> InvariantViolation | None:
+        if not self._db.has_column("bot_state", "principal"):
+            return None
+        deposits = self._db.sum_principal_deposits()
+        withdrawals = self._db.sum_principal_withdrawals()
+        principal = self._db.get_principal()
+        if abs(principal - (deposits - withdrawals)) > INV_D07_TOLERANCE_USD:
+            return InvariantViolation(
+                inv_id="INV-D-07",
+                message=(
+                    f"principal ledger mismatch: principal={principal}, "
+                    f"deposits={deposits}, withdrawals={withdrawals}"
+                ),
+                severity="ERROR",
+            )
+        return None
+
+    def inv_d08_withdraw_constraints(self) -> InvariantViolation | None:
+        violations = self._db.count_principal_withdraw_violations()
+        if violations > 0:
+            return InvariantViolation(
+                inv_id="INV-D-08",
+                message=f"withdraw exceeded balance_before in {violations} row(s)",
+                severity="ERROR",
+            )
+        return None
+
+    def inv_d09_non_negative_balances(self) -> InvariantViolation | None:
+        if not self._db.has_column("bot_state", "principal"):
+            return None
+        balance = self._db.get_balance()
+        principal = self._db.get_principal()
+        if balance < -INV_D07_TOLERANCE_USD or principal < -INV_D07_TOLERANCE_USD:
+            return InvariantViolation(
+                inv_id="INV-D-09",
+                message=f"negative balance or principal: balance={balance}, principal={principal}",
                 severity="ERROR",
             )
         return None

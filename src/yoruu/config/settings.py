@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -44,10 +45,29 @@ class PathsSettings(BaseModel):
 
 
 class PaperSettings(BaseModel):
+    spread_assumed: float = 0.02
     slippage_coeff: float = 0.0001
     slippage_max: float = 0.02
     latency_ms_mean: int = 80
     latency_ms_std: int = 20
+
+
+class PrincipalSettings(BaseModel):
+    max_deposit_per_tx: float = Field(gt=0, default=100_000.0)
+    max_withdraw_per_tx: float = Field(gt=0, default=100_000.0)
+    require_confirm_on_withdraw: bool = True
+
+
+class DisplayFxSettings(BaseModel):
+    enabled: bool = True
+    provider: str = "exchangerate_host"
+    cache_ttl_sec: int = Field(gt=0, default=900)
+    stale_after_sec: int = Field(gt=0, default=1800)
+    fallback_rate: float = Field(gt=0, default=150.0)
+
+
+class DisplaySettings(BaseModel):
+    fx: DisplayFxSettings = Field(default_factory=DisplayFxSettings)
 
 
 class MarketSettings(BaseModel):
@@ -60,7 +80,8 @@ class AppSettings(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     mode: Mode = Mode.PAPER
-    initial_balance: float = Field(gt=0, default=1000.0)
+    initial_principal: float = Field(gt=0, default=1000.0)
+    initial_balance: float | None = Field(default=None, gt=0)
     currency: str = "USD"
     market: MarketSettings = Field(default_factory=MarketSettings)
     risk: RiskSettings
@@ -68,6 +89,14 @@ class AppSettings(BaseModel):
     nightly_review: NightlyReviewSettings = Field(default_factory=NightlyReviewSettings)
     paths: PathsSettings = Field(default_factory=PathsSettings)
     paper: PaperSettings = Field(default_factory=PaperSettings)
+    principal: PrincipalSettings = Field(default_factory=PrincipalSettings)
+    display: DisplaySettings = Field(default_factory=DisplaySettings)
+
+    @property
+    def resolved_initial_principal(self) -> float:
+        """SSOT for seeding bot_state.principal (ch22 §22.2.2)."""
+
+        return self.initial_principal
 
     @field_validator("mode", mode="before")
     @classmethod
@@ -91,6 +120,15 @@ def load_settings(path: Path | str) -> AppSettings:
 
     if not isinstance(raw, dict):
         raise ConfigValidationError("Config root must be a mapping")
+
+    if raw.get("initial_principal") is None and raw.get("initial_balance") is not None:
+        warnings.warn(
+            "initial_balance is deprecated; use initial_principal (ch22 §22.2.2)",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raw = dict(raw)
+        raw["initial_principal"] = raw["initial_balance"]
 
     try:
         return AppSettings.model_validate(raw)

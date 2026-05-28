@@ -14,14 +14,17 @@ def init_db(
     tmp_path: Path,
     *,
     balance: float = 1000.0,
+    principal: float | None = None,
     mode: Mode = Mode.PAPER,
     strategy_version: int = 1,
 ) -> Database:
     db = Database(tmp_path / "test.sqlite")
     db.initialize_schema()
+    principal_value = balance if principal is None else principal
     db.ensure_bot_state(
         mode=mode,
         balance=balance,
+        principal=principal_value,
         daily_loss_limit=30.0,
         strategy_version=strategy_version,
     )

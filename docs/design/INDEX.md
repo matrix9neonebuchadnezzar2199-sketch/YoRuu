@@ -16,7 +16,8 @@
 | Track 1〜4 + Exit A + テンプレ 9 | **コード完了** → [`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md) |
 | PHASE 4 M4.2 | **完了** — `web/static/` + `yoruu serve` + EventSource |
 | PHASE 4 M4.3 | **完了** — ch10/13/16/18/22 ローリング済（`fca1306` 系 + 本バッチ） |
-| PHASE 4 M4.4 | **着手可** — Composer 主導（運用 **X-2**） |
+| PHASE 4 M4.4 | **完了** — PrincipalService + migrate + INV 拡張 |
+| PHASE 4 M4.5 | **着手可** — principal REST/CLI/SSE |
 | pytest | **119** passed、カバレッジ **≈88%** |
 | `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
 | INV 実装 | **19 / 19**（設計一致） |

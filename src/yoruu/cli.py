@@ -12,6 +12,7 @@ import click
 from yoruu.config.settings import load_settings
 from yoruu.core.state_machine import StateMachine
 from yoruu.data.database import Database
+from yoruu.data.migrate import plan_migration, run_migration
 from yoruu.errors import ConfigValidationError, StrategyApplyError, YoRuuError
 from yoruu.execution.fill_model import FillModel
 from yoruu.execution.paper_executor import OpenRequest, PaperExecutor
@@ -49,23 +50,52 @@ def config_cmd(action: str, config_path: Path) -> None:
     except ConfigValidationError as exc:
         click.echo(f"FAIL: {exc}", err=True)
         sys.exit(1)
-    click.echo(f"OK: mode={settings.mode.value} balance={settings.initial_balance}")
+    click.echo(
+        f"OK: mode={settings.mode.value} initial_principal={settings.resolved_initial_principal}"
+    )
 
 
 @main.command("db")
-@click.argument("action", type=click.Choice(["init"]))
+@click.argument("action", type=click.Choice(["init", "migrate"]))
 @click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
-def db_cmd(action: str, config_path: Path) -> None:
-    """Initialize SQLite schema and bot_state."""
+@click.option("--dry-run", is_flag=True, help="Show migration steps without applying (migrate only)")
+@click.option("--db", "db_path", type=click.Path(path_type=Path), default=None, help="Override paths.db")
+def db_cmd(action: str, config_path: Path, dry_run: bool, db_path: Path | None) -> None:
+    """Initialize or migrate SQLite schema."""
 
     settings = load_settings(config_path)
+    target_db = db_path or Path(settings.paths.db)
+
+    if action == "migrate":
+        db = Database(target_db)
+        if not target_db.is_file():
+            click.echo(f"FAIL: database not found: {target_db}", err=True)
+            sys.exit(1)
+        plan = run_migration(
+            db,
+            initial_principal=settings.resolved_initial_principal,
+            dry_run=dry_run,
+        )
+        if dry_run:
+            click.echo("DRY-RUN migration plan:")
+        else:
+            click.echo("OK: migration applied:")
+        click.echo(f"  add principal column: {plan.add_principal_column}")
+        click.echo(f"  create principal_transactions: {plan.create_principal_transactions}")
+        click.echo(f"  backfill rows: {plan.backfill_principal_rows}")
+        click.echo(f"  seed migration tx: {plan.seed_migration_tx}")
+        db.close()
+        return
+
     strategy_path = Path(settings.paths.strategy)
     strategy = StrategyWriter(strategy_path).read()
-    db = Database(settings.paths.db)
+    db = Database(target_db)
     db.initialize_schema()
+    seed = settings.resolved_initial_principal
     db.ensure_bot_state(
         mode=settings.mode,
-        balance=settings.initial_balance,
+        balance=seed,
+        principal=seed,
         daily_loss_limit=settings.risk.daily_loss_limit_usd,
         strategy_version=strategy.version,
     )
@@ -73,13 +103,13 @@ def db_cmd(action: str, config_path: Path) -> None:
         json.dumps(strategy.to_json_dict(), ensure_ascii=False),
         strategy_version=strategy.version,
     )
-    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    invariants = InvariantChecker(db, initial_principal=seed)
     invariants.check_startup(strategy, strategy.version)
     sm = StateMachine(db, invariant_checker=invariants)
     if sm.current() == State.INITIALIZING:
         sm.transition(State.IDLE, "db init complete", actor="USER")
     db.close()
-    click.echo(f"OK: database at {settings.paths.db}")
+    click.echo(f"OK: database at {target_db}")
 
 
 @main.command("paper")
@@ -99,7 +129,7 @@ def paper_cmd(action: str, config_path: Path) -> None:
     db.initialize_schema()
     db.ensure_bot_state(
         mode=settings.mode,
-        balance=settings.initial_balance,
+        balance=settings.resolved_initial_principal,
         daily_loss_limit=settings.risk.daily_loss_limit_usd,
         strategy_version=strategy.version,
     )
@@ -107,7 +137,7 @@ def paper_cmd(action: str, config_path: Path) -> None:
         json.dumps(strategy.to_json_dict(), ensure_ascii=False),
         strategy_version=strategy.version,
     )
-    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    invariants = InvariantChecker(db, initial_principal=settings.resolved_initial_principal)
     invariants.check_startup(strategy, strategy.version)
     sm = StateMachine(db, invariant_checker=invariants)
     if sm.current() == State.INITIALIZING:
@@ -184,7 +214,7 @@ def nightly_cmd(action: str, report_date: str, config_path: Path) -> None:
     strategy = StrategyWriter(Path(settings.paths.strategy)).read()
     db = Database(settings.paths.db)
     db.initialize_schema()
-    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    invariants = InvariantChecker(db, initial_principal=settings.resolved_initial_principal)
     sm = StateMachine(db, invariant_checker=invariants)
     try:
         if sm.current() == State.IDLE:
@@ -236,7 +266,7 @@ def strategy_cmd(
 
     db = Database(settings.paths.db)
     db.initialize_schema()
-    invariants = InvariantChecker(db, initial_balance=settings.initial_balance)
+    invariants = InvariantChecker(db, initial_principal=settings.resolved_initial_principal)
     sm = StateMachine(db, invariant_checker=invariants)
 
     try:
@@ -295,7 +325,7 @@ def market_run_cmd(config_path: Path, duration_sec: float | None) -> None:
     db.initialize_schema()
     db.ensure_bot_state(
         mode=settings.mode,
-        balance=settings.initial_balance,
+        balance=settings.resolved_initial_principal,
         daily_loss_limit=settings.risk.daily_loss_limit_usd,
         strategy_version=1,
     )

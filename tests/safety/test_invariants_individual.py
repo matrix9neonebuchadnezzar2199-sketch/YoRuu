@@ -253,7 +253,7 @@ def test_inv_d05_stub_returns_none(tmp_path: Path) -> None:
 
 
 def test_inv_d06_conservation_ok(tmp_path: Path) -> None:
-    db = init_db(tmp_path, balance=990.0)
+    db = init_db(tmp_path, balance=990.0, principal=1000.0)
     trade_id = db.insert_trade_open(
         market="BTC_5MIN_UPDOWN",
         side=Side.YES.value,
@@ -272,7 +272,7 @@ def test_inv_d06_conservation_ok(tmp_path: Path) -> None:
 
 
 def test_inv_d06_violation_exceeds_tolerance(tmp_path: Path) -> None:
-    db = init_db(tmp_path, balance=989.96)
+    db = init_db(tmp_path, balance=989.96, principal=1000.0)
     db.insert_trade_open(
         market="BTC_5MIN_UPDOWN",
         side=Side.YES.value,
@@ -297,7 +297,7 @@ def test_inv_d06_boundary_exactly_tolerance(tmp_path: Path) -> None:
 
     initial = 1000.0
     balance = 1000.0 - 10.0 - INV_D06_TOLERANCE_USD
-    db = init_db(tmp_path, balance=balance)
+    db = init_db(tmp_path, balance=balance, principal=initial)
     db.insert_trade_open(
         market="BTC_5MIN_UPDOWN",
         side=Side.YES.value,
@@ -314,8 +314,39 @@ def test_inv_d06_boundary_exactly_tolerance(tmp_path: Path) -> None:
     assert _checker(db, initial=initial).inv_d06_balance_conservation() is None
 
 
-def test_inv_d06_skipped_without_initial_balance(tmp_path: Path) -> None:
-    db = init_db(tmp_path)
+def test_inv_d06_skipped_without_principal_column(tmp_path: Path) -> None:
+    """Pre-migrate DB: no principal column falls back to initial_principal only."""
+
+    db = Database(tmp_path / "legacy.sqlite")
+    legacy_schema = """
+    PRAGMA journal_mode=WAL;
+    CREATE TABLE bot_state (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      state TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      balance REAL NOT NULL,
+      daily_pnl REAL NOT NULL DEFAULT 0,
+      daily_loss_limit REAL NOT NULL,
+      ws_polymarket_connected INTEGER NOT NULL DEFAULT 0,
+      ws_binance_connected INTEGER NOT NULL DEFAULT 0,
+      current_strategy_version INTEGER NOT NULL,
+      last_updated TEXT NOT NULL,
+      started_at TEXT NOT NULL
+    );
+    """
+    db.connection.executescript(legacy_schema)
+    now = "2026-05-28T00:00:00+00:00"
+    db.connection.execute(
+        """
+        INSERT INTO bot_state (
+          id, state, mode, balance, daily_pnl, daily_loss_limit,
+          ws_polymarket_connected, ws_binance_connected,
+          current_strategy_version, last_updated, started_at
+        ) VALUES (1, 'IDLE', 'PAPER', 1000, 0, 30, 0, 0, 1, ?, ?)
+        """,
+        (now, now),
+    )
+    db.connection.commit()
     assert InvariantChecker(db, initial_balance=None).inv_d06_balance_conservation() is None
 
 
@@ -336,7 +367,7 @@ def test_check_pre_trade_daily_loss(tmp_path: Path) -> None:
 
 
 def test_check_post_close_ok(tmp_path: Path) -> None:
-    db = init_db(tmp_path, balance=990.0)
+    db = init_db(tmp_path, balance=990.0, principal=1000.0)
     db.insert_trade_open(
         market="BTC_5MIN_UPDOWN",
         side=Side.YES.value,
@@ -358,8 +389,30 @@ def test_check_five_minute_boundary_ok(tmp_path: Path) -> None:
     _checker(db).check_five_minute_boundary(boundary_key="k1", entered=False)
 
 
+def test_inv_d07_ledger_ok_after_deposit(tmp_path: Path) -> None:
+    from yoruu.execution.principal_service import PrincipalService
+
+    db = init_db(tmp_path)
+    PrincipalService(
+        db,
+        max_deposit_per_tx=100_000.0,
+        max_withdraw_per_tx=100_000.0,
+        invariant_checker=_checker(db, initial=1000.0),
+    ).deposit(50.0)
+    assert _checker(db, initial=1000.0).inv_d07_principal_ledger_conservation() is None
+
+
+def test_inv_d09_negative_balance(tmp_path: Path) -> None:
+    db = init_db(tmp_path)
+    db.update_balance_and_principal(-1.0, 1000.0)
+    db.commit()
+    v = _checker(db).inv_d09_non_negative_balances()
+    assert v is not None
+    assert v.inv_id == "INV-D-09"
+
+
 def test_inv_d06_raises_via_check_post_open(tmp_path: Path) -> None:
-    db = init_db(tmp_path, balance=500.0)
+    db = init_db(tmp_path, balance=500.0, principal=1000.0)
     checker = _checker(db, initial=1000.0)
     with pytest.raises(InvariantViolationError) as exc_info:
         checker.check_post_open(size_usd=10.0)
