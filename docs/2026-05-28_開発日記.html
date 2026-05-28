@@ -501,6 +501,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1428">#entry-1428</a></td>
       </tr>
+      <tr>
+        <td>14:44</td>
+        <td>I-1・案 P 確定・PHASE4 ロードマップ v1 本表化</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1444">#entry-1444</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -967,6 +973,28 @@ body.diary > footer {
   <p>確認 <strong>C</strong> 回答: 現行 ROADMAP は M4.2 まで完了・旧 M4.3〜5 表は名残。<strong>D</strong>（index vs hud）は <strong>I-1 推奨</strong>で未決。PHASE 3 残: lab 24h → PHASE 5、severity → M4.3 統合。</p>
   <h3>検証</h3>
   <p>ドキュメントのみ。Commit: <code>140437f</code>。</p>
+</section>
+
+<section class="entry" id="entry-1444">
+  <h2>PHASE 4 構造完全確定 — I-1・案 P・ROADMAP v1<a href="#entry-1444" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 14:44 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>確認事項 <strong>D = I-1 確定</strong>（Hub <code>index.html</code> 温存 + HUD <code>00_hud.html</code> 相互リンク、<strong>主入口は 00_hud</strong>）。マイルストン順序 <strong>案 P</strong> 確定（M4.6→M4.7、案 Q 不採用）。<code>00_ROADMAP.md</code> PHASE 4 本表を M4.3〜M4.9 に差し替え。草案を <code>PHASE4_ROADMAP_v1.md</code> に昇格。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/PHASE4_ROADMAP_v1.md</li>
+    <li><span class="op op-mod">~</span> docs/design/00_ROADMAP.md、PHASE4_ROADMAP_REVISION_DRAFT（SUPERSEDED）</li>
+    <li><span class="op op-mod">~</span> REF_IMAGE_GAP_MATRIX_v2.md、テンプレ 14、PRINCIPAL_CONCEPT リンク、mockups CHANGELOG</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>Q2〜Q5・元本 A-2/B-2 と合わせ PHASE 4 設計前提が閉じた。次は <strong>M4.3</strong>（Opus: ch10 v1.2 ローリング）。</p>
+  <h3>検証</h3>
+  <p>ドキュメントのみ。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

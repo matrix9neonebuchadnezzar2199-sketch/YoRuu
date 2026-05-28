@@ -2,7 +2,7 @@
 
 **日付**: 2026-05-28  
 **ステータス**: DRAFT — Opus による ch10/13/16/22 正式ローリング前の Composer 整理稿  
-**関連**: [`PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](./PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)、[`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)
+**関連**: [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md)、[`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)
 
 ---
 

@@ -1,5 +1,13 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — I-1 / 案 P 確定・PHASE4 ロードマップ v1 採用
+
+| 項目 | 内容 |
+|------|------|
+| I-1 | Hub + HUD 温存、主入口 `00_hud.html` |
+| 案 P | M4.6 → M4.7 順序維持 |
+| 正本 | `PHASE4_ROADMAP_v1.md`、`00_ROADMAP` 本表差し替え |
+
 ## 2026-05-28 — 突き合わせ v2 + HUD/元本方針確定
 
 | 項目 | 内容 |

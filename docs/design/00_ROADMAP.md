@@ -167,35 +167,36 @@ gantt
 | **運用** | lab VM で 24h 連続実行 | ⏳ マスター作業 |
 | **任意** | ch10 v1.2 全 SSE severity 必須 | ⏸ PHASE 4 キックオフ時判断 |
 
-### PHASE 4: UI実装（10日）
+### PHASE 4: UI実装（HUD + 元本）
 
-**目的**: モックを実動 Web UI に変換。
+**目的**: 参照画像準拠の HUD 体験 + 元本概念（A-2/B-2）を Web UI で実現。既存 10 モック画面は温存。
 
-**成果物**: `yoruu/web/`（FastAPI + 静的 HTML + REST + SSE）
+**成果物**: `yoruu/web/`、`docs/mockups/00_hud.html`、principal API/CLI、設計章 v1.2 追補
 
-> **2026-05-28 改訂**: M4.3 以降は参照 HUD + 元本概念（案 Z）に再編。**正本草案** → [`PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](./PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)（承認後に本節を差し替え）。突き合わせ確定版 → [`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)。
+**正本**: [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md) · 突き合わせ [`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)
 
-| マイルストーン | 状態 |
-|----------------|------|
-| M4.1 FastAPI 骨格 + SSE 契約 | ✅ PHASE 3 前倒し（`dea96e0`） |
-| M4.2 静的モック移植 + EventSource | ✅ `tools/build_web_static.py` + `web/static/` |
-| M4.3〜M4.9（HUD + principal） | ⏳ 改訂草案承認待ち |
+**ナビ（I-1）**: 主入口 `00_hud.html`、Hub `index.html` 温存・相互リンク。
 
-**マイルストーン**:
+| ID | 内容 | 状態 |
+|----|------|------|
+| M4.1 | FastAPI + SSE 契約 | ✅ `dea96e0` |
+| M4.2 | 静的モック + EventSource | ✅ `02edfa0` |
+| M4.3 | 設計章追補（ch10 v1.2 / ch13 D11 / ch16 INV / ch22） | **次** |
+| M4.4 | 元本コア（DB、PrincipalService、D11 v2） | ⏳ |
+| M4.5 | REST/CLI + SSE `principal_changed` | ⏳ |
+| M4.6 | `mock-data.js` 拡張 | ⏳ |
+| M4.7 | `00_hud.html`（I-1 相互リンク、チャート placeholder） | ⏳ |
+| M4.8 | i18n + `build_web_static` | ⏳ |
+| M4.9 | PHASE 4 Exit 宣言 | ⏳ |
 
-| ID | 内容 |
-|----|------|
-| M4.1 | FastAPI 基盤 + SSE（リアルタイム更新） |
-| M4.2 | ダッシュボード + 取引履歴 + Markov ライブビュー |
-| M4.3 | 夜間レビュー Apply 画面（JSON 貼付け） |
-| M4.4 | 設定・モード切替・緊急停止 |
-| M4.5 | i18n 適用（日本語完備）・What‑If 実計算 |
+**Exit Criteria**（PHASE 4）:
 
-**Exit Criteria**:
+- HUD が参照画像と視覚的に概ね一致（マスター OK）
+- principal 入出金・保存則（INV-D-06 v2）が pytest で担保
+- 既存 10 モック画面の挙動不変
+- SSE 契約（B1 + `principal_changed`）動作
 
-- モックと同等の動作
-- API 応答時間 < 200ms（ローカル）
-- SSE イベント全件動作確認
+**PHASE 3 運用残**: lab 24h paper → **PHASE 5**（HUD 完成後）
 
 ### PHASE 5: 統合テスト（7日）
 

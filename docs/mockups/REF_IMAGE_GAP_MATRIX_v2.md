@@ -15,7 +15,8 @@
 | 2 | ヒーロー: **残高（追加可能元本併記）+ 累積 PnL** の 2 段表示 |
 | 3 | 夜間ループ: **カウントダウンのみ**、詳細は `03_nightly_review.html` |
 | 4 | 通知枠: **SSE 接続 / システム稼働 / その他** を複数枠で全部表示（Telegram 不採用） |
-| 5 | ローソク足: **後続フェーズ**、HUD はプレースホルダのみ |
+| 5 | ローソク足: **PHASE 5**、HUD はプレースホルダのみ |
+| **D** | **I-1 確定**: Hub（`index.html`）と HUD（`00_hud.html`）温存・相互リンク。**主入口は `00_hud.html`**（README/ブックマーク運用） |
 
 ### 元本概念（A-2 + B-2 確定）
 
@@ -27,7 +28,8 @@
 | **balance** | principal + 累積 PnL（実現 + 未実現） |
 | **累積 PnL** | balance − principal（派生） |
 
-設計章ドラフト: [`../design/PRINCIPAL_CONCEPT_V1_DRAFT.md`](../design/PRINCIPAL_CONCEPT_V1_DRAFT.md)
+設計章ドラフト: [`../design/PRINCIPAL_CONCEPT_V1_DRAFT.md`](../design/PRINCIPAL_CONCEPT_V1_DRAFT.md)  
+ロードマップ: [`../design/PHASE4_ROADMAP_v1.md`](../design/PHASE4_ROADMAP_v1.md)
 
 ---
 
@@ -58,27 +60,17 @@
 
 ---
 
-## 未決（ロードマップ確定時に閉じる）
+## 確定済み（2026-05-28）
 
-| ID | 論点 | 推奨 |
+| ID | 論点 | 結果 |
 |----|------|------|
-| **C** | 現行 `00_ROADMAP.md` の PHASE 4 定義範囲 | **回答済み** — 下記 |
-| **D** | `index.html` vs `00_hud.html` | **I-1 推奨**（Hub 温存 + HUD リンク 1 行） |
-
-### 確認事項 C — 回答（リポジトリ実態）
-
-`00_ROADMAP.md` PHASE 4 には **二重定義** がある。
-
-1. **進捗表**（2026-05-28 更新）: M4.1〜M4.2 ✅、**M4.3「REST 初期データ結線」が次**
-2. **旧マイルストーン表**（L182-190）: M4.2=ダッシュボード+Markov、M4.3=夜間 Apply… の **PHASE 2 時代の分割**
-
-→ **M4.2 までがコード上完了**。M4.3 以降は **案 Z 改訂（M4.3〜M4.9）で置換**する。詳細: [`../design/PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](../design/PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)
+| **C** | `00_ROADMAP` PHASE 4 範囲 | M4.3〜M4.9 に再編、`00_ROADMAP` 本表差し替え済 |
+| **D** | Hub vs HUD | **I-1 確定**（上表） |
+| **P/Q** | M4.6/M4.7 順序 | **案 P**（M4.6 → M4.7、案 Q 不採用） |
 
 ---
 
-## 次ステップ（案 Z）
+## 次ステップ
 
-1. ロードマップ改訂草案の承認  
-2. テンプレ 14 投入（設計章追補 → 実装マイルストン）  
-3. ch10/13/16/22 正式ローリング（Opus）  
-4. `mock-data.js` 拡張 → `00_hud.html` スケルトン
+1. **M4.3** Opus: ch10 v1.2 ローリング追補（principal スキーマ + severity）  
+2. M4.4〜M4.9 テンプレ 14 順次投入

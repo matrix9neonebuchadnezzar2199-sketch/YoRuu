@@ -494,9 +494,9 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 **モデル**: Opus 4.7（M4.3 設計章）→ Composer 2.5（M4.4〜M4.8）  
 **投入**: M4.2 完了後（`02edfa0` / `458d009` 以降）、案 Z ロードマップ承認後
 
-**正本ドラフト**
+**正本**
 
-- [`PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](./PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)
+- [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md)（I-1 / 案 P 確定）
 - [`PRINCIPAL_CONCEPT_V1_DRAFT.md`](./PRINCIPAL_CONCEPT_V1_DRAFT.md)
 - [`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)
 
@@ -509,7 +509,8 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 - 夜間: カウントダウンのみ → 03_nightly_review リンク
 - システム枠: SSE + 稼働 + その他（Telegram 不採用）
 - ローソク: HUD はプレースホルダのみ（PHASE 5）
-- index vs hud: 確認事項 D（推奨 I-1）確定後に hub リンク追加
+- Hub/HUD: I-1 確定 — index.html 温存、00_hud 主入口、相互リンク（双方向）
+- マイルストン順序: 案 P（M4.6 mock-data → M4.7 HUD）。案 Q 不採用
 
 ## 段階 1 — M4.3 設計章追補（Opus、実装触らない）
 1. ch10 v1.2: bot_state 列 + principal_transactions + severity 必須化（任意同梱）
@@ -535,6 +536,8 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 ## 段階 5 — M4.7 HUD HTML（Composer）
 - docs/mockups/00_hud.html（参照レイアウト、shared/*.js 再利用）
 - 入金ボタン UI（API 呼び出しは M4.5 完了後に結線）
+- 出口: Hub↔HUD 相互リンク（page.hub.* / hub.link.* 温存）、主入口 00_hud、チャート placeholder
+- 中間: ダミー値スケルトンでマスター視覚レビュー可（案 P 内チェックポイント）
 
 ## 段階 6 — M4.8 static + i18n（Composer）
 - ja bundle HUD キー、tools/build_web_static.py（00_hud 取り込み）
@@ -619,3 +622,4 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 | 2026-05-28 | テンプレ 12 `PHASE3-exit-route-a`（Exit 戦略 A: WS/CLOB/FastAPI/24h paper）追記、10/11 完了反映 |
 | 2026-05-28 | テンプレ 13 `phase4-m42-static-ui`（PHASE 4 M4.2）追記・完了反映 |
 | 2026-05-28 | テンプレ 14 `phase4-hud-principal`（M4.3〜M4.9 HUD+元本、案 Z）追記 |
+| 2026-05-28 | テンプレ 14: I-1 / 案 P 確定、PHASE4_ROADMAP_v1 正本化 |
