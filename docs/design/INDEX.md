@@ -15,6 +15,7 @@
 | UI モック | **11 / 11**（PHASE 2 完了） |
 | Track 1〜4 + Exit A + テンプレ 9 | **コード完了** → [`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md) |
 | PHASE 4 M4.2 | **完了** — `web/static/` + `yoruu serve` + EventSource |
+| PHASE 4 M4.3 | **進行中** — ch10 v1.2 / ch13 v1.0.5 ローリング済（ch16 次） |
 | pytest | **119** passed、カバレッジ **≈88%** |
 | `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
 | INV 実装 | **19 / 19**（設計一致） |
@@ -65,10 +66,10 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
-| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.1 · 2026-05-28 |
+| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.2 · 2026-05-28 |
 | 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | v1.0.2 · 2026-05-28 |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
-| 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | v1.0.4 · 2026-05-28 |
+| 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | v1.0.5 · 2026-05-28 |
 | 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED | v1.0.2 · 2026-05-28 |
 
 </details>

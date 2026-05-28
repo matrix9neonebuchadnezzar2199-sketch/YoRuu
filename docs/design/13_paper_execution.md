@@ -1,10 +1,11 @@
 # 第13章 ペーパー約定エンジン
 
-- **バージョン**: v1.0.4
+- **バージョン**: v1.0.5
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
 - **ステータス**: APPROVED（ローリング更新、再レビュー不要）
-- **ローリング履歴**: v1.0.3 CLOB→ch24（案 Y）／**v1.0.4** Track 2C — FillModel→ch22 SSOT、§13.2.5 D11、§13.7 balance 列
+- **ローリング履歴**: v1.0.3 CLOB→ch24（案 Y）／v1.0.4 Track 2C — FillModel→ch22 SSOT、§13.2.5 D11、§13.7 balance 列／**v1.0.5** D11 v2 入出金、§13.2.6 PrincipalService（H-1）
+- **v1.0.5 追補正本**: [`ch13_v1.0.5_ROLLING_DRAFT.md`](./ch13_v1.0.5_ROLLING_DRAFT.md)
 - **関連章**: 3（状態遷移）, 6（シーケンス §6.3）, 10（関数・データモデル §10.3.4 / §10.7.6 / §10.7.7 / §10.7.8）, 11（戦略ロジック §11.6 / §11.8）, 12（モード仕様 §12.2 / §12.7）, 15（夜間レビュー）, 17（リスク管理）, 18（エラーコード）, **24（Polymarket CLOB クライアント詳細）**
 - **旧 ch14「Paper execution」を本章に統合**
 
@@ -108,24 +109,40 @@ class PaperExecutor:
         # 7. FillResult 返却
 ```
 
-### 13.2.5 残高更新タイミング（D11 / Q3 確定）
+### 13.2.5 残高更新タイミング（D11 v2 / 元本概念、H-1）
 
-**SSOT**: PHASE 3 Track 1（`f499778`）の `PaperExecutor` 実装。モック UI は Q3-MOCK（`d5c44a8`）で同一規則を模倣。
+**SSOT**: v1.0.4 の open/close ルールを **維持**（H-1）。v1.0.5 で入出金 2 ケースを追加。`balance` = 自由資金 = `withdrawable_principal`。
 
-| イベント | `bot_state.balance` の更新 | タイミング |
-|----------|---------------------------|------------|
-| **open 成功** | `balance -= size_usd` | 約定・DB 書き込み成功直後（SSE 発火前） |
-| **close 成功** | `balance += size_usd + pnl` | 決済・`trades` 更新成功直後（ポジション DELETE 前後は実装依存、金額は同一トランザクション内） |
+| イベント | `bot_state.balance` | `bot_state.principal` | タイミング |
+|---------|---------------------|----------------------|------------|
+| **open 成功** | `-= size_usd`（v1 維持） | — | 約定・DB 成功直後 |
+| **close 成功** | `+= size_usd + pnl`（v1 維持） | — | 決済・`trades` 更新成功直後 |
+| **DEPOSIT**（v2） | `+= amount` | `+= amount` | `principal_transactions` INSERT 後 |
+| **WITHDRAW**（v2） | `-= amount`（`amount <= balance`） | `-= amount` | 同上 |
 
-**保存則（INV-D-06）**: 第16章 INV-D-06 を参照。
+`locked_principal` は `Σ(positions.size_usd WHERE status='OPEN')`（DB 列なし、ch10 v1.2）。
+
+**保存則（INV-D-06 v2）**:
 
 ```
-balance + Σ(open_positions.size_usd) ≈ initial_balance + Σ(closed_trades.pnl)
+balance + locked_principal == principal + Σ(closed_trades.pnl)
 ```
 
-許容誤差: **0.02 USD**（浮動小数・丸め）。違反時は `InvariantChecker.inv_d06_balance_conservation()` が `ERROR`（`f499778`）。
+v1 の `initial_balance` は **`principal`** に読み替え（入金履歴ゼロ時は `principal = initial_principal` で v1 と等価）。許容誤差 **0.02 USD**。違反時 `InvariantChecker` が `ERROR`。
 
-**cross-ref**: 第10章 §10.3.3 `bot_state.balance`、第16章 INV-D-06、モック `docs/mockups/shared/mock-data.js`（Q3-MOCK）。
+**cross-ref**: ch10 §10.3.3/§10.3.14、ch16 INV-D-06 v2、§13.2.6 `PrincipalService`、モック `mock-data.js`（M4.6）。
+
+### 13.2.6 PrincipalService（v1.0.5 新規）
+
+入出金のドメインロジック。`PaperExecutor` とは独立（約定ではなく資金管理）。
+
+- `deposit(amount, note)` — 検証後 `balance`/`principal` 加算、監査・SSE
+- `withdraw(amount, note, confirm=True)` — `confirm` 必須、`amount <= balance`
+- `get_summary()` — `PrincipalSummary`（`total_assets`, `cumulative_pnl` 等）
+
+REST: ch10 §10.6.12。SSE: `principal_changed`。エラー: ch18 `E_PRINCIPAL_001`〜`005`。
+
+`PaperExecutor.open`/`close` は **変更不要**（M4.4）。同一 `bot_state.balance` を更新するため WAL + worker=1 前提で競合回避し、InvariantChecker で定期検証。
 
 ## 13.3 FillModel
 

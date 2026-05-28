@@ -494,6 +494,8 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 **モデル**: Opus 4.7（M4.3 設計章）→ Composer 2.5（M4.4〜M4.8）  
 **投入**: M4.2 完了後（`02edfa0` / `458d009` 以降）、案 Z ロードマップ承認後
 
+**進行原則（2026-05-28）**: Opus 推奨を既定採用。マスター明示修正まで推奨で確定。一覧は [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md) 確定事項表。
+
 **正本**
 
 - [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md)（I-1 / 案 P 確定）
@@ -509,8 +511,11 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 - 夜間: カウントダウンのみ → 03_nightly_review リンク
 - システム枠: SSE + 稼働 + その他（Telegram 不採用）
 - ローソク: HUD はプレースホルダのみ（PHASE 5）
-- Hub/HUD: I-1 確定 — index.html 温存、00_hud 主入口、相互リンク（双方向）
-- マイルストン順序: 案 P（M4.6 mock-data → M4.7 HUD）。案 Q 不採用
+- Hub/HUD: I-1 — index 温存、00_hud 主入口、相互リンク
+- 通貨表示: E-1 + F-2（USD 内部、HUD JPY/USD トグル、`GET /api/v1/fx/usd_jpy`）
+- 会計 H-1: balance=自由資金、locked_principal 列なし、total_assets=balance+locked
+- U-2 REAL、案 P（M4.6→M4.7）
+- ch10 v1.2 / ch13 v1.0.5 ローリング済（2026-05-28）
 
 ## 段階 1 — M4.3 設計章追補（Opus、実装触らない）
 1. ch10 v1.2: bot_state 列 + principal_transactions + severity 必須化（任意同梱）
@@ -536,8 +541,10 @@ Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提
 ## 段階 5 — M4.7 HUD HTML（Composer）
 - docs/mockups/00_hud.html（参照レイアウト、shared/*.js 再利用）
 - 入金ボタン UI（API 呼び出しは M4.5 完了後に結線）
-- 出口: Hub↔HUD 相互リンク（page.hub.* / hub.link.* 温存）、主入口 00_hud、チャート placeholder
-- 中間: ダミー値スケルトンでマスター視覚レビュー可（案 P 内チェックポイント）
+- 出口: Hub↔HUD 相互リンク、主入口 00_hud、チャート placeholder
+- HUD: JPY/USD トグル（localStorage）、formatCurrency + fx API（F-2）
+- ヒーロー: total_assets 巨大表示、副欄 balance（追加可能元本）、PnL 段
+- 中間: ダミー値スケルトンで視覚レビュー可（案 P）
 
 ## 段階 6 — M4.8 static + i18n（Composer）
 - ja bundle HUD キー、tools/build_web_static.py（00_hud 取り込み）

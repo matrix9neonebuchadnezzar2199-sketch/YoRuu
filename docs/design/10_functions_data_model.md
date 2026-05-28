@@ -1,9 +1,10 @@
 # 第10章 関数・データモデル
 
-- **バージョン**: v1.1
+- **バージョン**: v1.2
 - **作成日**: 2026-05-27
-- **最終更新**: 2026-05-28（v1.1: Track 2B — `reports/regenerate` API、StrategyApplier / EventBus 規約、strategy_applied SSE 詳細）
-- **ローリング履歴**: v1.0.1 → v1.0.2 → v1.0.3 → **v1.1**（追加のみ、APPROVED 維持）
+- **最終更新**: 2026-05-28（v1.2: 元本 principal / `principal_transactions`、SSE #12 `principal_changed`、severity 必須化、principal REST — H-1/U-2）
+- **ローリング履歴**: v1.0.1 → v1.0.2 → v1.0.3 → v1.1 → **v1.2**（追加のみ、APPROVED 維持）
+- **v1.2 追補正本**: [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md)
 - **ステータス**: APPROVED
 - **関連章**: 2（アーキテクチャ）, 4（データフロー）, 6（シーケンス）, 7（I/O 図）, 11（戦略ロジック）, 12（モード仕様）, 13（ペーパー約定）, 14（i18n）, 15（夜間レビュー）, 18（エラーハンドリング）, 19（キルスイッチ）
 - **旧章統合**: 旧 ch11「Data Model」を §10.3（SQLite）／§10.4（`strategy.json`）に統合
@@ -119,6 +120,7 @@ YoRuu の関数シグネチャ、REST API エンドポイント、SSE ペイロ�
 | 9 | `emergency_stops` | 緊急停止履歴 | 永続 |
 | 10 | `audit_log` | 監査ログ | 永続 |
 | 11 | `what_if_scenarios` | What-If シナリオ保存 | 永続（ユーザー削除可） |
+| 12 | `principal_transactions` | 元本入出金履歴 | 永続（v1.2） |
 
 ### 10.3.3 `bot_state` テーブル
 
@@ -137,9 +139,21 @@ CREATE TABLE bot_state (
   ws_binance_connected INTEGER NOT NULL DEFAULT 0,
   current_strategy_version INTEGER NOT NULL,
   last_updated TEXT NOT NULL,
-  started_at TEXT NOT NULL
+  started_at TEXT NOT NULL,
+  principal REAL NOT NULL DEFAULT 0
 );
 ```
+
+**v1.2 追補（H-1 / U-2）**: `principal` は累積入金 − 累積出金。`balance` は v1 どおり **自由資金**（open 時に `size_usd` を減算）。`locked_principal` は DB 列にせず `Σ(positions.size_usd WHERE status='OPEN')` で派生。
+
+| 派生量 | 定義 |
+|--------|------|
+| `locked_principal` | オープンポジション size 合計 |
+| `withdrawable_principal` | `balance` |
+| `total_assets` | `balance + locked_principal`（HUD ヒーロー表示） |
+| `cumulative_pnl` | `total_assets − principal` |
+
+**マイグレーション**: 既存 DB は `principal := balance + Σ(open size)` のあと `principal_transactions` に `migration:v1.2_initial` を 1 行記録。`yoruu db migrate`（ch22 §22.x）。
 
 シングルトン制約（`id = 1`）により 1 行のみ。`state` は第3章 §3.1 の 9 状態に加え補助状態（`ERROR` / `SHUTDOWN` / `BACKTEST`）を含む（§10.7.2 注記参照）。
 
@@ -329,6 +343,26 @@ CREATE INDEX idx_what_if_scenarios_created_at ON what_if_scenarios(created_at);
 
 ※ BACKTEST モードの結果格納時は `name` フィールドを `backtest_<run_id>` 形式とする（第12章 §12.8.4 参照）。What-If シナリオ（UI §8.21 由来）と区別するため。
 
+### 10.3.14 `principal_transactions` テーブル（v1.2 新規）
+
+```sql
+CREATE TABLE principal_transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts_utc TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('DEPOSIT', 'WITHDRAW')),
+  amount REAL NOT NULL CHECK (amount > 0),
+  balance_before REAL NOT NULL,
+  balance_after REAL NOT NULL,
+  principal_before REAL NOT NULL,
+  principal_after REAL NOT NULL,
+  note TEXT
+);
+CREATE INDEX idx_principal_tx_ts ON principal_transactions(ts_utc);
+CREATE INDEX idx_principal_tx_kind ON principal_transactions(kind);
+```
+
+出入金監査用。**削除しない**（永続）。第13章 §13.2.6 `PrincipalService` が INSERT。cross-ref: ch16 INV-D-06 v2、ch18 `E_PRINCIPAL_*`。
+
 ## 10.4 設定ファイルスキーマ（旧 ch11 統合）
 
 ### 10.4.1 `strategy.json` 完全スキーマ
@@ -428,9 +462,9 @@ logging:
 - 再接続: クライアント側で 3 秒後リトライ、`Last-Event-ID` で再開
 - ハートビート: 15 秒ごとに `:keepalive` コメント送信
 
-### 10.5.2 イベント一覧（11 件）
+### 10.5.2 イベント一覧（12 件）
 
-第8章 §8.9 と同期。
+第8章 §8.9 と同期（v1.2 で 1 件追加）。
 
 | # | イベント名 | 用途 | 発火頻度 |
 |---|----------|------|---------|
@@ -445,6 +479,7 @@ logging:
 | 9 | `emergency_stop_triggered` | 緊急停止 | ボタン押下時 |
 | 10 | `alert_added` | アラート発生 | 都度 |
 | 11 | `strategy_applied` | 戦略適用 | Apply 時 |
+| 12 | `principal_changed` | 元本入出金 | DEPOSIT/WITHDRAW 完了時 |
 
 ### 10.5.3 ペイロード例
 
@@ -542,7 +577,40 @@ data: {
 
 `rationale` は提案 JSON の必須フィールド（§15.6）。`applied_at` は `strategy_versions.applied_at` と同一タイムスタンプ。
 
+**`principal_changed`**（v1.2）:
+```
+event: principal_changed
+data: {
+  "kind": "DEPOSIT",
+  "amount": 500.00,
+  "balance_before": 1042.18,
+  "balance_after": 1542.18,
+  "principal_before": 1000.00,
+  "principal_after": 1500.00,
+  "locked_principal": 7.10,
+  "withdrawable_principal": 1492.90,
+  "total_assets": 1500.00,
+  "cumulative_pnl": 0.00,
+  "ts_utc": "2026-05-28T05:30:00Z",
+  "note": "user_deposit",
+  "severity": "INFO"
+}
+```
+
 **`health_recovered`**: `health_degraded` と同形式、`component` と `recovery_duration_sec` を含む。
+
+### 10.5.4 SSE `severity` 必須化（v1.2）
+
+v1.2 より全 SSE ペイロードに `severity`（`INFO` | `WARN` | `ERROR`）を必須とする。B1 モック・`ValidatingEventBus`・`api/sse/models.py` と同期（M4.5）。
+
+| イベント | 既定 severity |
+|---------|----------------|
+| `state_changed`, `markov_update`, `health_recovered`, `position_opened`, `position_closed`, `nightly_report_ready`, `mode_changed`, `strategy_applied`, `principal_changed` | INFO |
+| `health_degraded` | WARN |
+| `emergency_stop_triggered` | ERROR |
+| `alert_added` | ペイロード内 `severity` を転写 |
+
+`position_closed` は損失時も INFO（損失アラートは `alert_added` / 夜間レビューで扱う）。
 
 ## 10.6 REST API エンドポイント一覧
 
@@ -718,6 +786,48 @@ data: {
 - 用途: 翻訳辞書取得（`lang` は `ja`|`en`）
 - レスポンス: フラットなキー→値のオブジェクト
 - 詳細は第14章
+
+### 10.6.12 元本系（v1.2 新規）
+
+**`POST /api/v1/principal/deposit`**
+- Body: `{ "amount": 500.00, "note": "monthly_topup" }`
+- 検証: `amount > 0`、`amount <= max_deposit_per_tx`（ch22、既定 100000.00 USD）
+- 副作用: `balance`/`principal` 同額加算、`principal_transactions` INSERT、`principal_changed` SSE、`audit_log`
+
+**`POST /api/v1/principal/withdraw`**
+- Body: `{ "amount": 200.00, "note": "...", "confirm": true }`
+- 検証: `confirm === true`、`amount <= balance`（超過 `E_PRINCIPAL_001`）
+- 副作用: deposit と対称（減算）
+
+**`GET /api/v1/principal`**
+- レスポンス `data` 例:
+```json
+{
+  "principal": 1500.00,
+  "balance": 1492.90,
+  "locked_principal": 7.10,
+  "withdrawable_principal": 1492.90,
+  "total_assets": 1500.00,
+  "cumulative_pnl": 0.00,
+  "deposit_count": 4,
+  "withdraw_count": 1,
+  "first_deposit_at": "2026-05-27T00:00:00Z",
+  "last_transaction_at": "2026-05-28T05:30:00Z"
+}
+```
+
+**`GET /api/v1/principal/transactions`**
+- クエリ: `from`, `to`, `kind`, `limit`（上限 500）, `offset`
+
+実装: 第13章 §13.2.6 `PrincipalService`。
+
+### 10.6.13 表示用 FX（v1.2 / E-1 + F-2）
+
+**`GET /api/v1/fx/usd_jpy`**
+- 用途: HUD の JPY 表示換算レート（内部データは USD のまま）
+- 取得: 外部 API（例: frankfurter.app / exchangerate.host）をサーバ側でキャッシュ
+- レスポンス `data` 例: `{ "pair": "USD/JPY", "rate": 156.50, "fetched_at": "2026-05-28T12:00:00Z", "source": "frankfurter" }`
+- UI トグル: localStorage `yoruu.display.currency`（`USD`|`JPY`）、ch14 `ui.currency.*`
 
 ---
 

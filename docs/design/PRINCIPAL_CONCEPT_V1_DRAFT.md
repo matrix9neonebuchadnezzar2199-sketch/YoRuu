@@ -1,114 +1,44 @@
-# 元本概念 v1 ドラフト（A-2 + B-2 確定）
+# 元本概念 v1（ADOPTED — H-1 / U-2）
 
 **日付**: 2026-05-28  
-**ステータス**: DRAFT — Opus による ch10/13/16/22 正式ローリング前の Composer 整理稿  
-**関連**: [`PHASE4_ROADMAP_v1.md`](./PHASE4_ROADMAP_v1.md)、[`../mockups/REF_IMAGE_GAP_MATRIX_v2.md`](../mockups/REF_IMAGE_GAP_MATRIX_v2.md)
+**ステータス**: **ADOPTED** — ch10 v1.2 / ch13 v1.0.5 にローリング済  
+**正本**: [`10_functions_data_model.md`](./10_functions_data_model.md) §10.3.3/§10.3.14、[`13_paper_execution.md`](./13_paper_execution.md) §13.2.5/§13.2.6
 
 ---
 
-## 1. 用語定義（確定）
+## 1. 用語（A-2 + B-2 + H-1）
 
-| 概念 | 定義 | 増減トリガ |
-|------|------|-----------|
-| **principal** | 累積入金 − 累積出金 | `DEPOSIT` / `WITHDRAW` のみ |
-| **locked_principal** | オープンポジションが拘束する元本 | open ↑ / close ↓ |
-| **withdrawable_principal** | principal − locked_principal | 派生（UI: 「追加可能元本」= **B-2** YoRuu 内の自由元本） |
-| **balance** | principal + 累積 PnL（実現+未実現） | 約定・マーク |
-| **累積 PnL** | balance − principal | 派生 |
+| 概念 | 定義 | DB |
+|------|------|-----|
+| **principal** | 累積入金 − 累積出金 | `bot_state.principal` |
+| **balance** | 自由資金（v1 維持、open で減算） | `bot_state.balance` |
+| **locked_principal** | オープン size 合計 | **派生**（列なし） |
+| **withdrawable_principal** | `balance` | 派生 |
+| **total_assets** | `balance + locked_principal` | 派生（HUD ヒーロー） |
+| **累積 PnL** | `total_assets − principal` | 派生 |
 
-**UI ヒーロー（2 段）**
-
-- 主: **balance**（3 桁カンマ、巨大表示）
-- 副: **withdrawable_principal** 併記 + **累積 PnL** 段
+**U-2**: 金額は REAL（USD）。cents 化は PHASE 5 以降の別マイルストン候補。
 
 ---
 
-## 2. ch10 データモデル（ドラフト）
+## 2. D11 v2（H-1）
 
-### bot_state 列追加
-
-**通貨単位（要マスター確定）**
-
-| 選択肢 | 内容 | 推奨 |
-|--------|------|------|
-| U-1 | 全金額 INTEGER cents | — |
-| **U-2** | **REAL 維持**（現行 `balance` と整合） | **Opus / 実装側推奨** |
-| U-3 | 今回 REAL、PHASE 5 で cents 化 | — |
-
-U-2 採用時:
-
-- `principal REAL NOT NULL DEFAULT 0`
-- `locked_principal REAL NOT NULL DEFAULT 0`
-
-U-1 採用時: 列名・型を cents 整数に統一（既存 REAL 列もマイグレーション対象）。
-
-ドラフト全文: [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md)
-
-### 新規 `principal_transactions`
-
-| 列 | 型 | 備考 |
-|----|-----|------|
-| id | INTEGER PK | |
-| ts_utc | TEXT | ISO8601 |
-| kind | TEXT | `DEPOSIT` \| `WITHDRAW` |
-| amount_cents | INTEGER | 正 |
-| balance_before_cents / balance_after_cents | INTEGER | 監査 |
-| principal_before_cents / principal_after_cents | INTEGER | 監査 |
-| note | TEXT | 任意 |
-
-### SSE（M4.5 想定）
-
-- 新規イベント `principal_changed` — B1 / `mock-data.js` / `api/sse/models.py` へ追補要
+| イベント | balance | principal |
+|---------|---------|-----------|
+| open | `-= size_usd` | — |
+| close | `+= size_usd + pnl` | — |
+| deposit | `+= amount` | `+= amount` |
+| withdraw | `-= amount` | `-= amount` |
 
 ---
 
-## 3. ch13 §13.2.5 D11 v2（ドラフト）
+## 3. UI（E-1 / F-2）
 
-| イベント | principal | locked_principal | balance |
-|----------|-----------|------------------|---------|
-| 入金 | += amount | — | += amount |
-| 出金 | -= amount（≤ withdrawable） | — | -= amount |
-| オープン | — | += position.size | — |
-| クローズ | — | -= position.size | += realized_pnl |
+- 内部: USD のみ
+- HUD: JPY/USD 表示トグル + `GET /api/v1/fx/usd_jpy`
 
 ---
 
-## 4. ch16 INV-D-06 v2（ドラフト）
+## 4. 次: ch16 INV-D-06 v2
 
-**保存則**
-
-`balance == principal + Σ(realized_pnl) + Σ(unrealized_pnl)`
-
-**追加不変条件（案）**
-
-- principal == Σ(DEPOSIT) − Σ(WITHDRAW)
-- locked_principal == Σ(open position principal lock)
-- withdrawable_principal == principal − locked_principal ≥ 0
-
----
-
-## 5. ch22 設定（ドラフト）
-
-| 旧 | 新 |
-|----|-----|
-| `initial_balance` | `initial_principal` |
-
-起動時: 初期入金 1 行を `principal_transactions` に記録。旧キーは移行期間のみ受付。
-
----
-
-## 6. REST / CLI（M4.5 スコープ）
-
-| 種別 | パス / コマンド |
-|------|----------------|
-| REST | `POST /api/v1/principal/deposit`, `withdraw`, `GET /api/v1/principal` |
-| CLI | `yoruu principal deposit|withdraw|show` |
-
----
-
-## 7. 正式化ゲート
-
-- [ ] Opus: ch10 v1.2 ローリング（severity 必須化を同梱可）
-- [ ] Opus: ch13 D11 / ch16 INV / ch22 追補 APPROVED
-- [ ] INDEX / cross-ref 整合
-- [ ] 実装: M4.4〜M4.5（[`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md) テンプレ 14）
+ch16 ローリング追補で正式化（M4.3 継続）。

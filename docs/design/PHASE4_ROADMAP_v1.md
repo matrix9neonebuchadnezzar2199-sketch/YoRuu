@@ -5,6 +5,22 @@
 **前提**: M4.1〜M4.2 ✅、PHASE 3 コード Exit ✅  
 **旧草案**: [`PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md`](./PHASE4_ROADMAP_REVISION_DRAFT_2026-05-28.md)（履歴）
 
+### 進行原則（2026-05-28 確定）
+
+Opus の設計判断は **推奨採用を既定** とし、マスターが明示的に修正指示しない限り推奨内容で確定として進める。確定済み論点は下表および [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md) に追記する。
+
+### 確定事項一覧（追補）
+
+| ID | 論点 | 確定 |
+|----|------|------|
+| U | 通貨単位 | **U-2** REAL / 内部 USD |
+| E | HUD 通貨切替 | **E-1** 表示変換のみ |
+| F | 為替レート | **F-2** `GET /api/v1/fx/usd_jpy`（外部 API キャッシュ） |
+| G | マイルストン | **M4.7/M4.8** に組込（独立 M4.10 なし） |
+| H | D11 会計 | **H-1** balance=自由資金、open/close v1 維持 |
+| D | Hub vs HUD | **I-1** 温存・相互リンク、主入口 `00_hud.html` |
+| P/Q | M4.6/M4.7 順 | **案 P** |
+
 ---
 
 ## ゴール
@@ -34,7 +50,7 @@
 |----|------|------|------|----------------|
 | M4.1 | FastAPI + SSE 契約 | Composer | ✅ `dea96e0` | |
 | M4.2 | 静的モック + EventSource | Composer | ✅ `02edfa0` | |
-| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **進行中** | ch10 ドラフト [`ch10_v1.2_ROLLING_DRAFT.md`](./ch10_v1.2_ROLLING_DRAFT.md) レビュー待ち（U 判断含む） |
+| **M4.3** | 設計章追補（元本 + ch10 v1.2） | Opus | **進行中** | ch10 **v1.2** / ch13 **v1.0.5** ローリング済 → ch16 INV-D-06 v2 次 |
 | M4.4 | 元本コア実装 | Composer | ⏳ | DB、PrincipalService、D11 v2、INV 拡張、pytest 維持 |
 | M4.5 | REST + CLI + SSE `principal_changed` | Composer | ⏳ | API/CLI、SSE 契約 |
 | M4.6 | `mock-data.js` 拡張 | Composer | ⏳ | 既存 10 画面モック不変 |

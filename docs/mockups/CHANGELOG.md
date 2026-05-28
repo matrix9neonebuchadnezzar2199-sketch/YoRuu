@@ -1,5 +1,13 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — ch10 v1.2 / ch13 v1.0.5 設計ローリング（H-1）
+
+| 項目 | 内容 |
+|------|------|
+| ch10 | principal、principal_transactions、SSE #12、severity、principal/fx API |
+| ch13 | D11 v2 入出金、PrincipalService |
+| 会計 | H-1（balance=自由資金、total_assets=balance+locked） |
+
 ## 2026-05-28 — I-1 / 案 P 確定・PHASE4 ロードマップ v1 採用
 
 | 項目 | 内容 |
