@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
 from yoruu.data.database import Database
@@ -10,7 +11,8 @@ from yoruu.errors import InvariantViolationError
 from yoruu.strategy.models import StrategyConfig
 from yoruu.types import Mode, State
 
-# ch16 §16.3.1 SSOT
+# ch16 §16.3 / §16.3.1 SSOT
+INV_D02_TOLERANCE_USD = 0.01
 INV_D06_TOLERANCE_USD = 0.02
 
 if TYPE_CHECKING:
@@ -181,6 +183,23 @@ class InvariantChecker:
         return None
 
     # --- INV-D-* ---
+
+    def inv_d02_daily_pnl_consistency(
+        self, *, target_date: date | None = None
+    ) -> InvariantViolation | None:
+        check_date = target_date or datetime.now(UTC).date()
+        trades_sum = self._db.sum_closed_trade_pnl_for_date(check_date.isoformat())
+        cached = self._db.get_daily_pnl()
+        if abs(trades_sum - cached) >= INV_D02_TOLERANCE_USD:
+            return InvariantViolation(
+                inv_id="INV-D-02",
+                message=(
+                    f"daily_pnl cache mismatch: trades_sum={trades_sum}, "
+                    f"cached={cached}, date={check_date.isoformat()}"
+                ),
+                severity="ERROR",
+            )
+        return None
 
     def inv_d01_open_positions_mode_match(self) -> InvariantViolation | None:
         mismatches = self._db.count_open_positions_mode_mismatch(self._db.get_mode())

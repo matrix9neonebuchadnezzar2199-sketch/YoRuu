@@ -167,6 +167,81 @@ def test_inv_d03_version_ok(tmp_path: Path, strategy_config) -> None:
     assert _checker(db).inv_d03_strategy_version(strategy_config, 1) is None
 
 
+def test_inv_d02_ok_within_tolerance(tmp_path: Path) -> None:
+    from datetime import UTC, datetime
+
+    today = datetime.now(UTC).date().isoformat()
+    db = init_db(tmp_path)
+    db.update_balance_and_pnl(1000.0, 12.5)
+    db._conn.execute(
+        """
+        INSERT INTO trades (
+          market, side, size_usd, entry_price, exit_price, pnl, win,
+          mode, strategy_version, opened_at, closed_at, expires_at, status
+        ) VALUES (
+          'BTC_5MIN_UPDOWN', 'YES', 5.0, 0.6, 0.7, 12.5, 1,
+          'PAPER', 1, ?, ?, ?, 'CLOSED'
+        )
+        """,
+        (f"{today}T10:00:00+00:00", f"{today}T10:05:00+00:00", f"{today}T10:05:00+00:00"),
+    )
+    db.commit()
+    assert _checker(db).inv_d02_daily_pnl_consistency() is None
+
+
+def test_inv_d02_violate_above_tolerance(tmp_path: Path) -> None:
+    from datetime import UTC, datetime
+
+    today = datetime.now(UTC).date().isoformat()
+    db = init_db(tmp_path)
+    db.update_balance_and_pnl(1000.0, 5.0)
+    db._conn.execute(
+        """
+        INSERT INTO trades (
+          market, side, size_usd, entry_price, exit_price, pnl, win,
+          mode, strategy_version, opened_at, closed_at, expires_at, status
+        ) VALUES (
+          'BTC_5MIN_UPDOWN', 'YES', 5.0, 0.6, 0.7, 12.5, 1,
+          'PAPER', 1, ?, ?, ?, 'CLOSED'
+        )
+        """,
+        (f"{today}T10:00:00+00:00", f"{today}T10:05:00+00:00", f"{today}T10:05:00+00:00"),
+    )
+    db.commit()
+    v = _checker(db).inv_d02_daily_pnl_consistency()
+    assert v is not None
+    assert v.inv_id == "INV-D-02"
+    assert v.severity == "ERROR"
+
+
+def test_inv_d02_boundary_at_threshold(tmp_path: Path) -> None:
+    """diff == $0.01 violates (ch16: OK only when diff < $0.01)."""
+
+    from datetime import UTC, datetime
+
+    today = datetime.now(UTC).date().isoformat()
+    db = init_db(tmp_path)
+    trades_sum = 10.0
+    cached = 9.98
+    db.update_balance_and_pnl(1000.0, cached)
+    db._conn.execute(
+        """
+        INSERT INTO trades (
+          market, side, size_usd, entry_price, exit_price, pnl, win,
+          mode, strategy_version, opened_at, closed_at, expires_at, status
+        ) VALUES (
+          'BTC_5MIN_UPDOWN', 'YES', 5.0, 0.6, 0.7, ?, 1,
+          'PAPER', 1, ?, ?, ?, 'CLOSED'
+        )
+        """,
+        (trades_sum, f"{today}T10:00:00+00:00", f"{today}T10:05:00+00:00", f"{today}T10:05:00+00:00"),
+    )
+    db.commit()
+    v = _checker(db).inv_d02_daily_pnl_consistency()
+    assert v is not None
+    assert v.inv_id == "INV-D-02"
+
+
 def test_inv_d04_stub_returns_none(tmp_path: Path) -> None:
     db = init_db(tmp_path)
     assert _checker(db).inv_d04_strategy_apply_has_version_row() is None

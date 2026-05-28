@@ -79,7 +79,7 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED | v1.0.2 · 2026-05-28 |
-| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | v1.0.1 · 2026-05-28 |
+| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | v1.0.2 · 2026-05-28 |
 | 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED | `ec08886` |
 | 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | v1.1.0 · 2026-05-28 |
 | 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED | `ec08886` |

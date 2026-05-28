@@ -1,6 +1,6 @@
 # 第16章 不変条件
 
-- **バージョン**: v1.0.1
+- **バージョン**: v1.0.2
 - **作成日**: 2026-05-27
 - **ローリング更新**: 2026-05-28（Track 2C: **INV-D-06** 正式登録）
 - **承認日**: 2026-05-27
@@ -103,6 +103,7 @@ InvariantViolation(inv_id, severity):
 | inv_id | 既定 severity |
 |--------|---------------|
 | INV-S-02 違反試行 | ERROR |
+| INV-D-02 | ERROR |
 | INV-D-03 | CRITICAL |
 | INV-D-06 | ERROR |
 | INV-R-02 境界 | CRITICAL（超過後） |

@@ -226,6 +226,33 @@ class Database:
         ).fetchone()
         return float(row["s"]) if row else 0.0
 
+    def sum_closed_trade_pnl_for_date(self, target_date: str) -> float:
+        """Sum closed trade PnL for one calendar day (closed_at date, UTC)."""
+
+        row = self._conn.execute(
+            """
+            SELECT COALESCE(SUM(pnl), 0) AS s FROM trades
+            WHERE status = 'CLOSED'
+              AND closed_at IS NOT NULL
+              AND date(closed_at) = date(?)
+            """,
+            (target_date,),
+        ).fetchone()
+        return float(row["s"]) if row else 0.0
+
+    def sum_closed_trade_pnl_today_utc(self) -> float:
+        """Sum closed trade PnL for the current UTC calendar day."""
+
+        row = self._conn.execute(
+            """
+            SELECT COALESCE(SUM(pnl), 0) AS s FROM trades
+            WHERE status = 'CLOSED'
+              AND closed_at IS NOT NULL
+              AND date(closed_at) = date('now')
+            """
+        ).fetchone()
+        return float(row["s"]) if row else 0.0
+
     def count_emergency_stops_last_24h_unrecovered(self) -> int:
         row = self._conn.execute(
             """
