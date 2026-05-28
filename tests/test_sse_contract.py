@@ -27,6 +27,18 @@ def test_invalid_event_rejected() -> None:
         validate_sse_payload("not_an_event", {})
 
 
+def test_emergency_stop_default_severity_critical() -> None:
+    payload = validate_sse_payload(
+        "emergency_stop_triggered",
+        {
+            "trigger": "test",
+            "timestamp": "2026-05-28T00:00:00+00:00",
+            "open_positions_closed": 0,
+        },
+    )
+    assert payload["severity"] == "CRITICAL"
+
+
 def test_strategy_applied_requires_rationale() -> None:
     bad = dict(LAB_SSE_FIXTURES["strategy_applied"])
     del bad["rationale"]

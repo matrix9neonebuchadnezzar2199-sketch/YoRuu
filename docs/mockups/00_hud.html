@@ -72,9 +72,7 @@
 
     <section class="panel hud-panel-chart">
       <div class="panel-header" data-i18n="page.hud.chart"></div>
-      <div class="panel-body hud-chart-placeholder" id="hud-chart">
-        <p data-i18n="page.hud.chart.placeholder"></p>
-      </div>
+      <div class="panel-body hud-chart-placeholder" id="hud-chart" aria-live="polite"></div>
     </section>
 
     <section class="panel hud-panel-system">
@@ -168,6 +166,115 @@
           ":" +
           String(s).padStart(2, "0")
         );
+      }
+
+      function renderOhlcSvg(bars, container, hudData) {
+        if (!container || !bars || !bars.length) {
+          return;
+        }
+        var w = 420;
+        var h = 140;
+        var pad = 10;
+        var lows = bars.map(function (b) {
+          return b.low;
+        });
+        var highs = bars.map(function (b) {
+          return b.high;
+        });
+        var minP = Math.min.apply(null, lows);
+        var maxP = Math.max.apply(null, highs);
+        var range = maxP - minP || 1;
+        var slot = (w - pad * 2) / bars.length;
+        var svg =
+          '<svg class="hud-ohlc-svg" viewBox="0 0 ' +
+          w +
+          " " +
+          h +
+          '" role="img" aria-label="BTC 5m OHLC">';
+        bars.forEach(function (b, i) {
+          var x = pad + i * slot + slot * 0.12;
+          var bodyW = slot * 0.76;
+          var yScale = function (p) {
+            return pad + (1 - (p - minP) / range) * (h - pad * 2);
+          };
+          var yHigh = yScale(b.high);
+          var yLow = yScale(b.low);
+          var yOpen = yScale(b.open);
+          var yClose = yScale(b.close);
+          var up = b.close >= b.open;
+          var color = up ? "#3fb950" : "#f85149";
+          var yTop = Math.min(yOpen, yClose);
+          var yBot = Math.max(yOpen, yClose);
+          var cx = x + bodyW / 2;
+          svg +=
+            '<line x1="' +
+            cx +
+            '" y1="' +
+            yHigh +
+            '" x2="' +
+            cx +
+            '" y2="' +
+            yLow +
+            '" stroke="' +
+            color +
+            '" stroke-width="1"/>';
+          svg +=
+            '<rect x="' +
+            x +
+            '" y="' +
+            yTop +
+            '" width="' +
+            bodyW +
+            '" height="' +
+            Math.max(1, yBot - yTop) +
+            '" fill="' +
+            color +
+            '"/>';
+        });
+        if (hudData && hudData.current_position && bars.length) {
+          var entry = hudData.current_position.entry;
+          var yEntry = pad + (1 - (entry * maxP - minP) / range) * (h - pad * 2);
+          if (entry <= 1) {
+            yEntry = pad + (h - pad * 2) * 0.5;
+          }
+          svg +=
+            '<line x1="' +
+            pad +
+            '" y1="' +
+            yEntry +
+            '" x2="' +
+            (w - pad) +
+            '" y2="' +
+            yEntry +
+            '" stroke="#c9b8ff" stroke-dasharray="4 3" stroke-width="1"/>';
+        }
+        svg += "</svg>";
+        container.innerHTML = svg;
+        container.classList.remove("hud-chart-placeholder");
+      }
+
+      function refreshOhlcChart(hudData) {
+        var el = document.getElementById("hud-chart");
+        if (!el) {
+          return;
+        }
+        if (
+          window.location.protocol === "http:" ||
+          window.location.protocol === "https:"
+        ) {
+          fetch("/api/v1/ohlc?bars=48")
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (data) {
+              renderOhlcSvg(data.bars || [], el, hudData);
+            })
+            .catch(function () {
+              renderOhlcSvg(md.labOhlcBars(48), el, hudData);
+            });
+        } else {
+          renderOhlcSvg(md.labOhlcBars(48), el, hudData);
+        }
       }
 
       function renderMarkovSeries(series) {
@@ -368,6 +475,8 @@
           " · trades " +
           d.hub_meta.trade_count;
 
+        refreshOhlcChart(d);
+
         i18n.applyI18n(document.body);
         window.YoRuuApp.updateModeBadges();
         document
@@ -393,6 +502,9 @@
         renderHud();
         tickClock();
         setInterval(tickClock, 1000);
+        setInterval(function () {
+          refreshOhlcChart(md.getData());
+        }, 5000);
 
         document.getElementById("hud-deposit-btn").addEventListener("click", function () {
           md.simulatePrincipalDeposit(100, "hud_deposit_btn");

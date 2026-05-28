@@ -1131,6 +1131,7 @@
       to: "MONITORING_POSITION",
       timestamp: "2026-05-27T14:32:48+09:00",
       reason: "position_opened",
+      severity: "INFO",
     },
     markov_update: {
       computed_at: "2026-05-27T14:35:00+09:00",
@@ -1145,18 +1146,21 @@
       last_direction: "UP",
       threshold_met: false,
       wait_reason: "persistence",
+      severity: "INFO",
     },
     health_degraded: {
       component: "polymarket_ws",
       reason: "disconnected",
       retry_count: 2,
       timestamp: "2026-05-27T14:32:48+09:00",
+      severity: "WARN",
     },
     health_recovered: {
       component: "polymarket_ws",
       reason: "reconnected",
       recovery_duration_sec: 8,
       timestamp: "2026-05-27T14:32:48+09:00",
+      severity: "INFO",
     },
     position_opened: {
       trade_id: 71,
@@ -1167,6 +1171,7 @@
       expires_at: "2026-05-27T14:37:00+09:00",
       edge_at_entry: 0.071,
       persistence_at_entry: 0.72,
+      severity: "INFO",
     },
     position_closed: {
       trade_id: 71,
@@ -1174,21 +1179,25 @@
       pnl: 4.35,
       win: true,
       closed_at: "2026-05-27T14:37:00+09:00",
+      severity: "INFO",
     },
     nightly_report_ready: {
       report_date: "2026-05-27",
       report_id: 7,
       summary_url: "/api/v1/reports/7",
+      severity: "INFO",
     },
     mode_changed: {
       from: "PAPER",
       to: "SIMMER",
       timestamp: "2026-05-27T14:32:48+09:00",
+      severity: "INFO",
     },
     emergency_stop_triggered: {
       trigger: "dashboard_button",
       timestamp: "2026-05-27T14:32:48+09:00",
       open_positions_closed: 1,
+      severity: "CRITICAL",
     },
     alert_added: {
       id: 143,
@@ -1204,6 +1213,7 @@
       rationale: "勝率 60.9% のため MIN_PROB を 0.87→0.89 に微増",
       applied_at: "2026-05-28T04:15:00+09:00",
       diff: { MIN_PROB: [0.87, 0.89] },
+      severity: "INFO",
     },
     principal_changed: {
       kind: "DEPOSIT",
@@ -1368,6 +1378,33 @@
     return sign + "$" + Math.abs(v).toFixed(2);
   }
 
+  /**
+   * Lab OHLC bars (mirrors src/yoruu/infra/ohlc_provider.py seed).
+   */
+  function labOhlcBars(limit) {
+    var n = limit || 60;
+    var bars = [];
+    var price = 68250;
+    var i;
+    for (i = 0; i < n; i += 1) {
+      var drift = Math.sin(i / 8) * 120 + ((i % 7) - 3) * 15;
+      var open = price;
+      var close = price + drift;
+      var high = Math.max(open, close) + Math.abs(drift) * 0.15;
+      var low = Math.min(open, close) - Math.abs(drift) * 0.15;
+      bars.push({
+        ts: "2026-05-28T12:" + String(i % 60).padStart(2, "0") + ":00+00:00",
+        open: Math.round(open * 100) / 100,
+        high: Math.round(high * 100) / 100,
+        low: Math.round(low * 100) / 100,
+        close: Math.round(close * 100) / 100,
+        volume: 12.5 + (i % 5),
+      });
+      price = close;
+    }
+    return bars;
+  }
+
   global.YoRuuMockData = {
     SCENARIOS: SCENARIOS,
     DAILY_REPORT_NORMAL: DAILY_REPORT_NORMAL,
@@ -1406,5 +1443,6 @@
     formatPnl: formatPnl,
     formatPct: formatPct,
     BASE_TIME: BASE_TIME,
+    labOhlcBars: labOhlcBars,
   };
 })(typeof window !== "undefined" ? window : globalThis);

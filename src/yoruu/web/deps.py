@@ -11,12 +11,14 @@ from yoruu.config.settings import AppSettings, load_settings
 from yoruu.data.database import Database
 from yoruu.execution.principal_service import PrincipalService
 from yoruu.infra.fx_provider import FxRateProvider
+from yoruu.infra.ohlc_provider import OhlcProvider
 from yoruu.safety.invariants import InvariantChecker
 from yoruu.web.event_bus import MemoryEventBus
 
 _settings: AppSettings | None = None
 _event_bus = ValidatingEventBus(MemoryEventBus())
 _fx_provider: FxRateProvider | None = None
+_ohlc_provider: OhlcProvider | None = None
 
 
 def get_settings() -> AppSettings:
@@ -59,3 +61,10 @@ def get_fx_provider() -> FxRateProvider:
     if _fx_provider is None:
         _fx_provider = FxRateProvider(get_settings().display.fx)
     return _fx_provider
+
+
+def get_ohlc_provider() -> OhlcProvider:
+    global _ohlc_provider
+    if _ohlc_provider is None:
+        _ohlc_provider = OhlcProvider()
+    return _ohlc_provider

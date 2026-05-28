@@ -5,12 +5,14 @@ from __future__ import annotations
 from typing import Any
 
 # Keys and shapes match docs/mockups/shared/mock-data.js (§F T4.1 / B1).
+# All payloads include ``severity`` (M5.5).
 LAB_SSE_FIXTURES: dict[str, dict[str, Any]] = {
     "state_changed": {
         "from": "TRADING",
         "to": "MONITORING_POSITION",
         "timestamp": "2026-05-27T14:32:48+09:00",
         "reason": "position_opened",
+        "severity": "INFO",
     },
     "markov_update": {
         "computed_at": "2026-05-27T14:35:00+09:00",
@@ -25,18 +27,21 @@ LAB_SSE_FIXTURES: dict[str, dict[str, Any]] = {
         "last_direction": "UP",
         "threshold_met": False,
         "wait_reason": "persistence",
+        "severity": "INFO",
     },
     "health_degraded": {
         "component": "polymarket_ws",
         "reason": "disconnected",
         "retry_count": 2,
         "timestamp": "2026-05-27T14:32:48+09:00",
+        "severity": "WARN",
     },
     "health_recovered": {
         "component": "polymarket_ws",
         "reason": "reconnected",
         "recovery_duration_sec": 8,
         "timestamp": "2026-05-27T14:32:48+09:00",
+        "severity": "INFO",
     },
     "position_opened": {
         "trade_id": 71,
@@ -47,6 +52,7 @@ LAB_SSE_FIXTURES: dict[str, dict[str, Any]] = {
         "expires_at": "2026-05-27T14:37:00+09:00",
         "edge_at_entry": 0.071,
         "persistence_at_entry": 0.72,
+        "severity": "INFO",
     },
     "position_closed": {
         "trade_id": 71,
@@ -54,21 +60,25 @@ LAB_SSE_FIXTURES: dict[str, dict[str, Any]] = {
         "pnl": 4.35,
         "win": True,
         "closed_at": "2026-05-27T14:37:00+09:00",
+        "severity": "INFO",
     },
     "nightly_report_ready": {
         "report_date": "2026-05-27",
         "report_id": 7,
         "summary_url": "/api/v1/reports/7",
+        "severity": "INFO",
     },
     "mode_changed": {
         "from": "PAPER",
         "to": "SIMMER",
         "timestamp": "2026-05-27T14:32:48+09:00",
+        "severity": "INFO",
     },
     "emergency_stop_triggered": {
         "trigger": "dashboard_button",
         "timestamp": "2026-05-27T14:32:48+09:00",
         "open_positions_closed": 1,
+        "severity": "CRITICAL",
     },
     "alert_added": {
         "id": 143,
@@ -84,6 +94,7 @@ LAB_SSE_FIXTURES: dict[str, dict[str, Any]] = {
         "rationale": "lab fixture",
         "applied_at": "2026-05-28T04:15:00+09:00",
         "diff": {"MIN_PROB": [0.87, 0.89]},
+        "severity": "INFO",
     },
     "principal_changed": {
         "kind": "DEPOSIT",

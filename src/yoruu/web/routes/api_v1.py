@@ -21,7 +21,8 @@ from yoruu.errors import StrategyApplyError
 from yoruu.review.nightly_reporter import NightlyReporter
 from yoruu.review.strategy_applier import StrategyApplier
 from yoruu.review.strategy_writer import StrategyWriter
-from yoruu.web.deps import get_db, get_event_bus, get_settings
+from yoruu.infra.ohlc_provider import OhlcProvider
+from yoruu.web.deps import get_db, get_event_bus, get_ohlc_provider, get_settings
 
 router = APIRouter(prefix="/api/v1")
 
@@ -376,6 +377,20 @@ def get_i18n(lang: str) -> dict[str, str]:
     if not isinstance(data, dict):
         raise HTTPException(status_code=500, detail="invalid locale file")
     return {str(k): str(v) for k, v in data.items()}
+
+
+@router.get("/ohlc")
+def get_ohlc(
+    bars: int = Query(60, ge=1, le=60),
+    provider: OhlcProvider = Depends(get_ohlc_provider),
+) -> dict[str, Any]:
+    """Recent 5m OHLC bars for HUD chart (lab-seeded ring buffer)."""
+
+    return {
+        "symbol": "BTCUSDT",
+        "interval": "5m",
+        "bars": provider.get_bars(bars),
+    }
 
 
 @router.get("/sse/contracts")

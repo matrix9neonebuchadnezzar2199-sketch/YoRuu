@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+SseSeverity = Literal["INFO", "WARN", "ERROR", "CRITICAL"]
 
 
 class StateChangedPayload(BaseModel):
@@ -12,6 +14,7 @@ class StateChangedPayload(BaseModel):
     to_state: str = Field(alias="to")
     timestamp: str
     reason: str
+    severity: SseSeverity = "INFO"
 
     model_config = {"populate_by_name": True}
 
@@ -31,6 +34,7 @@ class MarkovUpdatePayload(BaseModel):
     last_direction: str
     threshold_met: bool
     wait_reason: str
+    severity: SseSeverity = "INFO"
 
 
 class HealthDegradedPayload(BaseModel):
@@ -38,6 +42,7 @@ class HealthDegradedPayload(BaseModel):
     reason: str
     retry_count: int
     timestamp: str
+    severity: SseSeverity = "WARN"
 
 
 class HealthRecoveredPayload(BaseModel):
@@ -45,6 +50,7 @@ class HealthRecoveredPayload(BaseModel):
     reason: str
     recovery_duration_sec: int
     timestamp: str
+    severity: SseSeverity = "INFO"
 
 
 class PositionOpenedPayload(BaseModel):
@@ -56,6 +62,7 @@ class PositionOpenedPayload(BaseModel):
     expires_at: str
     edge_at_entry: float
     persistence_at_entry: float
+    severity: SseSeverity = "INFO"
 
 
 class PositionClosedPayload(BaseModel):
@@ -64,18 +71,21 @@ class PositionClosedPayload(BaseModel):
     pnl: float
     win: bool
     closed_at: str
+    severity: SseSeverity = "INFO"
 
 
 class NightlyReportReadyPayload(BaseModel):
     report_date: str
     report_id: int
     summary_url: str
+    severity: SseSeverity = "INFO"
 
 
 class ModeChangedPayload(BaseModel):
     from_mode: str = Field(alias="from")
     to_mode: str = Field(alias="to")
     timestamp: str
+    severity: SseSeverity = "INFO"
 
     model_config = {"populate_by_name": True}
 
@@ -84,12 +94,13 @@ class EmergencyStopTriggeredPayload(BaseModel):
     trigger: str
     timestamp: str
     open_positions_closed: int
+    severity: SseSeverity = "CRITICAL"
 
 
 class AlertAddedPayload(BaseModel):
     id: int
     code: str
-    severity: Literal["INFO", "WARN", "ERROR"]
+    severity: SseSeverity
     message: str
     created_at: str
 
@@ -101,6 +112,7 @@ class StrategyAppliedPayload(BaseModel):
     rationale: str
     applied_at: str
     diff: dict[str, list[float]]
+    severity: SseSeverity = "INFO"
 
 
 class PrincipalChangedPayload(BaseModel):
@@ -116,4 +128,4 @@ class PrincipalChangedPayload(BaseModel):
     cumulative_pnl: float
     ts_utc: str
     note: str | None = None
-    severity: Literal["INFO", "WARN", "ERROR"] = "INFO"
+    severity: SseSeverity = "INFO"

@@ -8,8 +8,8 @@
 
 <br>
 
-[![Status](https://img.shields.io/badge/status-PHASE_4_(HUD+principal)-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/PHASE4_ROADMAP_v1.md)
-[![Version](https://img.shields.io/badge/version-0.4.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
+[![Status](https://img.shields.io/badge/status-PHASE_5_(chart+integration)-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/PHASE5_ROADMAP_v1.md)
+[![Version](https://img.shields.io/badge/version-0.5.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-ready-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.40+-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
@@ -21,7 +21,7 @@
 <br>
 
 [![Docs](https://img.shields.io/badge/docs-24_chapter_APPROVED-7c3aed?style=flat-square&logo=readthedocs&logoColor=white)](docs/design/)
-[![Mockups](https://img.shields.io/badge/UI-HTML_mockups_11%2F11-d68910?style=flat-square&logo=html5&logoColor=white)](docs/mockups/)
+[![Mockups](https://img.shields.io/badge/UI-HTML_mockups_12%2F12_(HUD)-d68910?style=flat-square&logo=html5&logoColor=white)](docs/mockups/)
 [![Modes](https://img.shields.io/badge/modes-4_(backtest·paper·simmer·live)-2c5f8d?style=flat-square)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Infra](https://img.shields.io/badge/deploy-Hetzner_VPS_|_local-24292f?style=flat-square&logo=serverless&logoColor=white)](https://www.hetzner.com/)
 [![Review](https://img.shields.io/badge/nightly_review-human_+_Opus_4.7-a78bfa?style=flat-square&logo=anthropic&logoColor=white)](docs/design/00_INSTRUCTIONS_ch01-07.md)
@@ -61,25 +61,99 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 4 完了** — PHASE 5（ローソク足・lab 24h）着手可 |
-| **テスト** | `pytest` **142** passed、カバレッジ **≈88%**、`fail_under` **80** |
+| **現フェーズ** | **PHASE 5 着手** — OHLC HUD · SSE severity · ADR-001 |
+| **テスト** | `pytest` **146** passed、カバレッジ **≈88%**、`fail_under` **80** |
 | **会計（H-1）** | `balance` = 自由資金、`principal` = 累積入出金、`total_assets` = balance + locked |
 
-### PHASE 4 マイルストン（2026-05-28）
+### 全 PHASE マイルストン一覧
+
+正本: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
+
+#### PHASE 0 — 基盤合意 ✅
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| — | ch1〜7 初版・24章構成合意・モック運用ルール | ✅ |
+
+#### PHASE 1 — 設計書執筆 ✅
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M1.0 | ロードマップ整備（`00_ROADMAP` / INDEX） | ✅ |
+| M1.1 | ch1〜7 `APPROVED` | ✅ |
+| M1.2 | ch8 UIモック設計書 | ✅ |
+| M1.3 | ch9〜14 詳細設計 | ✅ |
+| M1.4 | ch15 夜間レビュー | ✅ |
+| M1.5 | ch16〜24 + 付録 A（a/b/c 分割） | ✅ |
+
+#### PHASE 2 — UIモック ✅
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M2.1 | shared + hub + dashboard + trade log | ✅ |
+| M2.2 | nightly + strategy + markov live | ✅ |
+| M2.3 | settings〜what-if（11画面） | ✅ |
+
+#### PHASE 3 — コア実装 ✅
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M3.1 | Binance WS + Polymarket CLOB（lab） | ✅ |
+| M3.2 | Markov + Kelly | ✅ |
+| M3.3 | ペーパー約定 | ✅ |
+| M3.4 | SQLite + StateMachine | ✅ |
+| M3.5 | 夜間レポート | ✅ |
+| M3.6 | 戦略 Apply（CLI + REST） | ✅ |
+| M3.7 | FastAPI + SSE 契約 | ✅ |
+
+品質トラック・Exit: [`PHASE3_EXIT_DECLARATION.md`](docs/design/PHASE3_EXIT_DECLARATION.md)
+
+#### PHASE 4 — HUD + 元本 ✅
 
 | ID | 内容 | 状態 |
 |:---|:---|:---:|
 | M4.1 | FastAPI + SSE 契約 | ✅ |
 | M4.2 | 静的モック + EventSource | ✅ |
-| M4.3 | 設計章追補（ch10/13/16/18/22 元本・FX） | ✅ |
-| M4.4 | 元本コア（migrate · PrincipalService · INV-D-06 v2） | ✅ |
-| M4.5 | principal REST/CLI/SSE + `GET /fx/usd_jpy` | ✅ |
-| M4.6 | mock-data principal/FX/HUD aggregates | ✅ |
-| M4.7 | `00_hud.html` 主入口 HUD | ✅ |
+| M4.3 | 設計章追補（ch10/13/16/18/22） | ✅ |
+| M4.4 | 元本コア（INV-D-06 v2） | ✅ |
+| M4.5 | principal REST/CLI/SSE + FX API | ✅ |
+| M4.6 | mock-data principal/FX/HUD | ✅ |
+| M4.7 | `00_hud.html` 主入口 | ✅ |
 | M4.8 | en i18n + serve smoke | ✅ |
-| M4.9 | PHASE 4 Exit 宣言 | ✅ |
+| M4.9 | PHASE 4 Exit | ✅ |
 
-正本: [`docs/design/PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md) · テンプレ 14: [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
+正本: [`PHASE4_EXIT_DECLARATION.md`](docs/design/PHASE4_EXIT_DECLARATION.md)
+
+#### PHASE 5 — 観察・統合（進行中）
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M5.0 | `PHASE5_ROADMAP_v1.md` | ✅ |
+| M5.1 | ADR-001 + 設計章本体マージ | 🔄 |
+| M5.2 | ローソク足 SSOT（ch10 追補） | 🔄 |
+| M5.3 | `GET /api/v1/ohlc` + ring buffer | ✅ |
+| M5.4 | HUD SVG チャート + polling | ✅ |
+| M5.5 | SSE 全イベント `severity` 必須 | ✅ |
+| M5.6 | lab 24h paper レポート | ⏳ 運用 |
+| M5.7 | PHASE 5 Exit · v0.6.0 | ⏳ |
+
+正本: [`PHASE5_ROADMAP_v1.md`](docs/design/PHASE5_ROADMAP_v1.md)
+
+#### PHASE 6 — ペーパー運用（予定）
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M6.1 | 初期戦略パラメータ確定 | ⏳ |
+| M6.2 | 1週目運用 + 日次レビュー | ⏳ |
+| M6.3 | 2週目運用 + パラメータ調整 | ⏳ |
+
+#### PHASE 7 — 段階移行 LIVE（任意・予定）
+
+| ID | 内容 | 状態 |
+|:---|:---|:---:|
+| M7 | $10 → $50 → $100 → 本格、各段階1週間+ | ⏳ |
+
+テンプレ 14: [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
 
 ---
 
@@ -110,11 +184,13 @@ uv run pytest -q
 
 設計 SSOT: [`docs/design/INDEX.md`](docs/design/INDEX.md)。PHASE 3 Exit: [`PHASE3_EXIT_DECLARATION.md`](docs/design/PHASE3_EXIT_DECLARATION.md)。PHASE 4: [`PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md)。
 
-**テスト**: `uv run pytest -q` — **127** passed、カバレッジ **≈88%**。**静的 UI 再生成**: `uv run python tools/build_web_static.py`（`docs/mockups/` 正本は保持）。
+**テスト**: `uv run pytest -q` — **146** passed、カバレッジ **≈88%**。**静的 UI 再生成**: `uv run python tools/build_web_static.py`（`docs/mockups/` 正本は保持）。
 
 **設定**: `initial_principal`（推奨）。`initial_balance` は後方互換のみ（DeprecationWarning）。
 
 **元本 API（M4.5）**: `GET/POST /api/v1/principal/*`、`GET /api/v1/fx/usd_jpy`、`yoruu principal deposit|withdraw|show|transactions`。
+
+**OHLC（M5.3）**: `GET /api/v1/ohlc?bars=60` — HUD チャート用 5分足（lab seed）。
 
 ---
 
@@ -323,10 +399,11 @@ flowchart TB
 ```
 YoRuu/
 ├── README.md
-├── pyproject.toml            # v0.4.0, fail_under 80
+├── pyproject.toml            # v0.5.0, fail_under 80
 ├── config/yoruu.yaml.example # initial_principal, principal.*, display.fx
-├── docs/design/              # 設計書 24章 + 付録 A
-├── docs/mockups/             # PHASE 2 モック 11画面
+├── docs/design/              # 設計書 24章 + 付録 A + PHASE ロードマップ
+├── docs/adr/                 # ADR-001 等
+├── docs/mockups/             # モック 12画面（00_hud + 10 + hub）
 ├── src/yoruu/
 │   ├── cli.py
 │   ├── core/                 # StateMachine, EventBus
@@ -346,14 +423,16 @@ YoRuu/
 
 | フェーズ | 内容 | 状態 |
 |:---|:---|:---:|
-| **PHASE 0** | ch1〜7 基盤合意 | 完了 |
-| **PHASE 1** | 設計書 24章 + 付録 A | 完了（2026-05-27） |
-| **PHASE 2** | HTML モック 11画面 | 完了（2026-05-27） |
-| **PHASE 3** | コア CLI + 品質トラック | 完了（[`PHASE3_EXIT_DECLARATION`](docs/design/PHASE3_EXIT_DECLARATION.md)） |
-| **PHASE 4** | HUD + 元本 + 静的 UI | **完了**（[`PHASE4_EXIT_DECLARATION.md`](docs/design/PHASE4_EXIT_DECLARATION.md)） |
-| **PHASE 5〜7** | ローソク足 · lab 24h · live | 予定 |
+| **PHASE 0** | ch1〜7 基盤合意 | ✅ |
+| **PHASE 1** | 設計書 24章 + 付録 A | ✅ |
+| **PHASE 2** | HTML モック 11画面 | ✅ |
+| **PHASE 3** | コア CLI + 品質トラック | ✅ [`PHASE3_EXIT`](docs/design/PHASE3_EXIT_DECLARATION.md) |
+| **PHASE 4** | HUD + 元本 + 静的 UI | ✅ [`PHASE4_EXIT`](docs/design/PHASE4_EXIT_DECLARATION.md) |
+| **PHASE 5** | OHLC · severity · ADR · lab 24h | **進行中** [`PHASE5_ROADMAP`](docs/design/PHASE5_ROADMAP_v1.md) |
+| **PHASE 6** | ペーパー運用 14日 | ⏳ |
+| **PHASE 7** | 段階 LIVE 移行（任意） | ⏳ |
 
-詳細: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
+マイルストン詳細は本文 [全 PHASE マイルストン一覧](#全-phase-マイルストン一覧)。SSOT: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
 
 ---
 
@@ -396,6 +475,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.5.0 · PHASE 4 Exit · last updated 2026-05-28</sub>
+<sub>README · v0.5.0 · PHASE 5 着手 · last updated 2026-05-28</sub>
 
 </div>

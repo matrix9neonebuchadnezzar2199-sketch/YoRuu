@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>16:37</td>
+        <td>PHASE 5 着手 — README 全PHASE · OHLC · SSE severity</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1637">#entry-1637</a></td>
+      </tr>
+      <tr>
         <td>16:20</td>
         <td>PHASE 4 Exit — M4.8 en i18n + M4.9 宣言 v0.5.0</td>
         <td><span class="pill pill-ok">ok</span></td>
@@ -1284,6 +1290,29 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p><code>uv run pytest -q</code> — <strong>142 passed</strong>。Commit: <code>feaa328</code>。</p>
+</section>
+
+<section class="entry" id="entry-1637">
+  <h2>PHASE 5 着手 — README 全PHASE · OHLC API · SSE severity · HUD チャート<a href="#entry-1637" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 16:37 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><strong>README</strong> に PHASE 0〜7 のマイルストン表を掲載。<strong>PHASE 5</strong> 実装スライス: <code>PHASE5_ROADMAP_v1.md</code>、<code>ADR-001</code>、<code>GET /api/v1/ohlc</code>（<code>OhlcProvider</code> ring buffer）、HUD SVG チャート（5s polling）、SSE 12 イベント全モデルに <code>severity</code> 必須（<code>emergency_stop_triggered</code> 既定 <code>CRITICAL</code>）。lab 24h テンプレのみ（M5.6 運用待ち）。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/PHASE5_ROADMAP_v1.md、docs/adr/ADR-001_principal_concept_rollup.md</li>
+    <li><span class="op op-add">+</span> src/yoruu/infra/ohlc_provider.py、tests/web/test_ohlc_api.py、tests/infra/test_ohlc_provider.py</li>
+    <li><span class="op op-mod">~</span> api/sse/models.py、fixtures.py、api_v1.py、deps.py、00_hud.html、mock-data.js</li>
+    <li><span class="op op-mod">~</span> README.md（全 PHASE マイルストン）、docs/operations/LAB_PAPER_24H_TEMPLATE.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p><code>build_web_static</code>、<code>uv run pytest -q</code> — <strong>146 passed</strong>、coverage ≈88%。Commit: <code>4fb04ee</code>。</p>
+  <h3>残課題</h3>
+  <p>M5.1 設計章本体マージ（5 章）、M5.6 lab 24h 実行、M5.7 Exit / v0.6.0。</p>
 </section>
 </main>
 

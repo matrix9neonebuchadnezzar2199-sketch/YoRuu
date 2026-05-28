@@ -1303,6 +1303,14 @@ body.has-banner.hud-layout {
   font-size: 13px;
 }
 
+.hud-ohlc-svg {
+  width: 100%;
+  height: 140px;
+  display: block;
+  border-radius: 6px;
+  background: var(--bg-muted, rgba(255, 255, 255, 0.02));
+}
+
 .hud-system-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
