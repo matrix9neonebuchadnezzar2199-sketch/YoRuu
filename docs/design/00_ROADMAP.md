@@ -188,8 +188,8 @@ gantt
 | M4.4 | 元本コア（DB、PrincipalService、D11 v2） | ⏳ |
 | M4.5 | REST/CLI + SSE `principal_changed` | ⏳ |
 | M4.6 | `mock-data.js` 拡張 | ✅ |
-| M4.7 | `00_hud.html`（I-1 相互リンク、チャート placeholder） | ⏳ |
-| M4.8 | i18n + `build_web_static` | ⏳ |
+| M4.7 | `00_hud.html`（I-1 相互リンク、チャート placeholder） | ✅ |
+| M4.8 | i18n + `build_web_static` | **着手可** |
 | M4.9 | PHASE 4 Exit 宣言 | ⏳ |
 
 **Exit Criteria**（PHASE 4）:

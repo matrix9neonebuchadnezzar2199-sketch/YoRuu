@@ -1,5 +1,16 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — M4.7 `00_hud.html` 主入口 HUD
+
+| 項目 | 内容 |
+|------|------|
+| 新規 | `00_hud.html` — ヒーロー（総資産/元本/累積 PnL）、統計 4 枚、Markov/戦略/シグナル、システム 6 枠、夜間 CD、約定ミニ |
+| FX | USD/JPY トグル（`localStorage`）、`formatMoney` + stale バナー |
+| 元本 | 入金/出金モックボタン → `simulatePrincipalDeposit/Withdraw` |
+| I-1 | Hub `index.html` から HUD へ相互リンク、⌘K `g h` |
+| チャート | placeholder（PHASE 5） |
+| static | `build_web_static.py` に `00_hud.html` 追加 |
+
 ## 2026-05-28 — M4.6 `mock-data.js` principal / FX / HUD aggregates
 
 | 項目 | 内容 |

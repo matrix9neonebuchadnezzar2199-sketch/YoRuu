@@ -12,6 +12,7 @@ STATIC = ROOT / "src" / "yoruu" / "web" / "static"
 SSE_CLIENT_SRC = ROOT / "src" / "yoruu" / "web" / "static_src" / "sse-client.js"
 
 PAGE_FILES = [
+    "00_hud.html",
     "index.html",
     "01_dashboard.html",
     "02_trade_log.html",

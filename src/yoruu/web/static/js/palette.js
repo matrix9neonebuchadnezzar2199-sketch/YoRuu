@@ -5,6 +5,7 @@
   "use strict";
 
   const COMMANDS = [
+    { id: "hud", key: "cmd.goto_hud", href: "/pages/00_hud.html", keys: ["g", "h"] },
     { id: "hub", key: "cmd.goto_hub", href: "/pages/index.html", keys: [] },
     {
       id: "dashboard",

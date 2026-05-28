@@ -16,6 +16,16 @@
   Related Mockups: 01_dashboard.html, 02_trade_log.html
 -->
 
+  <section class="panel" style="margin-bottom:16px;border-color:var(--accent-emphasis)">
+    <div class="panel-body" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between">
+      <div>
+        <strong data-i18n="hub.link.hud"></strong>
+        <p style="margin:4px 0 0;font-size:13px;color:var(--text-secondary)" data-i18n="page.hud.subtitle"></p>
+      </div>
+      <a href="00_hud.html" class="btn btn-primary" data-i18n="nav.hud"></a>
+    </div>
+  </section>
+
   <header class="hub-header">
     <div>
       <h1 class="hub-title" data-i18n="page.hub.title"></h1>
@@ -84,6 +94,7 @@
           i18n.t(i18n.stateKeyForBot(d.bot_state.state)) + "</span></div></article>";
 
         var screens = [
+          { href: "00_hud.html", key: "nav.hud", hint: i18n.t("hub.link.hud") },
           { href: "01_dashboard.html", key: "nav.dashboard", hint: "" },
           {
             href: "02_trade_log.html",

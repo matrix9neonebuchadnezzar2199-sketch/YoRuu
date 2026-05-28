@@ -56,8 +56,8 @@ Opus の設計判断は **推奨採用を既定** とし、マスターが明示
 | **M4.4** | 元本コア実装 | Composer | **✅ 完了** | migrate / PrincipalService / INV-D-06 v2 + 07/08/09、127 pytest・≈88% |
 | **M4.5** | REST + CLI + SSE `principal_changed` | Composer | **✅ 完了** | principal/fx REST、CLI 4 本、SSE #12、**141** pytest |
 | **M4.6** | `mock-data.js` 拡張 | Composer | **✅ 完了** | principal 5 値 / FX mock / SSE #12 mock / HUD aggregates、10 画面不変 |
-| **M4.7** | `00_hud.html` 新規 | Composer | **着手可** | 参照 8 割一致、I-1 相互リンク、チャート placeholder |
-| M4.8 | i18n + static 反映 | Composer | ⏳ | `build_web_static`、serve で HUD |
+| **M4.7** | `00_hud.html` 新規 | Composer | **✅ 完了** | Hermes 型 HUD、I-1 相互リンク、principal/FX 表示、チャート placeholder |
+| **M4.8** | i18n + static 反映 | Composer | **着手可** | `build_web_static` 同期済・serve 検証・en 完備 |
 | M4.9 | PHASE 4 Exit 宣言 | Opus | ⏳ | `PHASE4_EXIT_DECLARATION.md` |
 
 **案 Q**（M4.6/M4.7 順序入替・スケルトン先行）は **不採用**。M4.7 内でダミー値スケルトンの中間レビューは可。

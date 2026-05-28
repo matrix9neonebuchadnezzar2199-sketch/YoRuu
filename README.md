@@ -61,7 +61,7 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → Genspark / Opus 4.7 → Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 4** — HUD + 元本（M4.1〜M4.6 完了、M4.7 `00_hud.html` 着手可） |
+| **現フェーズ** | **PHASE 4** — HUD + 元本（M4.1〜M4.7 完了、M4.8 static/i18n 着手可） |
 | **テスト** | `pytest` **141** passed、カバレッジ **≈88%**、`fail_under` **80** |
 | **会計（H-1）** | `balance` = 自由資金、`principal` = 累積入出金、`total_assets` = balance + locked |
 
@@ -75,7 +75,8 @@
 | M4.4 | 元本コア（migrate · PrincipalService · INV-D-06 v2） | ✅ |
 | M4.5 | principal REST/CLI/SSE + `GET /fx/usd_jpy` | ✅ |
 | M4.6 | mock-data principal/FX/HUD aggregates | ✅ |
-| M4.7〜M4.9 | `00_hud.html` · i18n · Exit | 予定 |
+| M4.7 | `00_hud.html` 主入口 HUD | ✅ |
+| M4.8〜M4.9 | static/i18n · Exit | 予定 |
 
 正本: [`docs/design/PHASE4_ROADMAP_v1.md`](docs/design/PHASE4_ROADMAP_v1.md) · テンプレ 14: [`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md)
 
@@ -99,7 +100,7 @@ uv run yoruu db migrate
 uv run yoruu paper evaluate-once
 uv run yoruu serve
 # Hub: http://127.0.0.1:8765/pages/index.html
-# HUD 主入口（M4.7 予定）: docs/mockups/00_hud.html  (?mock=1 でモック SSE)
+# HUD 主入口: docs/mockups/00_hud.html  (serve: /pages/00_hud.html)
 uv run yoruu nightly generate
 uv run yoruu strategy apply path\to\proposal.json --by USER
 uv run pytest -q
@@ -347,7 +348,7 @@ YoRuu/
 | **PHASE 1** | 設計書 24章 + 付録 A | 完了（2026-05-27） |
 | **PHASE 2** | HTML モック 11画面 | 完了（2026-05-27） |
 | **PHASE 3** | コア CLI + 品質トラック | 完了（[`PHASE3_EXIT_DECLARATION`](docs/design/PHASE3_EXIT_DECLARATION.md)） |
-| **PHASE 4** | HUD + 元本 + 静的 UI | **着手中**（M4.1〜M4.6 ✅、M4.7 次） |
+| **PHASE 4** | HUD + 元本 + 静的 UI | **着手中**（M4.1〜M4.7 ✅、M4.8 次） |
 | **PHASE 5〜7** | ローソク足 · lab 24h · live | 予定 |
 
 詳細: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
@@ -393,6 +394,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.4.0 · PHASE 4 · M4.6 mock-data · last updated 2026-05-28</sub>
+<sub>README · v0.4.0 · PHASE 4 · M4.7 HUD · last updated 2026-05-28</sub>
 
 </div>

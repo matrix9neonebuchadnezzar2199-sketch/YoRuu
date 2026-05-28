@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YoRuu — HUD (Mock)</title>
+  <link rel="stylesheet" href="shared/style.css">
+</head>
+<body class="hud-layout" data-page="hud">
+<!--
+  YoRuu Mockup: Main HUD (Hermes-style dense viewer)
+  Version: 0.1.0
+  Last Updated: 2026-05-28
+  Status: REVIEW_PENDING
+  Linked Design: PHASE4 M4.7 / REF_IMAGE_GAP_MATRIX_v2
+  Related: index.html (Hub), shared/mock-data.js
+-->
+
+  <header class="hud-header">
+    <div class="hud-header-brand">
+      <h1 class="hud-title" data-i18n="page.hud.title"></h1>
+      <p class="hud-subtitle" data-i18n="page.hud.subtitle"></p>
+    </div>
+    <div class="hud-header-meta">
+      <span class="hud-clock mono" id="hud-clock" aria-live="off"></span>
+      <span class="mode-badge mode-badge-header" data-mode-label></span>
+      <div class="hud-currency-toggle" role="group" aria-label="Currency">
+        <button type="button" class="btn btn-sm hud-currency-btn active" data-currency="USD" data-i18n="page.hud.currency.usd"></button>
+        <button type="button" class="btn btn-sm hud-currency-btn" data-currency="JPY" data-i18n="page.hud.currency.jpy"></button>
+      </div>
+      <button type="button" class="lang-toggle" id="lang-toggle"></button>
+      <span class="kbd-hint">⌘K</span>
+    </div>
+  </header>
+
+  <p class="hud-fx-stale hidden" id="hud-fx-stale" data-i18n="page.hud.currency.stale"></p>
+
+  <nav class="hud-top-nav" aria-label="Cross navigation">
+    <a href="index.html" class="btn btn-sm" data-i18n="page.hud.link_hub"></a>
+    <a href="01_dashboard.html" class="btn btn-sm" data-i18n="page.hud.link_dashboard"></a>
+    <a href="03_nightly_review.html" class="btn btn-sm" data-i18n="nav.nightly_review"></a>
+    <a href="09_markov_live.html" class="btn btn-sm" data-i18n="nav.markov_live"></a>
+  </nav>
+
+  <section class="hud-hero" id="hud-hero" aria-live="polite"></section>
+
+  <div class="hud-actions">
+    <button type="button" class="btn btn-primary" id="hud-deposit-btn" data-i18n="page.hud.deposit"></button>
+    <button type="button" class="btn" id="hud-withdraw-btn" data-i18n="page.hud.withdraw"></button>
+  </div>
+
+  <div class="card-grid hud-stats-grid" id="hud-stats"></div>
+
+  <div class="hud-main-grid">
+    <section class="panel hud-panel-markov">
+      <div class="panel-header">
+        <span data-i18n="page.hud.markov"></span>
+        <a href="09_markov_live.html" class="btn btn-sm" data-i18n="page.dashboard.view_markov"></a>
+      </div>
+      <div class="panel-body" id="hud-markov"></div>
+    </section>
+
+    <section class="panel hud-panel-strategy">
+      <div class="panel-header" data-i18n="page.hud.strategy"></div>
+      <div class="panel-body mono" id="hud-strategy"></div>
+    </section>
+
+    <section class="panel hud-panel-signals">
+      <div class="panel-header" data-i18n="page.hud.signals"></div>
+      <div class="panel-body" id="hud-signals"></div>
+    </section>
+
+    <section class="panel hud-panel-chart">
+      <div class="panel-header" data-i18n="page.hud.chart"></div>
+      <div class="panel-body hud-chart-placeholder" id="hud-chart">
+        <p data-i18n="page.hud.chart.placeholder"></p>
+      </div>
+    </section>
+
+    <section class="panel hud-panel-system">
+      <div class="panel-header" data-i18n="page.hud.system"></div>
+      <div class="panel-body hud-system-grid" id="hud-system"></div>
+    </section>
+
+    <section class="panel hud-panel-nightly">
+      <div class="panel-header">
+        <span data-i18n="page.hud.nightly"></span>
+        <a href="03_nightly_review.html" class="btn btn-sm" data-i18n="nav.nightly_review"></a>
+      </div>
+      <div class="panel-body" id="hud-nightly"></div>
+    </section>
+
+    <section class="panel hud-panel-trades hud-span-2">
+      <div class="panel-header">
+        <span data-i18n="page.hud.recent_trades"></span>
+        <a href="02_trade_log.html" class="btn btn-sm" data-i18n="nav.trade_log"></a>
+      </div>
+      <div class="panel-body">
+        <table class="data-table" role="table">
+          <thead>
+            <tr>
+              <th scope="col" data-i18n="table.time"></th>
+              <th scope="col" data-i18n="table.side"></th>
+              <th scope="col" data-i18n="table.pnl"></th>
+              <th scope="col" data-i18n="table.result"></th>
+            </tr>
+          </thead>
+          <tbody id="hud-trades-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer class="hud-footer-ticker" id="hud-ticker" aria-hidden="true"></footer>
+
+  <p class="scenario-bar hud-scenario-bar">
+    <label for="scenario-select" data-i18n="scenario.label"></label>
+    <select id="scenario-select">
+      <option value="normal" data-i18n="scenario.normal"></option>
+      <option value="winning_streak" data-i18n="scenario.winning_streak"></option>
+      <option value="drawdown" data-i18n="scenario.drawdown"></option>
+    </select>
+  </p>
+
+  <button type="button" class="fab-emergency" id="fab-emergency" data-i18n="action.emergency_stop"></button>
+
+  <script src="shared/mock-data.js"></script>
+  <script src="shared/locales/ja.bundle.js"></script>
+  <script src="shared/severity.js"></script>
+  <script src="shared/i18n.js"></script>
+  <script src="shared/palette.js"></script>
+  <script src="shared/app.js"></script>
+  <script>
+    (function () {
+      var md = window.YoRuuMockData;
+      var i18n = window.YoRuuI18n;
+      var CURRENCY_KEY = "yoruu.currency";
+      var currentCurrency = "USD";
+
+      function getStoredCurrency() {
+        try {
+          var c = localStorage.getItem(CURRENCY_KEY);
+          if (c === "JPY" || c === "USD") {
+            return c;
+          }
+        } catch (_e) {
+          /* private mode */
+        }
+        return "USD";
+      }
+
+      function setStoredCurrency(c) {
+        try {
+          localStorage.setItem(CURRENCY_KEY, c);
+        } catch (_e) {
+          /* ignore */
+        }
+      }
+
+      function formatCountdown(sec) {
+        var h = Math.floor(sec / 3600);
+        var m = Math.floor((sec % 3600) / 60);
+        var s = sec % 60;
+        return (
+          String(h).padStart(2, "0") +
+          ":" +
+          String(m).padStart(2, "0") +
+          ":" +
+          String(s).padStart(2, "0")
+        );
+      }
+
+      function renderMarkovSeries(series) {
+        return series
+          .map(function (c) {
+            var cls = c === "U" ? "up" : "down";
+            return '<span class="' + cls + '">' + c + "</span>";
+          })
+          .join(" ");
+      }
+
+      function formatEtClock() {
+        try {
+          return new Date().toLocaleString("en-US", {
+            timeZone: "America/New_York",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+          });
+        } catch (_e) {
+          return new Date().toISOString().slice(11, 19);
+        }
+      }
+
+      function money(valueUsd) {
+        return md.formatMoney(valueUsd, currentCurrency, md.getFxRate());
+      }
+
+      function bindCurrencyButtons() {
+        document.querySelectorAll(".hud-currency-btn").forEach(function (btn) {
+          var cur = btn.getAttribute("data-currency");
+          btn.classList.toggle("active", cur === currentCurrency);
+          btn.addEventListener("click", function () {
+            currentCurrency = cur;
+            setStoredCurrency(cur);
+            bindCurrencyButtons();
+            renderHud();
+          });
+        });
+      }
+
+      function renderHud() {
+        var d = md.getData();
+        var pr = d.principal;
+        var fx = md.getFxRate();
+        var staleEl = document.getElementById("hud-fx-stale");
+        if (staleEl) {
+          staleEl.classList.toggle("hidden", !fx.stale);
+        }
+
+        var cumClass =
+          pr.cumulative_pnl >= 0 ? "pnl-positive" : "pnl-negative";
+        var dailyClass =
+          d.daily_pnl.value >= 0 ? "pnl-positive" : "pnl-negative";
+
+        document.getElementById("hud-hero").innerHTML =
+          '<div class="hud-hero-primary">' +
+          '<div class="hud-hero-label" data-i18n="page.hud.hero.total_assets"></div>' +
+          '<div class="hud-hero-value mono">' +
+          money(pr.total_assets) +
+          "</div>" +
+          '<div class="hud-hero-sub mono">' +
+          '<span data-i18n="page.hud.hero.principal"></span>: ' +
+          money(pr.withdrawable_principal) +
+          " · <span data-i18n=\"metric.total_assets\"></span> locked " +
+          money(pr.locked_principal) +
+          "</div></div>" +
+          '<div class="hud-hero-secondary">' +
+          '<div class="hud-hero-label" data-i18n="page.hud.hero.cumulative_pnl"></div>' +
+          '<div class="hud-hero-pnl ' +
+          cumClass +
+          ' mono">' +
+          md.formatPnl(pr.cumulative_pnl) +
+          ' <span class="sub">(' +
+          md.formatPct((pr.cumulative_pnl / pr.value) * 100) +
+          ")</span></div>" +
+          '<div class="sub ' +
+          dailyClass +
+          '"><span data-i18n="metric.daily_pnl.label"></span>: ' +
+          md.formatPnl(d.daily_pnl.value) +
+          "</div></div>";
+
+        var ts = d.trade_stats;
+        document.getElementById("hud-stats").innerHTML =
+          '<article class="metric-card"><div class="label" data-i18n="page.hud.stats.trades"></div>' +
+          '<div class="value mono">' +
+          ts.total_trades +
+          "</div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="metric.win_rate.label"></div>' +
+          '<div class="value">' +
+          d.win_rate.display +
+          "</div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="page.hud.stats.max_win"></div>' +
+          '<div class="value mono pnl-positive">' +
+          money(ts.max_win_usd) +
+          "</div></article>" +
+          '<article class="metric-card"><div class="label" data-i18n="page.hud.stats.avg_size"></div>' +
+          '<div class="value mono">' +
+          money(ts.avg_size_usd) +
+          "</div></article>";
+
+        document.getElementById("hud-markov").innerHTML =
+          '<p class="mono">P(U→U) ' +
+          d.markov.p_uu.toFixed(3) +
+          " · P(D→D) " +
+          d.markov.p_dd.toFixed(3) +
+          " · ρ " +
+          d.markov.persistence.toFixed(3) +
+          "</p>" +
+          '<p class="markov-series">' +
+          renderMarkovSeries(d.markov.recent_series) +
+          "</p>" +
+          (d.markov.wait_reason
+            ? '<p class="sub">wait: ' + d.markov.wait_reason + "</p>"
+            : "");
+
+        var pos = d.current_position;
+        var posLine = pos
+          ? "YES/NO @" +
+            pos.entry.toFixed(2) +
+            " · $" +
+            pos.size.toFixed(2) +
+            " · edge " +
+            pos.edge.toFixed(3)
+          : "—";
+        document.getElementById("hud-strategy").innerHTML =
+          "<p>Q = P − q &gt; ε</p>" +
+          "<p>Kelly f* = " +
+          (pos ? pos.kelly.toFixed(2) : "0.65") +
+          " · window N=20</p>" +
+          "<p class=\"sub\">" +
+          posLine +
+          "</p>";
+
+        var sig = d.signal_counts;
+        document.getElementById("hud-signals").innerHTML =
+          '<div class="hud-signal-row"><span data-i18n="page.hud.signal.signals"></span><strong class="mono">' +
+          sig.signals +
+          "</strong></div>" +
+          '<div class="hud-signal-row"><span data-i18n="page.hud.signal.entries"></span><strong class="mono">' +
+          sig.entries +
+          "</strong></div>" +
+          '<div class="hud-signal-row"><span data-i18n="page.hud.signal.expired"></span><strong class="mono">' +
+          sig.expired +
+          "</strong></div>";
+
+        var sp = d.system_panels;
+        document.getElementById("hud-system").innerHTML =
+          '<article class="hud-sys-card"><div class="label">SSE</div><div class="value">' +
+          sp.sse_status +
+          "</div></article>" +
+          '<article class="hud-sys-card"><div class="label">runtime</div><div class="value mono">' +
+          formatCountdown(sp.runtime_uptime_sec) +
+          "</div></article>" +
+          '<article class="hud-sys-card"><div class="label">env</div><div class="value">' +
+          sp.env +
+          "</div></article>" +
+          '<article class="hud-sys-card"><div class="label">brain</div><div class="value">' +
+          sp.brain +
+          "</div></article>" +
+          '<article class="hud-sys-card"><div class="label">host</div><div class="value mono">' +
+          sp.host +
+          "</div></article>" +
+          '<article class="hud-sys-card"><div class="label">state</div><div class="value">' +
+          i18n.t(i18n.stateKeyForBot(d.bot_state.state)) +
+          "</div></article>";
+
+        document.getElementById("hud-nightly").innerHTML =
+          '<p class="hud-countdown mono" id="hud-nightly-cd">' +
+          formatCountdown(d.nightly_countdown_sec) +
+          "</p>" +
+          (d.hub_meta.nightly_unread
+            ? '<p class="sub" data-i18n="nightly.unconsumed"></p>'
+            : "");
+
+        var rows = "";
+        d.recent_trades.forEach(function (t) {
+          var cls = t.pnl_usd >= 0 ? "pnl-positive" : "pnl-negative";
+          rows +=
+            "<tr><td class=\"mono\">" +
+            t.time_display +
+            "</td><td>" +
+            t.side +
+            '</td><td class="mono ' +
+            cls +
+            '">' +
+            md.formatPnl(t.pnl_usd) +
+            "</td><td>" +
+            i18n.t(t.result === "WON" ? "result.won" : "result.lost") +
+            "</td></tr>";
+        });
+        document.getElementById("hud-trades-body").innerHTML = rows;
+
+        document.getElementById("hud-ticker").textContent =
+          "BTC · ETH · SOL (mock) · WS " +
+          d.ws_status +
+          " · trades " +
+          d.hub_meta.trade_count;
+
+        i18n.applyI18n(document.body);
+        window.YoRuuApp.updateModeBadges();
+        document
+          .getElementById("fab-emergency")
+          .setAttribute("aria-label", i18n.t("a11y.emergency_stop_label"));
+      }
+
+      function tickClock() {
+        var el = document.getElementById("hud-clock");
+        if (el) {
+          el.textContent = "ET " + formatEtClock();
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        currentCurrency = getStoredCurrency();
+        bindCurrencyButtons();
+        window.YoRuuApp.initApp({
+          sidebar: false,
+          langToggleId: "lang-toggle",
+          onBalanceChange: renderHud,
+        });
+        renderHud();
+        tickClock();
+        setInterval(tickClock, 1000);
+
+        document.getElementById("hud-deposit-btn").addEventListener("click", function () {
+          md.simulatePrincipalDeposit(100, "hud_deposit_btn");
+          renderHud();
+        });
+        document.getElementById("hud-withdraw-btn").addEventListener("click", function () {
+          if (window.confirm("Mock withdraw $50?")) {
+            md.simulatePrincipalWithdraw(50, "hud_withdraw_btn");
+            renderHud();
+          }
+        });
+
+        [
+          "scenario_changed",
+          "language_changed",
+          "position_closed",
+          "position_opened",
+          "balance_updated",
+          "principal_changed",
+          "state_changed",
+        ].forEach(function (ev) {
+          document.addEventListener(ev, function () {
+            if (ev === "state_changed") {
+              window.YoRuuApp.refreshHealthBanner();
+            }
+            renderHud();
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
