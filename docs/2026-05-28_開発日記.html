@@ -520,6 +520,12 @@ body.diary > footer {
         <td><a href="#entry-1505">#entry-1505</a></td>
       </tr>
       <tr>
+        <td>15:15</td>
+        <td>ch22 v1.0.5 DRAFT（principal/display/migrate）</td>
+        <td><span class="pill pill-warn">warn</span></td>
+        <td><a href="#entry-1515">#entry-1515</a></td>
+      </tr>
+      <tr>
         <td>14:46</td>
         <td>M4.3 ch10 v1.2 ローリング DRAFT（U 判断待ち）</td>
         <td><span class="pill pill-warn">warn</span></td>
@@ -1075,6 +1081,25 @@ body.diary > footer {
   <p>ch22 設定追補 → ch16 本体ローリング → M4.4 実装。</p>
   <h3>検証</h3>
   <p>ドキュメントのみ。Commit: <code>42d029e</code>。</p>
+</section>
+
+<section class="entry" id="entry-1515">
+  <h2>M4.3 — ch22 v1.0.5 ローリング DRAFT<a href="#entry-1515" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 15:15 JST</span>
+    <span class="tag tag-type">analysis</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-warn">warn</span>
+  </div>
+  <h3>概要</h3>
+  <p><code>initial_principal</code> リネーム（旧 <code>initial_balance</code> 無期限受付）、<code>principal.*</code> 上限、<code>display.fx</code>（exchangerate.host）、<code>yoruu db migrate</code>。M4.3 ドラフト 4 本揃い。本体一括は <strong>W-2</strong>（ch18 <code>E_PRINCIPAL_*</code> 先行）推奨。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/ch22_v1.0.5_ROLLING_DRAFT.md</li>
+    <li><span class="op op-mod">~</span> PHASE4_ROADMAP_v1.md（W-2）</li>
+  </ul>
+  <h3>検証</h3>
+  <p>ドキュメントのみ。Commit: <code>pending</code>。</p>
 </section>
 </main>
 
