@@ -393,6 +393,18 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-0826">#entry-0826</a></td>
       </tr>
+      <tr>
+        <td>08:38</td>
+        <td>Track 2A — ch3 v1.0.1 ローリング</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0838">#entry-0838</a></td>
+      </tr>
+      <tr>
+        <td>08:39</td>
+        <td>Track 2B — ch10 v1.1 ローリング</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0839">#entry-0839</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -490,6 +502,34 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>ブラウザ: <code>YoRuuMockData.runQ3BalanceDemo()</code>。Commit: <code>d5c44a8</code>。申し送り: §F T4.1 SSE は別チャット。</p>
+</section>
+
+<section class="entry" id="entry-0838">
+  <h2>Track 2A — ch3 v1.0.1 補助状態ローリング<a href="#entry-0838" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 08:38 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>§3.1.1 補助状態（ERROR / SHUTDOWN / BACKTEST）、§3.1.2 NIGHTLY_REVIEW マッピング、Mermaid ERROR 遷移、ch10 §10.7.2 双方向 cross-ref。<code>REVIEW_CHECKLIST_ch03.md</code> 新規。</p>
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
+</section>
+
+<section class="entry" id="entry-0839">
+  <h2>Track 2B — ch10 v1.1 regenerate / EventBus<a href="#entry-0839" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 08:39 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><code>POST /api/v1/reports/regenerate</code>、StrategyApplier（f499778）シグネチャ、<code>publish(event, payload)</code> 規約、strategy_applied SSE に rationale / applied_at。</p>
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code></p>
 </section>
 </main>
 

@@ -1,9 +1,16 @@
 # 第3章 状態遷移図
 
-> この章の目的
-> YoRuu Bot が取り得る全ての状態と、その間の遷移を厳密に定義する。実装時の状態管理コードはこの章を直接の根拠とする。
+- **バージョン**: v1.0.1
+- **作成日**: 2026-05-27
+- **ローリング更新**: 2026-05-28（Track 2A: 補助状態・ch10 §10.7.2 双方向 cross-ref）
+- **ステータス**: APPROVED（ローリング更新、再レビュー不要）
+- **関連章**: 10（State Enum）, 12（モード直交）, 15（夜間レビュー）, 16（不変条件）
 
-## 3.1 状態の定義
+> この章の目的  
+> YoRuu Bot が取り得る全ての状態と、その間の遷移を厳密に定義する。実装時の状態管理コードはこの章を直接の根拠とする。  
+> **補助状態**（`ERROR` / `BACKTEST`）および実装 `State` Enum の SSOT は第10章 §10.7.2（→ 双方向参照）。
+
+## 3.1 状態の定義（主状態 9 件）
 
 YoRuu Bot は以下の9状態のいずれかに常に位置する。複数状態の同時保持はない (排他的)。
 
@@ -20,6 +27,22 @@ YoRuu Bot は以下の9状態のいずれかに常に位置する。複数状態
 | `SHUTDOWN` | 正常終了処理中 | SIGTERM 受信または UI 停止操作 | 数秒〜30秒以内 |
 
 注: 滞在時間はいずれも設計時の概算であり、実測値ではない。実測は第13章 (ペーパー約定エンジン仕様) および本番稼働後に確認する。
+
+### 3.1.1 補助状態（実装・第10章 §10.7.2）
+
+主状態 9 件（上表）に**加え**、実装 `State` Enum および `bot_state.state` CHECK 制約では次の補助状態を用いる。定義の SSOT は第10章 §10.7.2。
+
+| 状態 | 区分 | 説明 | 進入 / 退出 |
+|---|---|---|---|
+| `ERROR` | 補助 | 回復可能な実行時障害（API 一時障害、内部整合チェック失敗等） | `TRADING` 等から進入 → `IDLE` または `EMERGENCY_STOP`（→ §3.2 図） |
+| `SHUTDOWN` | 補助（終端） | 正常終了処理中。§3.1 主状態表と同一概念 | 任意状態から `SIGTERM` / UI 停止 → 終端（遷移なし） |
+| `BACKTEST` | 補助（直交） | バックテスト実行器専用。メイン StateMachine は通常未使用 | 第12章 §12.2.1・§10.7.8。`mode=BACKTEST` 時は図 3-1 外 |
+
+**cross-ref**: 第10章 §10.7.2 `State` Enum — `ERROR` / `SHUTDOWN` / `BACKTEST` の列挙と遷移ガードは `src/yoruu/core/state_machine.py` が実装 SSOT。
+
+### 3.1.2 実装マッピング注記（Track 1 / ローリング）
+
+PHASE 3 Track 1（`f499778`）の CLI 実装では、夜間レビュー関連の 3 主状態（`GENERATING_REPORT` / `AWAITING_APPLY` / `APPLYING_STRATEGY`）を **`NIGHTLY_REVIEW` 単一状態**に集約している（第10章 §10.7.2 `State.NIGHTLY_REVIEW`、第15章 §15.3.2）。**主状態 9 件の業務意味は変更しない** — UI・REST 層は将来、必要に応じて 3 状態へ再展開可能。
 
 ## 3.2 状態遷移図
 
@@ -38,6 +61,10 @@ stateDiagram-v2
     TRADING --> MONITORING_POSITION: 発注成功
     TRADING --> IDLE: 発注スキップ\n（条件未達）
     TRADING --> EMERGENCY_STOP: 連続失敗3回\nまたは API 致命的エラー
+    TRADING --> ERROR: 回復可能障害
+
+    ERROR --> IDLE: 障害解消
+    ERROR --> EMERGENCY_STOP: エスカレーション
 
     MONITORING_POSITION --> IDLE: ポジション決済完了
     MONITORING_POSITION --> EMERGENCY_STOP: 損失上限超過
@@ -54,9 +81,12 @@ stateDiagram-v2
     EMERGENCY_STOP --> INITIALIZING: 手動再起動のみ
 
     SHUTDOWN --> [*]
+
+    state BACKTEST_MODE <<choice>>
+    BACKTEST_MODE: BACKTEST\n（StateMachine 外・ch12 §12.2.1）
 ```
 
-*図 3-1: YoRuu Bot 状態遷移図*
+*図 3-1: YoRuu Bot 状態遷移図（主状態 + 補助 `ERROR` / 終端 `SHUTDOWN` / 直交 `BACKTEST`）*
 
 ## 3.3 遷移トリガーとガード条件
 

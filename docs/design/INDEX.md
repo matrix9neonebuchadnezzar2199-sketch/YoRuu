@@ -37,7 +37,7 @@
 |---|----------|----------|-----------|----------|
 | 1 | 概要 | [`01_overview.md`](./01_overview.md) | APPROVED | `2623330` |
 | 2 | アーキテクチャ | [`02_architecture.md`](./02_architecture.md) | APPROVED | `2623330` |
-| 3 | 状態遷移図 | [`03_state_diagram.md`](./03_state_diagram.md) | APPROVED | `2623330` |
+| 3 | 状態遷移図 | [`03_state_diagram.md`](./03_state_diagram.md) | APPROVED | v1.0.1 · 2026-05-28 |
 | 4 | データフロー図 | [`04_data_flow.md`](./04_data_flow.md) | APPROVED | `2623330` |
 | 5 | 信頼境界線図 | [`05_trust_boundary.md`](./05_trust_boundary.md) | APPROVED | `2623330` |
 | 6 | シーケンス図 | [`06_sequence.md`](./06_sequence.md) | APPROVED | `2623330` |
@@ -62,7 +62,7 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 9 | ユーザー操作フロー | [`09_user_flow.md`](./09_user_flow.md) | APPROVED | `06c0398` |
-| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | `1bdb84c` |
+| 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.1 · 2026-05-28 |
 | 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `d405f0c` |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
 | 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | `1117eca` |
@@ -144,6 +144,7 @@
 - ch1〜7: [`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md)
 - ch8〜15: [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) 〜 [`REVIEW_CHECKLIST_ch15.md`](./REVIEW_CHECKLIST_ch15.md)
 - ch16〜20: 各章末尾 + M1.5 コミット列（上表）
+- ch3: [`REVIEW_CHECKLIST_ch03.md`](./REVIEW_CHECKLIST_ch03.md)
 - ch21 / ch22 / ch24: [`REVIEW_CHECKLIST_ch21.md`](./REVIEW_CHECKLIST_ch21.md)、[`REVIEW_CHECKLIST_ch22.md`](./REVIEW_CHECKLIST_ch22.md)、[`REVIEW_CHECKLIST_ch24.md`](./REVIEW_CHECKLIST_ch24.md)
 - 付録 A: [`REVIEW_CHECKLIST_appendix_a.md`](./REVIEW_CHECKLIST_appendix_a.md)
 - ロードマップ: [`00_ROADMAP.md`](./00_ROADMAP.md)
