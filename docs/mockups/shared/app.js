@@ -36,7 +36,9 @@
 
   function triggerEmergencyStop() {
     global.YoRuuMockData.mockSSE("emergency_stop_triggered", {
-      at: new Date().toISOString(),
+      trigger: "dashboard_button",
+      timestamp: new Date().toISOString(),
+      open_positions_closed: 1,
     });
     global.location.href = "08_emergency_stop.html";
   }

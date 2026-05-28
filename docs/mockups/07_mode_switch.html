@@ -264,7 +264,11 @@
       function finishSwitch() {
         closeLiveModals();
         window.alert(i18n.t("mock.mode_switched") + " → " + pendingTarget);
-        md.mockSSE("mode_changed", { from: md.getData().bot_state.mode, to: pendingTarget });
+        md.mockSSE("mode_changed", {
+          from: String(md.getData().bot_state.mode).toUpperCase(),
+          to: String(pendingTarget).toUpperCase(),
+          timestamp: new Date().toISOString(),
+        });
         pendingTarget = null;
       }
 

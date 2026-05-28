@@ -193,7 +193,16 @@
           .addEventListener("click", function () {
             closeModals();
             window.alert(i18n.t("mock.rollback_done"));
-            md.mockSSE("strategy_applied", { rollback_from: rollbackTarget });
+            var versions = md.getStrategyVersions();
+            var latestVer = versions.length ? versions[0].version : rollbackTarget + 1;
+            md.mockSSE("strategy_applied", {
+              new_version: rollbackTarget,
+              previous_version: latestVer,
+              applied_by: "USER",
+              rationale: "Rollback to v" + rollbackTarget,
+              applied_at: new Date().toISOString(),
+              diff: {},
+            });
           });
 
         document.addEventListener("strategy_applied", renderCards);

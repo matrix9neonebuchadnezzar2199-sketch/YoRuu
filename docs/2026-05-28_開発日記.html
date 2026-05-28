@@ -429,6 +429,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1057">#entry-1057</a></td>
       </tr>
+      <tr>
+        <td>11:10</td>
+        <td>Track 4.1 — phase2-sse SSE_PAYLOADS（B1）</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1110">#entry-1110</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -625,6 +631,26 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>Commit: <code>deb638b</code>。A/B はマスター別チャット投入（本エントリは C のみ）。</p>
+</section>
+
+<section class="entry" id="entry-1110">
+  <h2>Track 4.1 — phase2-sse SSE_PAYLOADS（B1）<a href="#entry-1110" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 11:10 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>テンプレ 7 実施。ch10 §10.5.3 準拠の <code>SSE_PAYLOADS</code>（11 イベント）を <code>mock-data.js</code> に追加。B1 解消: <code>emergency_stop_triggered</code> / <code>mode_changed</code> / <code>strategy_applied</code>。前提 <code>ff9f4e6</code>。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/mockups/shared/mock-data.js, app.js</li>
+    <li><span class="op op-mod">~</span> 03_nightly_review.html, 05_strategy_history.html, 07_mode_switch.html</li>
+    <li><span class="op op-mod">~</span> docs/mockups/CHANGELOG.md</li>
+  </ul>
+  <h3>検証</h3>
+  <p>Commit: <code>pending</code>。T4.2 申し送り: <code>nightly-review.js</code> の <code>W_NIGHTLY_001</code> は未着手。</p>
 </section>
 </main>
 

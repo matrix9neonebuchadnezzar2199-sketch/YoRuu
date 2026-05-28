@@ -307,7 +307,12 @@
           .addEventListener("click", function () {
             closeApplyModal();
             window.alert(i18n.t("mock.apply_done"));
-            md.mockSSE("strategy_applied", { version: lastPreview.current_version + 1 });
+            md.mockSSE("strategy_applied", {
+              new_version: lastPreview.current_version + 1,
+              previous_version: lastPreview.current_version,
+              applied_by: "NIGHTLY_REVIEW",
+              applied_at: new Date().toISOString(),
+            });
           });
 
         document.addEventListener("scenario_changed", function () {
