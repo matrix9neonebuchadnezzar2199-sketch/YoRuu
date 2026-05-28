@@ -447,6 +447,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1126">#entry-1126</a></td>
       </tr>
+      <tr>
+        <td>11:30</td>
+        <td>並列テンプレ 10/11 清書・索引追記</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1130">#entry-1130</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -720,6 +726,26 @@ body.diary > footer {
   </ol>
   <p>推奨順: INV-D-02 規模確定（済: 案 X）→ T4.2 清書 → INV-D-02 実装（並列可）→ ch24 WS テンプレ。</p>
   <p>本エントリ記録: Commit <code>97121f7</code>。</p>
+</section>
+
+<section class="entry" id="entry-1130">
+  <h2>並列チャットテンプレ 10/11 清書（T4.2 + INV-D-02）<a href="#entry-1130" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 11:30 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>マスター清書に基づき <code>PHASE3_PARALLEL_CHAT_TEMPLATES.md</code> にテンプレ <strong>10</strong>（<code>phase2-i18n-palette</code> / §F T4.2）と <strong>11</strong>（<code>PHASE3-fix-inv-d02</code> / INV-D-02 案 X）を追記。索引でテンプレ 7/8 を完了状態に更新。調整メモに実パス補正（i18n → <code>docs/mockups/shared/locales/</code>、D-02 集計 → <code>database.py</code>）。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>テンプレ 10 + 11 は §L 並列 2 枠で同時投入可。投入待ち: マスターが各 Composer チャットへ貼り付け。</p>
+  <h3>検証</h3>
+  <p>Commit: <em>pending</em>。</p>
 </section>
 </main>
 
