@@ -1,9 +1,10 @@
 # 第16章 不変条件
 
-- **バージョン**: v1.0.0
+- **バージョン**: v1.0.1
 - **作成日**: 2026-05-27
+- **ローリング更新**: 2026-05-28（Track 2C: **INV-D-06** 正式登録）
 - **承認日**: 2026-05-27
-- **ステータス**: APPROVED
+- **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **関連章**: 3（状態）, 10（データモデル）, 11（戦略）, 15（Apply）, 17（リスク）, 19（キル）
 
 ## 16.1 目的・スコープ
@@ -40,6 +41,33 @@
 | INV-D-03 | `strategy.json.version` == `bot_state.current_strategy_version`（起動時、ch20 §20.6） |
 | INV-D-04 | `audit_log` に成功した `STRATEGY_APPLY` がある場合、対応する `strategy_versions` 行が存在 |
 | INV-D-05 | LIVE モードの `trades` は `executor=live` のみ |
+| INV-D-06 | **残高保存則**: `balance + Σ(open.size_usd) ≈ initial_balance + Σ(closed.pnl)`（閾値 **0.02 USD**） |
+
+### 16.3.1 INV-D-06（残高保存則）— 正式定義
+
+**適用**: PAPER / SIMMER（内部台帳）。BACKTEST は別集計、LIVE は API 残高が主だが内部台帳も整合を推奨。
+
+**式**:
+
+```
+balance + Σ(open_positions.size_usd) ≈ initial_balance + Σ(closed_trades.pnl)
+```
+
+| 項 | 意味 |
+|----|------|
+| `balance` | `bot_state.balance` 現在値 |
+| `Σ(open.size_usd)` | 未決済ポジションの建玉サイズ合計 |
+| `initial_balance` | 起動時（またはセッション開始時）の基準残高 |
+| `Σ(closed.pnl)` | 決済済み `trades.pnl` の累計 |
+
+**更新規則（SSOT: 第13章 §13.2.5）**:
+
+- open 成功: `balance -= size_usd`
+- close 成功: `balance += size_usd + pnl`
+
+**検査**: `InvariantChecker.check_post_open` / `check_post_close`（`f499778`）。違反 severity: **ERROR**（§16.6）。
+
+**cross-ref**: 第13章 §13.2.5（D11）、`src/yoruu/execution/paper_executor.py`、`src/yoruu/safety/invariants.py`。
 
 ## 16.4 戦略・リスク不変条件（INV-R）
 
@@ -76,6 +104,7 @@ InvariantViolation(inv_id, severity):
 |--------|---------------|
 | INV-S-02 違反試行 | ERROR |
 | INV-D-03 | CRITICAL |
+| INV-D-06 | ERROR |
 | INV-R-02 境界 | CRITICAL（超過後） |
 | INV-R-05 | ERROR |
 
@@ -88,6 +117,7 @@ InvariantViolation(inv_id, severity):
 | 本章節 | 参照先 | 内容 |
 |--------|--------|------|
 | INV-D-03 | ch20 §20.6 | 起動検査 |
+| INV-D-06 | ch13 §13.2.5 | open/close 後 |
 | INV-R-* | ch11, ch17 | 戦略・リスク |
 | INV-M-* | ch12 | モード |
 | 違反応答 | ch19 §19.2 | AUTO_INVARIANT |

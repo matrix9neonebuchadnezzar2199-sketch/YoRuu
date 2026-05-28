@@ -1,9 +1,10 @@
 # 第22章 設定仕様（yoruu.yaml）
 
-- **バージョン**: v1.0.0
+- **バージョン**: v1.0.4
 - **作成日**: 2026-05-27
+- **ローリング更新**: 2026-05-28（Track 2C: **FillModel SSOT** — `paper.*` 既定値、lab 注記）
 - **承認日**: 2026-05-27
-- **ステータス**: APPROVED
+- **ステータス**: APPROVED（ローリング更新、再レビュー不要）
 - **関連章**: 10（§10.4.2 ドラフト）, 21（影響マトリクス）, 24（Polymarket 認証）
 
 > ch10 §10.4.2 の完全スキーマは**本章が SSOT**。ch10 は API・DB 中心のため、設定ファイルの運用詳細は本章を参照する。
@@ -76,11 +77,31 @@ logging:
   retain_days: 30
 
 paper:
+  # FillModel SSOT（§22.2.1）— 実装: src/yoruu/config/settings.py PaperSettings
+  spread_assumed: 0.02      # BACKTEST / WS 欠落時フォールバック（ch13 §13.3.3）
   slippage_coeff: 0.0001
   slippage_max: 0.02
   latency_ms_mean: 80
   latency_ms_std: 20
 ```
+
+### 22.2.1 FillModel パラメータ SSOT（Q2 確定）
+
+**本章 `paper.*` が FillModel の唯一の数値 SSOT**。第13章 §13.3.2 は重複定義を持たず、本章への参照のみとする。
+
+| キー（`yoruu.yaml`） | lab / 開発用初期値 | 許容範囲（目安） | 用途 |
+|---------------------|-------------------|-----------------|------|
+| `paper.spread_assumed` | **0.02** | 0.01〜0.05 | BACKTEST またはベスト気配取得不可時の固定スプレッド |
+| `paper.slippage_coeff` | **0.0001** | 0.0〜0.01 | サイズ比例スリッページ（USD あたり） |
+| `paper.slippage_max` | **0.02** | 0.01〜0.05 | スリッページ上限 |
+| `paper.latency_ms_mean` | **80** | 50〜500 | 約定遅延の平均（ms） |
+| `paper.latency_ms_std` | **20** | 0〜200 | 遅延の標準偏差（ms、正規分布） |
+
+**対応 B（マスター判定）**: 上表の値は **lab / 開発用初期値** である。本番運用での再校正（スプレッド・遅延の強度調整）は第13章 §13.9.2「保守的パラメータ原則」および運用ノートに従い、`yoruu.yaml` を更新する。ch13 本文に数値を再掲しない。
+
+**実装マッピング**: `FillModel(settings: PaperSettings)`（`f499778`）。`spread_assumed` は PHASE 3 CLI では `OrderBook` 生成時に利用（BACKTEST / モック）。
+
+**cross-ref**: 第13章 §13.3.2（参照のみ）、§13.2.5（残高）、第16章 INV-D-06。
 
 ## 22.3 検証ルール
 
@@ -127,7 +148,8 @@ paper:
 | §22.2 | ch10 §10.4（要約） |
 | 影響 | ch21 |
 | CLOB | ch24 |
-| paper.* | ch13 |
+| §22.2.1 FillModel | ch13 §13.3（参照のみ）、`fill_model.py` |
+| paper.* | ch13 §13.2.5 残高は別 SSOT |
 
 ## 22.8 レビュー（7項目）— 全合格
 

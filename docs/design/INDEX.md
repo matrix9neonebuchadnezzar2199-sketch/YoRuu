@@ -65,7 +65,7 @@
 | 10 | 関数呼び出し・データフォーマット・データモデル | [`10_functions_data_model.md`](./10_functions_data_model.md) | APPROVED | v1.1 · 2026-05-28 |
 | 11 | 戦略ロジック（Markov + Kelly） | [`11_strategy_logic.md`](./11_strategy_logic.md) | APPROVED | `d405f0c` |
 | 12 | モード仕様（backtest / paper / simmer / live） | [`12_mode_specification.md`](./12_mode_specification.md) | APPROVED | `b73fc18` |
-| 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | `1117eca` |
+| 13 | ペーパー約定エンジン | [`13_paper_execution.md`](./13_paper_execution.md) | APPROVED | v1.0.4 · 2026-05-28 |
 | 14 | i18n 設計 | [`14_i18n_design.md`](./14_i18n_design.md) | APPROVED | `3e16689` |
 
 </details>
@@ -76,7 +76,7 @@
 | # | タイトル | ファイル | ステータス | コミット |
 |---|----------|----------|-----------|----------|
 | 15 | 夜間レビューフロー | [`15_nightly_review.md`](./15_nightly_review.md) | APPROVED | `5212e3a` |
-| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | `7ef71ba` |
+| 16 | 不変条件 | [`16_invariants.md`](./16_invariants.md) | APPROVED | v1.0.1 · 2026-05-28 |
 | 17 | リスクマトリクス | [`17_risk_matrix.md`](./17_risk_matrix.md) | APPROVED | `ec08886` |
 | 18 | エラーハンドリング + ログトリアージ | [`18_error_handling.md`](./18_error_handling.md) | APPROVED | `ec08886` |
 | 19 | キルスイッチ + 2段階確認 | [`19_kill_switch.md`](./19_kill_switch.md) | APPROVED | `ec08886` |
@@ -90,7 +90,7 @@
 |---|----------|----------|-----------|----------|
 | 20 | 監査ログ | [`20_audit_log.md`](./20_audit_log.md) | APPROVED | `7ef71ba` |
 | 21 | 設定影響マトリクス | [`21_config_impact.md`](./21_config_impact.md) | APPROVED | `1117eca` |
-| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED | `1117eca` |
+| 22 | 設定仕様（yoruu.yaml） | [`22_config_spec.md`](./22_config_spec.md) | APPROVED | v1.0.4 · 2026-05-28 |
 | 23 | テスト戦略（デプロイ・ロールバック統合） | [`23_test_strategy.md`](./23_test_strategy.md) | APPROVED | `7ef71ba` |
 | 24 | Polymarket CLOB クライアント詳細 | [`24_polymarket_clob.md`](./24_polymarket_clob.md) | APPROVED | `1117eca` |
 

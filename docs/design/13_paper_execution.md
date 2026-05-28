@@ -1,10 +1,10 @@
 # 第13章 ペーパー約定エンジン
 
-- **バージョン**: v1.0.3
+- **バージョン**: v1.0.4
 - **作成日**: 2026-05-27
 - **承認日**: 2026-05-27
-- **ステータス**: APPROVED
-- **ローリング更新 (v1.0.3)**: CLOB 詳細の参照先を **第24章** に確定（案 Y。`INDEX` ch21 は設定影響のまま）
+- **ステータス**: APPROVED（ローリング更新、再レビュー不要）
+- **ローリング履歴**: v1.0.3 CLOB→ch24（案 Y）／**v1.0.4** Track 2C — FillModel→ch22 SSOT、§13.2.5 D11、§13.7 balance 列
 - **関連章**: 3（状態遷移）, 6（シーケンス §6.3）, 10（関数・データモデル §10.3.4 / §10.7.6 / §10.7.7 / §10.7.8）, 11（戦略ロジック §11.6 / §11.8）, 12（モード仕様 §12.2 / §12.7）, 15（夜間レビュー）, 17（リスク管理）, 18（エラーコード）, **24（Polymarket CLOB クライアント詳細）**
 - **旧 ch14「Paper execution」を本章に統合**
 
@@ -93,6 +93,7 @@ class PaperExecutor:
         # 2. FillModel.compute_open_fill() で約定価格決定
         # 3. 約定失敗判定（§13.8）
         # 4. positions テーブルに INSERT、trades テーブルに INSERT（status='OPEN'）
+        # 4b. bot_state.balance -= size_usd（§13.2.5 D11、即時）
         # 5. position_opened SSE 発火
         # 6. FillResult 返却
 
@@ -101,10 +102,30 @@ class PaperExecutor:
         # 2. close_reason により分岐（満期 / 緊急 / その他）
         # 3. FillModel.compute_close_fill() で約定価格決定
         # 4. trades 更新（exit_price / pnl / win / closed_at / status='CLOSED'）
+        # 4b. bot_state.balance += size_usd + pnl（§13.2.5 D11）
         # 5. positions から DELETE
         # 6. position_closed SSE 発火
         # 7. FillResult 返却
 ```
+
+### 13.2.5 残高更新タイミング（D11 / Q3 確定）
+
+**SSOT**: PHASE 3 Track 1（`f499778`）の `PaperExecutor` 実装。モック UI は Q3-MOCK（`d5c44a8`）で同一規則を模倣。
+
+| イベント | `bot_state.balance` の更新 | タイミング |
+|----------|---------------------------|------------|
+| **open 成功** | `balance -= size_usd` | 約定・DB 書き込み成功直後（SSE 発火前） |
+| **close 成功** | `balance += size_usd + pnl` | 決済・`trades` 更新成功直後（ポジション DELETE 前後は実装依存、金額は同一トランザクション内） |
+
+**保存則（INV-D-06）**: 第16章 INV-D-06 を参照。
+
+```
+balance + Σ(open_positions.size_usd) ≈ initial_balance + Σ(closed_trades.pnl)
+```
+
+許容誤差: **0.02 USD**（浮動小数・丸め）。違反時は `InvariantChecker.inv_d06_balance_conservation()` が `ERROR`（`f499778`）。
+
+**cross-ref**: 第10章 §10.3.3 `bot_state.balance`、第16章 INV-D-06、モック `docs/mockups/shared/mock-data.js`（Q3-MOCK）。
 
 ## 13.3 FillModel
 
@@ -116,18 +137,17 @@ class PaperExecutor:
 - **スリッページ**: 注文サイズが市場価格に与える影響
 - **約定遅延**: シグナル発生から約定までの時間ラグ（擬似）
 
-### 13.3.2 パラメータ（既定値）
+### 13.3.2 パラメータ（ch22 SSOT 参照）
 
-| パラメータ | 既定値 | 範囲 | 用途 |
-|-----------|-------|------|------|
-| `spread_assumed` | 0.02 | 0.01〜0.05 | スプレッド固定仮定（過去データで動的取得不可時） |
-| `slippage_coeff` | 0.001 | 0.0〜0.01 | サイズあたりスリッページ係数（USD あたり） |
-| `slippage_max` | 0.02 | 0.01〜0.05 | スリッページ上限 |
-| `latency_ms` | 150 | 50〜500 | 約定遅延中央値（ms） |
-| `latency_jitter_ms` | 50 | 0〜200 | 約定遅延ジッタ（ms、正規分布） |
-| `rng_seed` | None | 任意整数 | 乱数シード（None で時刻ベース、BACKTEST では明示） |
+FillModel の数値既定値・許容範囲・lab 注記は **第22章 §22.2.1 を SSOT** とする（Q2=A: ch22 優先、本章は従属）。
 
-パラメータは `yoruu.yaml` `paper.fill_model.*` で上書き可（v1.1 で正式露出、v1.0 は内部定数）。
+| 項目 | 参照 |
+|------|------|
+| `spread_assumed` / `slippage_*` / `latency_ms_*` | [`22_config_spec.md`](./22_config_spec.md) §22.2.1 |
+| YAML 読込 | `yoruu.yaml` の `paper.*` → `PaperSettings` → `FillModel(settings)` |
+| 乱数シード | BACKTEST のみ `rng_seed` を実行時引数で指定（§13.5） |
+
+**本章では数値を重複記載しない**。レビュー・実装時は ch22 §22.2.1 の表を唯一の根拠とする。
 
 ### 13.3.3 スプレッドの扱い
 
@@ -164,15 +184,8 @@ YES / NO でオーダーブックは別。実装は常に `request.side`（ま�
 
 ```python
 class FillModel:
-    def __init__(
-        self,
-        spread_assumed: float = 0.02,
-        slippage_coeff: float = 0.001,
-        slippage_max: float = 0.02,
-        latency_ms: int = 150,
-        latency_jitter_ms: int = 50,
-        rng_seed: int | None = None,
-    ) -> None: ...
+    def __init__(self, settings: PaperSettings, *, seed: int | None = None) -> None:
+        """PaperSettings は ch22 §22.2.1 / yoruu.yaml paper.* から構築（f499778）。"""
 
     def compute_open_fill(
         self,
@@ -362,7 +375,7 @@ BACKTEST では `now` を履歴データのタイムスタンプから算出。`
 | 約定失敗 | `detect_liquidity_failure` で判定 | Polymarket API の失敗応答 |
 | 実資金 | なし | あり |
 | キャンセル | 即時（DB 更新のみ） | Polymarket CLOB API でキャンセル |
-| 残高同期 | `bot_state.balance` 内部 | Polymarket API から 5 分ごと同期 |
+| 残高同期 | `bot_state.balance`（open 減算 / close 加算、§13.2.5） | Polymarket API から 5 分ごと同期（LIVE） |
 | エラーコード | `E_FILL_*` | `E_LIVE_*` + `E_FILL_*` 共通 |
 
 ### 13.6.2 LiveExecutor シグネチャ（概要）
@@ -421,9 +434,18 @@ LIVE では Polymarket API の失敗応答（流動性不足・タイムアウ�
    # 遅延後のオーダーブック再取得 → ステップ 1 から再評価（最大 1 回リトライ）
 
 8. trades / positions INSERT
+8b. bot_state.balance -= size_usd（§13.2.5）
 9. position_opened SSE 発火
 10. FillResult 返却
 ```
+
+**残高推移例（§13.2.5 / INV-D-06）**: `initial_balance = $1000.00`
+
+| 手順 | `balance` | Σ open `size_usd` | 備考 |
+|------|-----------|-------------------|------|
+| 初期 | 1000.00 | 0 | — |
+| open $7.10 成功 | 992.90 | 7.10 | 1000 − 7.10 |
+| close（pnl +$4.35） | 1004.35 | 0 | 992.90 + 7.10 + 4.35 |
 
 ### 13.7.2 決済（close）の手順
 
@@ -458,6 +480,7 @@ LIVE では Polymarket API の失敗応答（流動性不足・タイムアウ�
    # ※ Polymarket シェア単位の P&L 計算は §13.7.3 で詳述
 
 4. trades 更新（exit_price / pnl / win / closed_at / status='CLOSED'）
+4b. bot_state.balance += size_usd + pnl（§13.2.5）
 5. positions DELETE
 6. position_closed SSE 発火
 7. FillResult 返却
@@ -481,8 +504,15 @@ pnl = shares × (exit_price - entry_price)
 例: `entry_price = 0.62`, `size_usd = $7.10`, `exit_price = 1.00` ⇒
 - `shares = 7.10 / 0.62 ≈ 11.45`
 - `pnl = 11.45 × (1.00 - 0.62) = 11.45 × 0.38 ≈ $4.35`
+- **残高**: open 後 `992.90` → close 後 `992.90 + 7.10 + 4.35 = 1004.35`（§13.2.5）
 
 `win = 1` if `pnl > 0` else `0`（満期決済時、緊急クローズも同様）。
+
+| 量 | 式 |
+|----|-----|
+| P&L | `pnl = (size_usd / entry_price) × (exit_price - entry_price)` |
+| 残高（close 後） | `balance += size_usd + pnl` |
+| INV-D-06 | `balance + Σ(open.size_usd) ≈ initial + Σ(closed.pnl)` |
 
 ### 13.7.4 価格境界の扱い
 
@@ -629,7 +659,8 @@ FillModel の既定値は **現実より悪く** 設定：
 |-------|--------|------|
 | §13.2.3 Executor プロトコル | §10.7.6 / §10.7.7 / §10.7.8 | 3 実装シグネチャ |
 | §13.3 FillModel | 第11章 §11.9.4 | What-If のスプレッド固定 0.02 と同期 |
-| §13.3.2 パラメータ | §10.4.2 | `yoruu.yaml` 露出は v1.1 |
+| §13.3.2 パラメータ | ch22 §22.2.1 | FillModel 数値 SSOT（本章は参照のみ） |
+| §13.2.5 残高 | ch16 INV-D-06 | D11 / f499778 |
 | §13.4 データ構造 | §10.3.4 / §10.3.5 | DB スキーマ整合 |
 | §13.5 BacktestExecutor | 第3章 §3.3 / 第11章 §11.9 / 第12章 §12.8.4 | 状態機械外・What-If 計算・格納先 |
 | §13.6 LiveExecutor | 第24章 / §10.7.7 | Polymarket CLOB 実装詳細 |
