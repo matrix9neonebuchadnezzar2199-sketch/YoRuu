@@ -795,7 +795,7 @@ body.diary > footer {
   <h3>設計判断</h3>
   <p>本番接続は行わず <code>wss://example.invalid</code> / <code>https://clob.lab.invalid</code>。API の strategy apply / rollback は lab では CLI 委譲スタブ。markov history は実テーブル <code>markov_state</code> を参照（旧 <code>markov_snapshots</code> 誤記を修正）。</p>
   <h3>検証</h3>
-  <p><code>uv run pytest -q</code> — 105 passed、coverage <strong>87.26%</strong>、<code>fail_under=80</code>。Commit: <code>pending</code>。</p>
+  <p><code>uv run pytest -q</code> — 105 passed、coverage <strong>87.26%</strong>、<code>fail_under=80</code>。Commit: <code>18fb05c</code>。</p>
   <h3>残課題</h3>
   <p>テンプレ 9（FastAPI SSE 契約の本実装）、実 24h paper の lab 実行確認、WS <code>_run_loop</code> 実ネットワーク統合テストは別途。</p>
 </section>
