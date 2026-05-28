@@ -26,9 +26,9 @@
 
 | 項目 | 内容 | コミット |
 |------|------|----------|
-| FillModel SSOT | ch22 §22.2.1 へ従属化、§13.3.2 数値削除 | pending |
-| D11 §13.2.5 | open 減算 / close 加算、INV-D-06 cross-ref | 同上 |
-| §13.7 残高列 | open/close 例表に balance 推移 | 同上 |
+| FillModel SSOT | ch22 §22.2.1 へ従属化、§13.3.2 数値削除 | `cb09fdf` |
+| D11 §13.2.5 | open 減算 / close 加算、INV-D-06 cross-ref | `cb09fdf` |
+| §13.7 残高列 | open/close 例表に balance 推移 | `cb09fdf` |
 
 ## v1.0.4 候補の扱い（スキーマ — 未決）
 
@@ -46,7 +46,7 @@ ch13 v1.0.1 APPROVED では設計判断のみ確定（§13.12.3 記録）。ch10
 | 章 | バージョン | ステータス | 承認日 (JST) | コミット | 備考 |
 |:---|:---|:---:|:---|:---|:---|
 | 第13章 | v1.0.1 | APPROVED | 2026-05-27 | `5bd1740` | M1.3 5/6；配置 `76a9a5d` / `0ea6df1` |
-| 第13章 | v1.0.4 | APPROVED（ローリング） | 2026-05-28 | pending | Track 2C: FillModel→ch22、D11、balance 例 |
+| 第13章 | v1.0.4 | APPROVED（ローリング） | 2026-05-28 | `cb09fdf` | Track 2C: FillModel→ch22、D11、balance 例 |
 
 **承認者**: マスター（明示承認・§13.12.2 7観点）  
 **レビュー実施**: マスター
