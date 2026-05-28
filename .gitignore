@@ -36,6 +36,8 @@ logs/
 config/backups/
 strategy_history/
 config/yoruu.yaml
+config/*.bak
+*.bak
 
 # Binaries
 *.exe
