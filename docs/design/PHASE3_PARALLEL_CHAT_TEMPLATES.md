@@ -239,10 +239,12 @@ Composer 2.5。PHASE 3 Exit ブロッカー（カバレッジ 80%、InvariantChe
 - paper_executor: time.sleep → asyncio.sleep 統一（残存撲滅）
 
 ## スコープ
-### 1. InvariantChecker 個別 UT
-- ch16 §16.2〜16.5 の INV-S/D/R/M 全件（実装 invariants.py と対応）
+### 1. InvariantChecker 全件の個別ユニットテスト
+- 対象: **ch16 §16.2〜16.5 の全 INV-* 19 件**（INV-S 5 + INV-D 6 + INV-R 5 + INV-M 3、INV-D-06 含む）
+- 実装側は `src/yoruu/safety/invariants.py` の対応チェック全件をテスト対象とする
 - tests/safety/test_invariants_individual.py（または既存へ追記）
-- 各 INV: 正常 / 違反 / 境界（INV-D-06 は 0.02 USD 厳密）
+- 各 INV 最低 3 ケース: 正常 / 違反 / 境界（INV-D-06 は閾値 0.02 USD 厳密、ch16 §16.3.1）
+- severity 判定（ch16 §16.6 / ch18 §18.3）も assertion 対象
 
 ### 2. カバレッジ 80%
 - pytest --cov=src/yoruu --cov-report=term-missing で穴埋め
@@ -260,7 +262,11 @@ Composer 2.5。PHASE 3 Exit ブロッカー（カバレッジ 80%、InvariantChe
 - tests/** 補強、pyproject.toml、executor sleep 修正、日記、commit(s)+push
 
 ## 完了報告
-- hash 一覧、最終 coverage、INV UT 件数、INV-D-06 境界結果、A-MED 解消/申し送り、phase2-sse 衝突有無
+- hash 一覧（55→70→80 段階含む）、最終 coverage
+- InvariantChecker UT 追加件数（**19 件 × ケース数**、INV-S/D/R/M 内訳付き）
+- INV-D-06 境界検証（0.02 USD ちょうど）、A-MED 解消/申し送り
+- PHASE 3 Exit ブロッカーへの寄与、phase2-sse とのマージ衝突有無
+- push 直前 git pull --rebase
 ```
 
 ---
@@ -309,3 +315,4 @@ Composer 2.5。PHASE 3 Exit ブロッカー（カバレッジ 80%、InvariantChe
 | 2026-05-28 | 初版（§F 厳密対応・Q3-MOCK 分離・パス修正・INV-D-06 式・fail_under 55） |
 | 2026-05-28 | Track 2 投入順序・§J.4〜J.7 索引追加 |
 | 2026-05-28 | テンプレ 7 `phase2-sse`（§F T4.1 B1 スリム）、8 Track1 第二フェーズ、9 `PHASE3-sse-contract` 索引 |
+| 2026-05-28 | テンプレ 8: ch16 INV **19 件**（§16.2〜16.5）表記訂正（旧「15 件」廃止） |
