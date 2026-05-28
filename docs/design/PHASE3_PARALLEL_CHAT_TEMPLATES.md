@@ -4,17 +4,18 @@
 > **運用**: Track 3 先行 + `phase2-fix` は **Q3-MOCK のみ**（監査書 **T4.1 SSE とは別スコープ**）を `docs-sync` と並列可。  
 > **正本**: 監査書 §F の T3.1〜T3.9 / T4.1〜T4.9。本ファイルのチャット用 ID は §F と **1:1 対応表** で併記する。
 
-### 投入チャット索引（テンプレ 7〜11）
+### 投入チャット索引（テンプレ 7〜12）
 
 | # | ID | 状態 | 前提コミット | 触る領域 | 備考 |
 |---|----|------|--------------|----------|------|
 | 7 | `phase2-sse` | **完了** | `7cbfd49` | `docs/mockups/shared/` | §F T4.1 / B1 スリム |
 | 8 | `PHASE3-fix`（継続） | **完了** | `579402f` | `tests/**`, `src/yoruu/safety/` 等 | Track 1 第二フェーズ |
 | 9 | `PHASE3-sse-contract` | 索引のみ | TBD | `src/yoruu/api/sse/`, ch10/ch24 | PHASE 4 前提、本文後日清書 |
-| 10 | `phase2-i18n-palette` | 投入可 | `7cbfd49` | `docs/mockups/shared/`, `tools/build_locales.py`, `.github/workflows/` | §F T4.2、Track 2D 実装適用 |
-| 11 | `PHASE3-fix-inv-d02` | 投入可 | `579402f` | `src/yoruu/data/database.py`, `src/yoruu/safety/`, `tests/safety/`, ch16 §16.6 のみ | INV-D-02、Case A + 案 X |
+| 10 | `phase2-i18n-palette` | **完了** | `7cbfd49` | `docs/mockups/shared/`, `tools/build_locales.py` | §F T4.2 |
+| 11 | `PHASE3-fix-inv-d02` | **完了** | `579402f` | `database.py`, `invariants.py`, ch16 §16.6 | INV-D-02 |
+| 12 | `PHASE3-exit-route-a` | **完了** | `2fc6f4f` 以降 | `src/yoruu/infra/**`, `web/**`, `cli.py` | Exit 戦略 A: WS→CLOB→API→24h |
 
-**並列推奨（§L ≤ 3）**: テンプレ 7 + 8 は完了。**テンプレ 10 + 11 は同時投入可**（`docs/mockups/**` vs `src/yoruu/**`、衝突なし）。
+**並列推奨（§L ≤ 3）**: テンプレ 7〜11 は完了。**テンプレ 12** は `src/yoruu/**` 横断（単独推奨）。
 
 ---
 
@@ -415,6 +416,62 @@ Composer 2.5。PHASE3-fix 派生。ch16 §16.3 INV-D-02 実装漏れを解消。
 
 ---
 
+## テンプレート 12 — `PHASE3-exit-route-a`（PHASE 3 Exit 戦略 A）
+
+**チャット名**: `PHASE3-exit-route-a`  
+**モデル**: Composer 2.5  
+**投入**: テンプレ 10/11 完了後（`2fc6f4f` / `a2b6081` 以降）
+
+```
+# PHASE 3 Exit 戦略 A — WS → CLOB → FastAPI → 24h paper
+
+## 役割
+Composer 2.5。PHASE3 残 4 項目をルート A 順で一括実装（lab 前提）。
+
+## 前提
+- リポジトリ: f:\Cursor\YoRuu / main
+- fail_under=80、pytest --cov 緑
+- lab URL のみ（wss://example.invalid、https://clob.lab.invalid）
+- ch24 §24.9: テストは fixture / モック、live API 禁止
+
+## スコープ（順序）
+### 1. WebSocket 基盤（ch10 §10.8 / ch24 §24.7）
+- AsyncWsClient（再接続・stale）
+- PolymarketMarketWs / BinanceMarketWs
+- market_runner + CLI `yoruu market run`
+
+### 2. CLOB（ch24 §24.2 / §24.8）
+- ClobRestClient（fixture + lab HTTP）
+- ClobWsClient / PolymarketClient / LiveExecutor（E_WS_001）
+- tests/fixtures/clob/
+
+### 3. FastAPI 28 エンドポイント（ch10 §10.6）
+- src/yoruu/web/app.py, routes/api_v1.py
+- SSE `/api/v1/events/stream`（MemoryEventBus）
+- CLI `yoruu serve`
+
+### 4. 24h paper ハーネス
+- CLI `yoruu paper-24h`（evaluate-once ループ）
+- tools/paper_24h.py（任意）
+
+### 5. テスト・依存
+- httpx, websockets, fastapi, uvicorn, pytest-asyncio
+- tests: test_api, test_infra_stack, test_clob_rest, test_event_bus
+
+## 範囲外
+- 本番 Polymarket/Binance 接続
+- テンプレ 9 FastAPI SSE 契約の全面置換（B1 モックは維持）
+- docs/design/** ローリング（ch16 以外）
+
+## 成果物
+- infra/web/cli 一式、pyproject 依存、テンプレ 12 索引、日記、commit+push
+
+## 完了報告
+- hash、pytest 件数、coverage%、CLI 3 コマンド、API スモーク、lab URL 確認
+```
+
+---
+
 ## Track 2 — Opus ローリング（§J.4〜J.7）
 
 **前提コミット（全チャット共通）**: `085cad5`（docs-sync）、`f499778`（Track 1）
@@ -449,3 +506,4 @@ Composer 2.5。PHASE3-fix 派生。ch16 §16.3 INV-D-02 実装漏れを解消。
 | 2026-05-28 | テンプレ 7 `phase2-sse`（§F T4.1 B1 スリム）、8 Track1 第二フェーズ、9 `PHASE3-sse-contract` 索引 |
 | 2026-05-28 | テンプレ 8: ch16 INV **19 件**（§16.2〜16.5）表記訂正（旧「15 件」廃止） |
 | 2026-05-28 | テンプレ 7/8 完了状態反映、テンプレ 10 `phase2-i18n-palette`（T4.2）、11 `PHASE3-fix-inv-d02`（INV-D-02）追記 |
+| 2026-05-28 | テンプレ 12 `PHASE3-exit-route-a`（Exit 戦略 A: WS/CLOB/FastAPI/24h paper）追記、10/11 完了反映 |

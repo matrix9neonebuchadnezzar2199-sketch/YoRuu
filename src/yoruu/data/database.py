@@ -120,6 +120,41 @@ class Database:
             (balance, now),
         )
 
+    def set_ws_connected(self, *, polymarket: bool | None = None, binance: bool | None = None) -> None:
+        """Update WS connection flags on bot_state (ch10 §10.3)."""
+
+        if polymarket is None and binance is None:
+            return
+        now = datetime.now(UTC).isoformat()
+        if polymarket is not None and binance is not None:
+            self._conn.execute(
+                """
+                UPDATE bot_state
+                SET ws_polymarket_connected = ?, ws_binance_connected = ?, last_updated = ?
+                WHERE id = 1
+                """,
+                (int(polymarket), int(binance), now),
+            )
+            return
+        if polymarket is not None:
+            self._conn.execute(
+                """
+                UPDATE bot_state
+                SET ws_polymarket_connected = ?, last_updated = ?
+                WHERE id = 1
+                """,
+                (int(polymarket), now),
+            )
+        if binance is not None:
+            self._conn.execute(
+                """
+                UPDATE bot_state
+                SET ws_binance_connected = ?, last_updated = ?
+                WHERE id = 1
+                """,
+                (int(binance), now),
+            )
+
     def update_balance_and_pnl(self, balance: float, daily_pnl: float) -> None:
         now = datetime.now(UTC).isoformat()
         self._conn.execute(

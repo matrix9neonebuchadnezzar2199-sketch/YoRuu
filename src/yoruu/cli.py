@@ -262,5 +262,79 @@ def strategy_cmd(
         db.close()
 
 
+@main.command("serve")
+@click.option("--host", default="127.0.0.1")
+@click.option("--port", default=8765, type=int)
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+def serve_cmd(host: str, port: int, config_path: Path) -> None:
+    """Run FastAPI server (ch10 §10.6)."""
+
+    import uvicorn
+
+    del config_path
+    uvicorn.run("yoruu.web.app:app", host=host, port=port, reload=False)
+
+
+@main.group("market")
+def market_group() -> None:
+    """Market data WebSocket feeds."""
+
+
+@market_group.command("run")
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+@click.option("--duration-sec", type=float, default=None, help="Stop after N seconds (lab)")
+def market_run_cmd(config_path: Path, duration_sec: float | None) -> None:
+    """Run Polymarket + Binance WS feeds."""
+
+    import asyncio
+
+    from yoruu.infra.market_runner import run_market_feeds
+
+    settings = load_settings(config_path)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    db.ensure_bot_state(
+        mode=settings.mode,
+        balance=settings.initial_balance,
+        daily_loss_limit=settings.risk.daily_loss_limit_usd,
+        strategy_version=1,
+    )
+    asyncio.run(run_market_feeds(settings, db, duration_sec=duration_sec))
+    click.echo("OK: market feeds stopped")
+
+
+@main.command("paper-24h")
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+@click.option("--hours", type=float, default=24.0)
+@click.option("--interval-sec", type=int, default=300)
+def paper_24h_cmd(config_path: Path, hours: float, interval_sec: int) -> None:
+    """Paper evaluate loop for N hours (lab harness)."""
+
+    import subprocess
+
+    deadline = __import__("time").time() + hours * 3600.0
+    cycles = 0
+    while __import__("time").time() < deadline:
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "yoruu.cli",
+                "paper",
+                "evaluate-once",
+                "--config",
+                str(config_path),
+            ],
+            check=False,
+        )
+        if proc.returncode != 0:
+            sys.exit(proc.returncode)
+        cycles += 1
+        if __import__("time").time() >= deadline:
+            break
+        __import__("time").sleep(interval_sec)
+    click.echo(f"OK: {cycles} paper cycles")
+
+
 if __name__ == "__main__":
     main()

@@ -459,6 +459,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1139">#entry-1139</a></td>
       </tr>
+      <tr>
+        <td>12:00</td>
+        <td>PHASE3 Exit 戦略 A — WS / CLOB / FastAPI / 24h</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1200">#entry-1200</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -766,6 +772,32 @@ body.diary > footer {
   <p>テンプレ <strong>10</strong>: <code>W_NIGHTLY_001</code> 排除、<code>E_NIGHTLY_008</code> 二段義、i18n フォールバック、severity パレット、<code>build_locales.py --check</code> + CI。テンプレ <strong>11</strong>: <code>inv_d02_daily_pnl_consistency</code>、日次集計 SQL、UT 3 件、ch16 v1.0.2。INV 実装 <strong>19/19</strong>。</p>
   <h3>検証</h3>
   <p>89 tests / coverage 89.05%。locales 261 keys。Commit: <code>a2b6081</code>（INV-D-02）/ <code>55d1682</code>（T4.2）。</p>
+</section>
+
+<section class="entry" id="entry-1200">
+  <h2>PHASE3 Exit 戦略 A 実装（WS → CLOB → API → 24h）<a href="#entry-1200" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 12:00 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>推奨ルート <strong>A</strong> を一括実装。<strong>AsyncWsClient</strong> + Polymarket/Binance 市場 WS、<strong>ClobRestClient</strong>（fixture / lab URL）、<strong>PolymarketClient</strong> + <strong>LiveExecutor</strong>（<code>E_WS_001</code>）、FastAPI <code>/api/v1</code>（28 相当ルート + SSE）、CLI <code>serve</code> / <code>market run</code> / <code>paper-24h</code>。テンプレ <strong>12</strong> 索引追記。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> src/yoruu/infra/{ws_client,binance_ws,polymarket_ws,clob_*,market_runner,polymarket_clob}.py</li>
+    <li><span class="op op-add">+</span> src/yoruu/web/**, execution/live_executor.py</li>
+    <li><span class="op op-mod">~</span> cli.py, database.py (set_ws_connected), pyproject.toml</li>
+    <li><span class="op op-add">+</span> tests/test_{api,infra_stack,clob_rest,event_bus,binance_ws_parse}.py, tools/paper_24h.py</li>
+    <li><span class="op op-mod">~</span> docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>本番接続は行わず <code>wss://example.invalid</code> / <code>https://clob.lab.invalid</code>。API の strategy apply / rollback は lab では CLI 委譲スタブ。markov history は実テーブル <code>markov_state</code> を参照（旧 <code>markov_snapshots</code> 誤記を修正）。</p>
+  <h3>検証</h3>
+  <p><code>uv run pytest -q</code> — 105 passed、coverage <strong>87.26%</strong>、<code>fail_under=80</code>。Commit: <code>pending</code>。</p>
+  <h3>残課題</h3>
+  <p>テンプレ 9（FastAPI SSE 契約の本実装）、実 24h paper の lab 実行確認、WS <code>_run_loop</code> 実ネットワーク統合テストは別途。</p>
 </section>
 </main>
 
