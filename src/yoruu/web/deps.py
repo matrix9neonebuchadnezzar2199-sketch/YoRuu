@@ -6,10 +6,11 @@ from pathlib import Path
 
 from yoruu.config.settings import AppSettings, load_settings
 from yoruu.data.database import Database
+from yoruu.api.sse.bus import ValidatingEventBus
 from yoruu.web.event_bus import MemoryEventBus
 
 _settings: AppSettings | None = None
-_event_bus = MemoryEventBus()
+_event_bus = ValidatingEventBus(MemoryEventBus())
 
 
 def get_settings() -> AppSettings:
@@ -26,5 +27,5 @@ def get_db() -> Database:
     return db
 
 
-def get_event_bus() -> MemoryEventBus:
+def get_event_bus() -> ValidatingEventBus:
     return _event_bus

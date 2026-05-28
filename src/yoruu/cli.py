@@ -307,7 +307,13 @@ def market_run_cmd(config_path: Path, duration_sec: float | None) -> None:
 @click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
 @click.option("--hours", type=float, default=24.0)
 @click.option("--interval-sec", type=int, default=300)
-def paper_24h_cmd(config_path: Path, hours: float, interval_sec: int) -> None:
+@click.option("--max-cycles", type=int, default=None, help="Stop after N cycles (lab smoke)")
+def paper_24h_cmd(
+    config_path: Path,
+    hours: float,
+    interval_sec: int,
+    max_cycles: int | None,
+) -> None:
     """Paper evaluate loop for N hours (lab harness)."""
 
     import subprocess
@@ -330,6 +336,8 @@ def paper_24h_cmd(config_path: Path, hours: float, interval_sec: int) -> None:
         if proc.returncode != 0:
             sys.exit(proc.returncode)
         cycles += 1
+        if max_cycles is not None and cycles >= max_cycles:
+            break
         if __import__("time").time() >= deadline:
             break
         __import__("time").sleep(interval_sec)

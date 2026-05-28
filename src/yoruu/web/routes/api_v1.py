@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -11,12 +11,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from yoruu.api.sse.bus import ValidatingEventBus
+from yoruu.api.sse.fixtures import LAB_SSE_FIXTURES
+from yoruu.api.sse.format import format_sse_frame
+from yoruu.api.sse.registry import SSE_EVENT_NAMES, SseContractError, validate_sse_payload
 from yoruu.config.settings import AppSettings
 from yoruu.data.database import Database
+from yoruu.errors import StrategyApplyError
 from yoruu.review.nightly_reporter import NightlyReporter
+from yoruu.review.strategy_applier import StrategyApplier
 from yoruu.review.strategy_writer import StrategyWriter
 from yoruu.web.deps import get_db, get_event_bus, get_settings
-from yoruu.web.event_bus import MemoryEventBus
 
 router = APIRouter(prefix="/api/v1")
 
@@ -151,22 +156,98 @@ class StrategyApplyBody(BaseModel):
     applied_by: str = "USER"
 
 
+def _strategy_applier(
+    settings: AppSettings,
+    db: Database,
+    bus: ValidatingEventBus,
+) -> StrategyApplier:
+    strategy_path = Path(settings.paths.strategy)
+    writer = StrategyWriter(strategy_path)
+    return StrategyApplier(
+        db,
+        writer,
+        event_bus=bus,
+        history_dir=strategy_path.parent / "strategy_history",
+    )
+
+
 @router.post("/strategy/apply")
 def strategy_apply(
     body: StrategyApplyBody,
     settings: AppSettings = Depends(get_settings),
+    db: Database = Depends(get_db),
+    bus: ValidatingEventBus = Depends(get_event_bus),
 ) -> dict[str, Any]:
+    writer = StrategyWriter(Path(settings.paths.strategy))
+    current = writer.read()
+    db.ensure_strategy_version_seed(
+        json.dumps(current.to_json_dict(), ensure_ascii=False),
+        strategy_version=current.version,
+    )
+    merged_params = current.parameters.model_dump()
+    merged_params.update(body.parameters)
+    proposal = {
+        "parameters": merged_params,
+        "rationale": body.rationale,
+        "applied_by": body.applied_by,
+    }
+    try:
+        result = _strategy_applier(settings, db, bus).apply(
+            proposal,
+            current,
+            state_machine=None,
+        )
+    except StrategyApplyError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": exc.code, "message": str(exc)},
+        ) from exc
+    db.commit()
     return {
-        "status": "accepted",
-        "message": "use CLI strategy apply in lab; API defers to StrategyApplier",
-        "proposal": body.model_dump(),
-        "strategy_path": settings.paths.strategy,
+        "status": "ok",
+        "new_version": result.new_version,
+        "previous_version": result.previous_version,
+        "applied_by": result.applied_by,
+        "diff": {k: list(v) for k, v in result.diff.items()},
     }
 
 
+class StrategyRollbackBody(BaseModel):
+    reason: str = Field(default="API rollback", min_length=1, max_length=500)
+
+
 @router.post("/strategy/rollback")
-def strategy_rollback() -> dict[str, str]:
-    return {"status": "accepted", "message": "rollback via CLI in lab"}
+def strategy_rollback(
+    body: StrategyRollbackBody | None = None,
+    settings: AppSettings = Depends(get_settings),
+    db: Database = Depends(get_db),
+    bus: ValidatingEventBus = Depends(get_event_bus),
+) -> dict[str, Any]:
+    writer = StrategyWriter(Path(settings.paths.strategy))
+    current = writer.read()
+    db.ensure_strategy_version_seed(
+        json.dumps(current.to_json_dict(), ensure_ascii=False),
+        strategy_version=current.version,
+    )
+    reason = body.reason if body is not None else "API rollback"
+    try:
+        result = _strategy_applier(settings, db, bus).rollback(
+            current,
+            reason=reason,
+            state_machine=None,
+        )
+    except StrategyApplyError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": exc.code, "message": str(exc)},
+        ) from exc
+    db.commit()
+    return {
+        "status": "ok",
+        "new_version": result.new_version,
+        "previous_version": result.previous_version,
+        "applied_by": result.applied_by,
+    }
 
 
 class ModeSwitchBody(BaseModel):
@@ -179,12 +260,12 @@ def mode_switch(body: ModeSwitchBody) -> dict[str, str]:
 
 
 @router.post("/emergency/stop")
-def emergency_stop(bus: MemoryEventBus = Depends(get_event_bus)) -> dict[str, str]:
+def emergency_stop(bus: ValidatingEventBus = Depends(get_event_bus)) -> dict[str, str]:
     bus.publish(
         "emergency_stop_triggered",
         {
             "trigger": "api_call",
-            "timestamp": date.today().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "open_positions_closed": 0,
         },
     )
@@ -297,9 +378,25 @@ def get_i18n(lang: str) -> dict[str, str]:
     return {str(k): str(v) for k, v in data.items()}
 
 
+@router.get("/sse/contracts")
+def sse_contracts() -> dict[str, Any]:
+    return {
+        "events": list(SSE_EVENT_NAMES),
+        "source": "ch10 §10.5.3 / mock-data.js SSE_PAYLOADS",
+    }
+
+
+@router.get("/sse/fixtures")
+def sse_fixtures() -> dict[str, Any]:
+    validated: dict[str, Any] = {}
+    for name, payload in LAB_SSE_FIXTURES.items():
+        validated[name] = validate_sse_payload(name, payload)
+    return {"fixtures": validated}
+
+
 @router.get("/events/stream")
 async def events_stream(
-    bus: MemoryEventBus = Depends(get_event_bus),
+    bus: ValidatingEventBus = Depends(get_event_bus),
 ) -> StreamingResponse:
     queue = bus.subscribe()
 
@@ -307,8 +404,7 @@ async def events_stream(
         try:
             while True:
                 event, payload = await queue.get()
-                data = json.dumps({"event": event, "payload": payload}, ensure_ascii=False)
-                yield f"event: {event}\ndata: {data}\n\n"
+                yield format_sse_frame(event, payload)
         finally:
             bus.unsubscribe(queue)
 

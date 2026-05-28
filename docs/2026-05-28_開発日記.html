@@ -465,6 +465,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1200">#entry-1200</a></td>
       </tr>
+      <tr>
+        <td>12:15</td>
+        <td>テンプレ 9 SSE 契約 + strategy API + paper-24h smoke</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1215">#entry-1215</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -798,6 +804,27 @@ body.diary > footer {
   <p><code>uv run pytest -q</code> — 105 passed、coverage <strong>87.26%</strong>、<code>fail_under=80</code>。Commit: <code>18fb05c</code>。</p>
   <h3>残課題</h3>
   <p>テンプレ 9（FastAPI SSE 契約の本実装）、実 24h paper の lab 実行確認、WS <code>_run_loop</code> 実ネットワーク統合テストは別途。</p>
+</section>
+
+<section class="entry" id="entry-1215">
+  <h2>テンプレ 9 — FastAPI SSE 契約 + strategy API 本実装<a href="#entry-1215" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 12:15 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><code>src/yoruu/api/sse/</code> に 11 イベント Pydantic 契約（B1 / mock-data.js 準拠）。<strong>ValidatingEventBus</strong> で publish 検証。<code>/api/v1/sse/contracts</code>・<code>/sse/fixtures</code>。SSE <code>data:</code> は payload のみ。POST <code>/strategy/apply</code>（部分 parameters マージ）・<code>/rollback</code> を <strong>StrategyApplier</strong> 接続。<code>paper-24h --max-cycles</code> で lab smoke。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> src/yoruu/api/sse/*</li>
+    <li><span class="op op-mod">~</span> web/routes/api_v1.py, web/deps.py, review/strategy_applier.py, data/database.py, cli.py</li>
+    <li><span class="op op-add">+</span> tests/test_sse_contract.py, test_api_strategy_sse.py, test_paper_24h_smoke.py</li>
+    <li><span class="op op-mod">~</span> docs/design/PHASE3_PARALLEL_CHAT_TEMPLATES.md（テンプレ 9 本文）</li>
+  </ul>
+  <h3>検証</h3>
+  <p>114 tests / coverage <strong>87.89%</strong>。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

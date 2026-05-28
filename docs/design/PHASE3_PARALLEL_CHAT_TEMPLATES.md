@@ -10,7 +10,7 @@
 |---|----|------|--------------|----------|------|
 | 7 | `phase2-sse` | **完了** | `7cbfd49` | `docs/mockups/shared/` | §F T4.1 / B1 スリム |
 | 8 | `PHASE3-fix`（継続） | **完了** | `579402f` | `tests/**`, `src/yoruu/safety/` 等 | Track 1 第二フェーズ |
-| 9 | `PHASE3-sse-contract` | 索引のみ | TBD | `src/yoruu/api/sse/`, ch10/ch24 | PHASE 4 前提、本文後日清書 |
+| 9 | `PHASE3-sse-contract` | **完了** | `18fb05c` 以降 | `src/yoruu/api/sse/`, `web/routes/api_v1.py` | FastAPI SSE 契約 + ValidatingEventBus |
 | 10 | `phase2-i18n-palette` | **完了** | `7cbfd49` | `docs/mockups/shared/`, `tools/build_locales.py` | §F T4.2 |
 | 11 | `PHASE3-fix-inv-d02` | **完了** | `579402f` | `database.py`, `invariants.py`, ch16 §16.6 | INV-D-02 |
 | 12 | `PHASE3-exit-route-a` | **完了** | `2fc6f4f` 以降 | `src/yoruu/infra/**`, `web/**`, `cli.py` | Exit 戦略 A: WS→CLOB→API→24h |
@@ -278,15 +278,30 @@ Composer 2.5。PHASE 3 Exit ブロッカー（カバレッジ 80%、InvariantChe
 
 ---
 
-## テンプレート 9 — `PHASE3-sse-contract`（索引のみ）
+## テンプレート 9 — `PHASE3-sse-contract`（FastAPI SSE 契約）
 
-| 項目 | 内容 |
-|------|------|
-| 目的 | FastAPI SSE Pydantic 契約、ch24 中継方針、JSON Schema |
-| 位置づけ | PHASE 4 前提。**§F T4.1（B1）とは別系統** |
-| 着手 | テンプレ 7 完了 + PHASE 4 キックオフ判断後 |
-| 本文 | マスター清書版（FastAPI 契約）を PHASE 4 時に本ファイルへ転記 |
-| 前提設計変更 | severity 全 SSE 必須化は ch10 v1.2 ローリング + ADR が先 |
+**チャット名**: `PHASE3-sse-contract`  
+**モデル**: Composer 2.5  
+**投入**: テンプレ 12（`18fb05c`）完了後
+
+```
+# FastAPI SSE 契約（ch10 §10.5.3 / mock-data.js B1 準拠）
+
+## スコープ
+1. src/yoruu/api/sse/ — Pydantic 11 イベント、validate_sse_payload、LAB_SSE_FIXTURES
+2. ValidatingEventBus — publish 時に契約検証
+3. GET /api/v1/sse/contracts, /sse/fixtures — SSE /events/stream は payload のみ data 行
+4. StrategyApplier の strategy_applied に rationale / applied_at 付与
+5. POST /strategy/apply, /strategy/rollback — StrategyApplier 本実装
+6. paper-24h --max-cycles（lab smoke）
+
+## 範囲外
+- ch10 v1.2 severity 全イベント必須化ローリング
+- 実 24h 連続実行（ハーネス検証のみ）
+
+## 完了報告
+- pytest、coverage、B1 フィールド一致、apply/rollback API、paper-24h smoke
+```
 
 ---
 

@@ -1,5 +1,6 @@
 """FastAPI route smoke tests."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,9 @@ def api_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
         ),
         constraints={
             "MIN_PROB": ParameterConstraints(min=0.8, max=0.95),
+            "MIN_EDGE": ParameterConstraints(min=0.01, max=0.2),
+            "KELLY_FRACTION": ParameterConstraints(min=0.1, max=1.0),
+            "PERSISTENCE_THRESHOLD": ParameterConstraints(min=0.5, max=0.95),
         },
     )
     cfg = write_isolated_config(tmp_path, strategy)
@@ -39,6 +43,10 @@ def api_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
         mode=Mode.PAPER,
         balance=1000.0,
         daily_loss_limit=30.0,
+        strategy_version=1,
+    )
+    db.ensure_strategy_version_seed(
+        json.dumps(strategy.to_json_dict(), ensure_ascii=False),
         strategy_version=1,
     )
     db.close()
@@ -91,7 +99,7 @@ def test_api_v1_route_smoke(api_client: TestClient) -> None:
     assert api_client.get("/api/v1/reports/1").status_code in (200, 404)
 
     post_calls = [
-        ("/api/v1/strategy/apply", {"parameters": {"MIN_PROB": 0.87}, "rationale": "lab"}),
+        ("/api/v1/strategy/apply", {"parameters": {"MIN_PROB": 0.88}, "rationale": "lab smoke"}),
         ("/api/v1/strategy/rollback", None),
         ("/api/v1/mode/switch", {"mode": "paper"}),
         ("/api/v1/emergency/stop", None),

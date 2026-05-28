@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import threading
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -174,12 +175,15 @@ class StrategyApplier:
         if sm is not None and sm.current() == State.NIGHTLY_REVIEW:
             sm.transition(State.IDLE, "strategy apply complete", actor=validation.applied_by)
 
+        applied_at = datetime.now(UTC).isoformat()
         self._event_bus.publish(
             "strategy_applied",
             {
                 "new_version": new_config.version,
                 "previous_version": current.version,
                 "applied_by": validation.applied_by,
+                "rationale": validation.rationale or "",
+                "applied_at": applied_at,
                 "diff": {k: [o, n] for k, (o, n) in diff.items()},
             },
         )
@@ -190,3 +194,99 @@ class StrategyApplier:
             applied_by=validation.applied_by,
             diff=diff,
         )
+
+    def rollback(
+        self,
+        current: StrategyConfig,
+        *,
+        reason: str = "API rollback",
+        state_machine: StateMachine | None = None,
+    ) -> ApplyResult:
+        """Restore previous strategy_versions row (applied_by=ROLLBACK)."""
+
+        if not _apply_lock.acquire(blocking=False):
+            raise StrategyApplyError(
+                "concurrent strategy apply",
+                code="E_NIGHTLY_013",
+            )
+        try:
+            if state_machine is not None:
+                state_machine.require_state(State.NIGHTLY_REVIEW, State.IDLE)
+
+            current_db_version = self._db.get_strategy_version()
+            prev_row = self._db.fetch_previous_strategy_version_row(current_db_version)
+            if prev_row is None:
+                raise StrategyApplyError(
+                    "no previous strategy version",
+                    code="E_NIGHTLY_012",
+                )
+
+            prev_config = StrategyConfig.from_json_dict(
+                json.loads(prev_row["parameters_json"])
+            )
+            diff = {
+                key: (
+                    float(current.parameters.model_dump()[key]),
+                    float(prev_config.parameters.model_dump()[key]),
+                )
+                for key in prev_config.parameters.model_dump()
+                if current.parameters.model_dump()[key]
+                != prev_config.parameters.model_dump()[key]
+            }
+
+            self._history_dir.mkdir(parents=True, exist_ok=True)
+            backup_path = self._history_dir / f"strategy_v{current.version}.json"
+            if self._writer._path.exists():
+                backup_path.write_text(
+                    self._writer._path.read_text(encoding="utf-8"),
+                    encoding="utf-8",
+                )
+
+            performance_summary = json.dumps(
+                {"rollback_reason": reason, "restored_from": int(prev_row["version"])},
+                ensure_ascii=False,
+            )
+
+            with self._db.transaction():
+                version = self._db.insert_strategy_version(
+                    json.dumps(prev_config.to_json_dict(), ensure_ascii=False),
+                    applied_by="ROLLBACK",
+                    performance_summary_json=performance_summary,
+                    rollback_reason=reason,
+                )
+                restored = prev_config.model_copy(update={"version": version})
+                self._db.insert_audit(
+                    actor="USER",
+                    action="STRATEGY_ROLLBACK",
+                    resource="strategy_versions",
+                    resource_id=str(version),
+                    details={
+                        "previous_version": current_db_version,
+                        "restored_from": int(prev_row["version"]),
+                        "reason": reason,
+                    },
+                    result="SUCCESS",
+                )
+            self._writer.apply(restored)
+
+            applied_at = datetime.now(UTC).isoformat()
+            self._event_bus.publish(
+                "strategy_applied",
+                {
+                    "new_version": version,
+                    "previous_version": current_db_version,
+                    "applied_by": "ROLLBACK",
+                    "rationale": reason,
+                    "applied_at": applied_at,
+                    "diff": {k: [o, n] for k, (o, n) in diff.items()},
+                },
+            )
+
+            return ApplyResult(
+                new_version=version,
+                previous_version=current_db_version,
+                applied_by="ROLLBACK",
+                diff=diff,
+            )
+        finally:
+            _apply_lock.release()

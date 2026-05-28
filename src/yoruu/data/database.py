@@ -473,21 +473,42 @@ class Database:
             )
             self._conn.commit()
 
+    def fetch_strategy_version_row(self, version: int) -> Any | None:
+        row = self._conn.execute(
+            "SELECT * FROM strategy_versions WHERE version = ?",
+            (version,),
+        ).fetchone()
+        return dict(row) if row else None
+
+    def fetch_previous_strategy_version_row(self, before_version: int) -> Any | None:
+        row = self._conn.execute(
+            """
+            SELECT * FROM strategy_versions
+            WHERE version < ?
+            ORDER BY version DESC
+            LIMIT 1
+            """,
+            (before_version,),
+        ).fetchone()
+        return dict(row) if row else None
+
     def insert_strategy_version(
         self,
         parameters_json: str,
         *,
         applied_by: str,
         performance_summary_json: str | None = None,
+        rollback_reason: str | None = None,
     ) -> int:
         now = datetime.now(UTC).isoformat()
         cur = self._conn.execute(
             """
             INSERT INTO strategy_versions (
-              parameters_json, applied_at, applied_by, performance_summary_json
-            ) VALUES (?, ?, ?, ?)
+              parameters_json, applied_at, applied_by, performance_summary_json,
+              rollback_reason
+            ) VALUES (?, ?, ?, ?, ?)
             """,
-            (parameters_json, now, applied_by, performance_summary_json),
+            (parameters_json, now, applied_by, performance_summary_json, rollback_reason),
         )
         version = int(cur.lastrowid)
         self._conn.execute(
