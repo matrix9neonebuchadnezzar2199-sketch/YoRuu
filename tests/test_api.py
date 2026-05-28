@@ -42,6 +42,7 @@ def api_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     db.ensure_bot_state(
         mode=Mode.PAPER,
         balance=1000.0,
+        principal=1000.0,
         daily_loss_limit=30.0,
         strategy_version=1,
     )
@@ -89,6 +90,9 @@ def test_api_v1_route_smoke(api_client: TestClient) -> None:
         "/api/v1/whatif/scenarios",
         "/api/v1/settings",
         "/api/v1/i18n/ja",
+        "/api/v1/principal",
+        "/api/v1/principal/transactions",
+        "/api/v1/fx/usd_jpy",
     ]
     for path in get_paths:
         resp = api_client.get(path)

@@ -26,10 +26,10 @@ def _service(db, **kwargs) -> PrincipalService:
 def test_deposit_increases_balance_and_principal(tmp_path: Path) -> None:
     db = init_db(tmp_path)
     svc = _service(db)
-    summary = svc.deposit(100.0, note="lab")
-    assert summary.principal == 1100.0  # 1000 bootstrap + 100 deposit
-    assert summary.balance == 1100.0
-    assert summary.withdrawable_principal == 1100.0
+    change = svc.deposit(100.0, note="lab")
+    assert change.summary.principal == 1100.0  # 1000 bootstrap + 100 deposit
+    assert change.summary.balance == 1100.0
+    assert change.kind == "DEPOSIT"
 
 
 def test_withdraw_requires_confirm(tmp_path: Path) -> None:
@@ -52,9 +52,9 @@ def test_withdraw_ok(tmp_path: Path) -> None:
     db = init_db(tmp_path)
     svc = _service(db)
     svc.deposit(50.0)
-    summary = svc.withdraw(25.0, confirm=True)
-    assert summary.balance == 1025.0  # 1000 + 50 - 25
-    assert summary.principal == 1025.0
+    change = svc.withdraw(25.0, confirm=True)
+    assert change.summary.balance == 1025.0  # 1000 + 50 - 25
+    assert change.summary.principal == 1025.0
 
 
 def test_deposit_zero_rejected(tmp_path: Path) -> None:

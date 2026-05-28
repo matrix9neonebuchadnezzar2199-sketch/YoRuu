@@ -8,7 +8,7 @@ from yoruu.api.sse.registry import SSE_EVENT_NAMES, SseContractError, validate_s
 
 
 def test_all_lab_fixtures_validate() -> None:
-    assert len(SSE_EVENT_NAMES) == 11
+    assert len(SSE_EVENT_NAMES) == 12
     for name in SSE_EVENT_NAMES:
         assert name in LAB_SSE_FIXTURES
         payload = validate_sse_payload(name, LAB_SSE_FIXTURES[name])

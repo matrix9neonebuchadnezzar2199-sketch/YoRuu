@@ -17,7 +17,8 @@
 | PHASE 4 M4.2 | **完了** — `web/static/` + `yoruu serve` + EventSource |
 | PHASE 4 M4.3 | **完了** — ch10/13/16/18/22 ローリング済（`fca1306` 系 + 本バッチ） |
 | PHASE 4 M4.4 | **完了** — PrincipalService + migrate + INV 拡張 |
-| PHASE 4 M4.5 | **着手可** — principal REST/CLI/SSE |
+| PHASE 4 M4.5 | **完了** — principal REST/CLI/SSE + FX API |
+| PHASE 4 M4.6 | **着手可** — mock-data 拡張 |
 | pytest | **119** passed、カバレッジ **≈88%** |
 | `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
 | INV 実装 | **19 / 19**（設計一致） |

@@ -50,6 +50,7 @@ def api_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     db.ensure_bot_state(
         mode=Mode.PAPER,
         balance=1000.0,
+        principal=1000.0,
         daily_loss_limit=30.0,
         strategy_version=1,
     )
@@ -70,7 +71,7 @@ def api_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
 def test_sse_contracts_endpoint(api_client: TestClient) -> None:
     resp = api_client.get("/api/v1/sse/contracts")
     assert resp.status_code == 200
-    assert len(resp.json()["events"]) == 11
+    assert len(resp.json()["events"]) == 12
 
 
 def test_sse_fixtures_endpoint(api_client: TestClient) -> None:

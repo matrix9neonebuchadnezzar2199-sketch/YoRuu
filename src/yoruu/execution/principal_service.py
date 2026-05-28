@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Literal
 
 from yoruu.data.database import Database
 from yoruu.errors import InvariantViolationError, PrincipalError
@@ -22,6 +23,21 @@ class PrincipalSummary:
     withdrawable_principal: float
     total_assets: float
     cumulative_pnl: float
+
+
+@dataclass(frozen=True)
+class PrincipalChangeResult:
+    """Deposit/withdraw outcome for API and SSE (ch10 §10.5.3)."""
+
+    summary: PrincipalSummary
+    kind: Literal["DEPOSIT", "WITHDRAW"]
+    amount: float
+    balance_before: float
+    balance_after: float
+    principal_before: float
+    principal_after: float
+    note: str | None
+    ts_utc: str
 
 
 class PrincipalService:
@@ -56,7 +72,22 @@ class PrincipalService:
             cumulative_pnl=total_assets - principal,
         )
 
-    def deposit(self, amount: float, note: str | None = None) -> PrincipalSummary:
+    def get_detail(self) -> dict[str, float | int | str | None]:
+        """GET /api/v1/principal response (ch10 §10.6.12)."""
+
+        summary = self.get_summary()
+        stats = self._db.get_principal_transaction_stats()
+        return {
+            "principal": summary.principal,
+            "balance": summary.balance,
+            "locked_principal": summary.locked_principal,
+            "withdrawable_principal": summary.withdrawable_principal,
+            "total_assets": summary.total_assets,
+            "cumulative_pnl": summary.cumulative_pnl,
+            **stats,
+        }
+
+    def deposit(self, amount: float, note: str | None = None) -> PrincipalChangeResult:
         if amount <= 0:
             raise PrincipalError("amount must be positive", code="E_PRINCIPAL_002")
         if amount > self._max_deposit:
@@ -65,6 +96,7 @@ class PrincipalService:
                 code="E_PRINCIPAL_003",
                 details={"amount": amount, "max": self._max_deposit},
             )
+        ts_utc = datetime.now(UTC).isoformat()
         try:
             with self._db.transaction():
                 balance_before = self._db.get_balance()
@@ -80,6 +112,7 @@ class PrincipalService:
                     principal_before=principal_before,
                     principal_after=principal_after,
                     note=note,
+                    ts_utc=ts_utc,
                 )
                 self._db.insert_audit(
                     actor="USER",
@@ -99,7 +132,18 @@ class PrincipalService:
             ) from exc
         if self._invariants is not None:
             self._invariants.check_post_principal_change()
-        return self.get_summary()
+        summary = self.get_summary()
+        return PrincipalChangeResult(
+            summary=summary,
+            kind="DEPOSIT",
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=balance_after,
+            principal_before=principal_before,
+            principal_after=principal_after,
+            note=note,
+            ts_utc=ts_utc,
+        )
 
     def withdraw(
         self,
@@ -107,7 +151,7 @@ class PrincipalService:
         *,
         note: str | None = None,
         confirm: bool = False,
-    ) -> PrincipalSummary:
+    ) -> PrincipalChangeResult:
         if not confirm and self._require_confirm:
             raise PrincipalError(
                 "withdraw requires confirm=true",
@@ -128,6 +172,7 @@ class PrincipalService:
                 code="E_PRINCIPAL_001",
                 details={"amount": amount, "balance": balance_before},
             )
+        ts_utc = datetime.now(UTC).isoformat()
         try:
             with self._db.transaction():
                 principal_before = self._db.get_principal()
@@ -142,6 +187,7 @@ class PrincipalService:
                     principal_before=principal_before,
                     principal_after=principal_after,
                     note=note,
+                    ts_utc=ts_utc,
                 )
                 self._db.insert_audit(
                     actor="USER",
@@ -161,4 +207,15 @@ class PrincipalService:
             ) from exc
         if self._invariants is not None:
             self._invariants.check_post_principal_change()
-        return self.get_summary()
+        summary = self.get_summary()
+        return PrincipalChangeResult(
+            summary=summary,
+            kind="WITHDRAW",
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=balance_after,
+            principal_before=principal_before,
+            principal_after=principal_after,
+            note=note,
+            ts_utc=ts_utc,
+        )

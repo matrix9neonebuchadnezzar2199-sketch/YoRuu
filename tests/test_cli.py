@@ -55,6 +55,38 @@ def test_config_validate_missing_file(tmp_path: Path) -> None:
     assert "FAIL:" in result.output
 
 
+def test_principal_deposit_cli(tmp_path: Path, strategy_config: StrategyConfig) -> None:
+    _ensure_dirs(tmp_path)
+    cfg = write_isolated_config(tmp_path, strategy_config)
+    CliRunner().invoke(main, ["db", "init", "--config", str(cfg)])
+    result = CliRunner().invoke(
+        main,
+        ["principal", "deposit", "25", "--config", str(cfg), "--note", "cli_test"],
+    )
+    assert result.exit_code == 0
+    body = json.loads(result.output)
+    assert body["principal"] == 1025.0
+
+
+def test_principal_withdraw_requires_confirm(tmp_path: Path, strategy_config: StrategyConfig) -> None:
+    _ensure_dirs(tmp_path)
+    cfg = write_isolated_config(tmp_path, strategy_config)
+    runner = CliRunner()
+    runner.invoke(main, ["db", "init", "--config", str(cfg)])
+    result = runner.invoke(main, ["principal", "withdraw", "5", "--config", str(cfg)])
+    assert result.exit_code != 0
+    assert "E_PRINCIPAL_004" in result.output
+
+
+def test_principal_show_cli(tmp_path: Path, strategy_config: StrategyConfig) -> None:
+    _ensure_dirs(tmp_path)
+    cfg = write_isolated_config(tmp_path, strategy_config)
+    CliRunner().invoke(main, ["db", "init", "--config", str(cfg)])
+    result = CliRunner().invoke(main, ["principal", "show", "--config", str(cfg)])
+    assert result.exit_code == 0
+    assert "principal" in json.loads(result.output)
+
+
 def test_db_init_ok(tmp_path: Path, strategy_config: StrategyConfig) -> None:
     _ensure_dirs(tmp_path)
     cfg = write_isolated_config(tmp_path, strategy_config)

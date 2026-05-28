@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>15:45</td>
+        <td>M4.5 完了 — principal REST/CLI/SSE + FX API</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1545">#entry-1545</a></td>
+      </tr>
+      <tr>
         <td>15:32</td>
         <td>README v0.4.0 + yoruu.yaml.example 現状整合</td>
         <td><span class="pill pill-ok">ok</span></td>
@@ -1179,6 +1185,27 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>ドキュメントのみ。Commit: <code>8f6ac44</code>。</p>
+</section>
+
+<section class="entry" id="entry-1545">
+  <h2>M4.5 完了 — principal REST / CLI / SSE / FX<a href="#entry-1545" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 15:45 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>スライス順 <strong>1→4→2→3→5</strong> で M4.5 実装。<code>GET/POST /api/v1/principal/*</code>、<code>GET /api/v1/fx/usd_jpy</code>、<code>yoruu principal</code> 4 サブコマンド、SSE <code>principal_changed</code>（#12）。<code>PrincipalError</code>/<code>FxError</code> の FastAPI ハンドラ。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> web/routes/principal.py、infra/fx_provider.py、web/principal_sse.py</li>
+    <li><span class="op op-mod">~</span> principal_service.py（PrincipalChangeResult）、deps.py、app.py、cli.py、api/sse/*</li>
+    <li><span class="op op-add">+</span> tests/web/test_principal_api.py、test_fx_provider.py、api/test_sse_principal.py</li>
+    <li><span class="op op-mod">~</span> README、PHASE4_ROADMAP、INDEX、00_ROADMAP</li>
+  </ul>
+  <h3>検証</h3>
+  <p><code>uv run pytest -q</code> — <strong>141 passed</strong>、coverage <strong>≈88%</strong>。Commit: <code>3c12709</code>。</p>
 </section>
 </main>
 

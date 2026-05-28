@@ -16,6 +16,7 @@ from yoruu.api.sse.models import (
     NightlyReportReadyPayload,
     PositionClosedPayload,
     PositionOpenedPayload,
+    PrincipalChangedPayload,
     StateChangedPayload,
     StrategyAppliedPayload,
 )
@@ -33,6 +34,7 @@ SSE_EVENT_NAMES: tuple[str, ...] = (
     "emergency_stop_triggered",
     "alert_added",
     "strategy_applied",
+    "principal_changed",
 )
 
 _EVENT_MODELS: dict[str, Type[BaseModel]] = {
@@ -47,6 +49,7 @@ _EVENT_MODELS: dict[str, Type[BaseModel]] = {
     "emergency_stop_triggered": EmergencyStopTriggeredPayload,
     "alert_added": AlertAddedPayload,
     "strategy_applied": StrategyAppliedPayload,
+    "principal_changed": PrincipalChangedPayload,
 }
 
 

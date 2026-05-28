@@ -68,3 +68,32 @@ class PrincipalError(YoRuuError):
     ) -> None:
         super().__init__(message, code=code, details=details)
         self.severity = severity
+
+
+class FxError(YoRuuError):
+    """FX rate fetch/validation failed (ch18 E_FX_*)."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str = "E_FX_001",
+        severity: str = "WARN",
+        details: dict | None = None,
+    ) -> None:
+        super().__init__(message, code=code, details=details)
+        self.severity = severity
+
+
+def http_status_for_error_code(code: str) -> int:
+    """Map ch18 error codes to HTTP status (principal + FX)."""
+
+    if code == "E_PRINCIPAL_005" or code == "E_FX_002":
+        return 500
+    if code in ("E_FX_001", "E_FX_004"):
+        return 503
+    if code == "E_FX_003":
+        return 422
+    if code.startswith("E_PRINCIPAL_") or code.startswith("E_FX_"):
+        return 422
+    return 400

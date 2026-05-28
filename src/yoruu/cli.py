@@ -9,13 +9,14 @@ from pathlib import Path
 
 import click
 
-from yoruu.config.settings import load_settings
+from yoruu.config.settings import AppSettings, load_settings
 from yoruu.core.state_machine import StateMachine
 from yoruu.data.database import Database
 from yoruu.data.migrate import plan_migration, run_migration
-from yoruu.errors import ConfigValidationError, StrategyApplyError, YoRuuError
+from yoruu.errors import ConfigValidationError, PrincipalError, StrategyApplyError, YoRuuError
 from yoruu.execution.fill_model import FillModel
 from yoruu.execution.paper_executor import OpenRequest, PaperExecutor
+from yoruu.execution.principal_service import PrincipalService
 from yoruu.execution.risk_guard import RiskGuard
 from yoruu.infra.mock_market import MockMarketProvider
 from yoruu.review.nightly_reporter import NightlyReporter
@@ -290,6 +291,114 @@ def strategy_cmd(
         sys.exit(1)
     finally:
         db.close()
+
+
+def _principal_service_for_cli(settings: AppSettings, db: Database) -> PrincipalService:
+    invariants = InvariantChecker(db, initial_principal=settings.resolved_initial_principal)
+    return PrincipalService(
+        db,
+        max_deposit_per_tx=settings.principal.max_deposit_per_tx,
+        max_withdraw_per_tx=settings.principal.max_withdraw_per_tx,
+        require_confirm_on_withdraw=settings.principal.require_confirm_on_withdraw,
+        invariant_checker=invariants,
+    )
+
+
+@main.group("principal")
+def principal_group() -> None:
+    """Principal deposit/withdraw (ch13 §13.2.6)."""
+
+
+@principal_group.command("deposit")
+@click.argument("amount", type=float)
+@click.option("--note", default=None, help="Optional audit note")
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+def principal_deposit_cmd(amount: float, note: str | None, config_path: Path) -> None:
+    """Deposit principal (increases balance and principal)."""
+
+    settings = load_settings(config_path)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    try:
+        change = _principal_service_for_cli(settings, db).deposit(amount, note=note)
+        click.echo(json.dumps(_principal_cli_payload(change), indent=2, ensure_ascii=False))
+    except PrincipalError as exc:
+        click.echo(json.dumps({"code": exc.code, "message": str(exc)}, indent=2), err=True)
+        sys.exit(1)
+    finally:
+        db.close()
+
+
+@principal_group.command("withdraw")
+@click.argument("amount", type=float)
+@click.option("--confirm", is_flag=True, default=False, help="Required when require_confirm_on_withdraw")
+@click.option("--note", default=None)
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+def principal_withdraw_cmd(
+    amount: float, confirm: bool, note: str | None, config_path: Path
+) -> None:
+    """Withdraw principal (decreases balance and principal)."""
+
+    settings = load_settings(config_path)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    try:
+        change = _principal_service_for_cli(settings, db).withdraw(
+            amount, note=note, confirm=confirm
+        )
+        click.echo(json.dumps(_principal_cli_payload(change), indent=2, ensure_ascii=False))
+    except PrincipalError as exc:
+        click.echo(json.dumps({"code": exc.code, "message": str(exc)}, indent=2), err=True)
+        sys.exit(1)
+    finally:
+        db.close()
+
+
+@principal_group.command("show")
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+def principal_show_cmd(config_path: Path) -> None:
+    """Show principal summary."""
+
+    settings = load_settings(config_path)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    try:
+        detail = _principal_service_for_cli(settings, db).get_detail()
+        click.echo(json.dumps(detail, indent=2, ensure_ascii=False))
+    finally:
+        db.close()
+
+
+@principal_group.command("transactions")
+@click.option("--limit", default=50, type=int)
+@click.option("--kind", type=click.Choice(["DEPOSIT", "WITHDRAW"]), default=None)
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+def principal_transactions_cmd(
+    limit: int, kind: str | None, config_path: Path
+) -> None:
+    """List principal transactions."""
+
+    settings = load_settings(config_path)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    try:
+        items = db.list_principal_transactions(limit=limit, kind=kind)
+        click.echo(json.dumps({"items": items, "limit": limit}, indent=2, ensure_ascii=False))
+    finally:
+        db.close()
+
+
+def _principal_cli_payload(change) -> dict:
+    summary = change.summary
+    return {
+        "kind": change.kind,
+        "amount": change.amount,
+        "principal": summary.principal,
+        "balance": summary.balance,
+        "total_assets": summary.total_assets,
+        "cumulative_pnl": summary.cumulative_pnl,
+        "ts_utc": change.ts_utc,
+    }
 
 
 @main.command("serve")

@@ -262,6 +262,82 @@ class Database:
         )
         return int(cur.lastrowid)
 
+    def list_principal_transactions(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        kind: str | None = None,
+        from_ts: str | None = None,
+        to_ts: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """List principal ledger rows (ch10 §10.6.12)."""
+
+        if not self._has_principal_transactions_table():
+            return []
+        clauses: list[str] = []
+        params: list[Any] = []
+        if kind is not None:
+            clauses.append("kind = ?")
+            params.append(kind)
+        if from_ts is not None:
+            clauses.append("ts_utc >= ?")
+            params.append(from_ts)
+        if to_ts is not None:
+            clauses.append("ts_utc <= ?")
+            params.append(to_ts)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        params.extend([limit, offset])
+        rows = self._conn.execute(
+            f"""
+            SELECT * FROM principal_transactions
+            {where}
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+            """,
+            params,
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_principal_transaction_stats(self) -> dict[str, int | str | None]:
+        """Aggregate counts for GET /api/v1/principal."""
+
+        if not self._has_principal_transactions_table():
+            return {
+                "deposit_count": 0,
+                "withdraw_count": 0,
+                "first_deposit_at": None,
+                "last_transaction_at": None,
+            }
+        dep = self._conn.execute(
+            "SELECT COUNT(*) AS c FROM principal_transactions WHERE kind = 'DEPOSIT'"
+        ).fetchone()
+        wit = self._conn.execute(
+            "SELECT COUNT(*) AS c FROM principal_transactions WHERE kind = 'WITHDRAW'"
+        ).fetchone()
+        first = self._conn.execute(
+            """
+            SELECT ts_utc FROM principal_transactions
+            WHERE kind = 'DEPOSIT'
+            ORDER BY ts_utc ASC LIMIT 1
+            """
+        ).fetchone()
+        last = self._conn.execute(
+            "SELECT ts_utc FROM principal_transactions ORDER BY ts_utc DESC LIMIT 1"
+        ).fetchone()
+        return {
+            "deposit_count": int(dep["c"]) if dep else 0,
+            "withdraw_count": int(wit["c"]) if wit else 0,
+            "first_deposit_at": str(first["ts_utc"]) if first else None,
+            "last_transaction_at": str(last["ts_utc"]) if last else None,
+        }
+
+    def _has_principal_transactions_table(self) -> bool:
+        row = self._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='principal_transactions'"
+        ).fetchone()
+        return row is not None
+
     def get_mode(self) -> Mode:
         row = self._require_bot_row()
         return Mode(row["mode"])

@@ -101,3 +101,19 @@ class StrategyAppliedPayload(BaseModel):
     rationale: str
     applied_at: str
     diff: dict[str, list[float]]
+
+
+class PrincipalChangedPayload(BaseModel):
+    kind: Literal["DEPOSIT", "WITHDRAW"]
+    amount: float
+    balance_before: float
+    balance_after: float
+    principal_before: float
+    principal_after: float
+    locked_principal: float
+    withdrawable_principal: float
+    total_assets: float
+    cumulative_pnl: float
+    ts_utc: str
+    note: str | None = None
+    severity: Literal["INFO", "WARN", "ERROR"] = "INFO"

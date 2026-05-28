@@ -183,7 +183,8 @@ gantt
 | M4.2 | 静的モック + EventSource | ✅ `02edfa0` |
 | M4.3 | 設計章追補（ch10/13/16/18/22） | **完了**（2026-05-28） |
 | M4.4 | 元本コア実装 | **完了**（2026-05-28） |
-| M4.5 | principal REST/CLI/SSE | **着手可** |
+| M4.5 | principal REST/CLI/SSE + FX API | **完了**（2026-05-28） |
+| M4.6 | mock-data 拡張 | **着手可** |
 | M4.4 | 元本コア（DB、PrincipalService、D11 v2） | ⏳ |
 | M4.5 | REST/CLI + SSE `principal_changed` | ⏳ |
 | M4.6 | `mock-data.js` 拡張 | ⏳ |
