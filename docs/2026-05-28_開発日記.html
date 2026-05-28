@@ -526,6 +526,12 @@ body.diary > footer {
         <td><a href="#entry-1515">#entry-1515</a></td>
       </tr>
       <tr>
+        <td>15:51</td>
+        <td>M4.6 完了 — mock-data principal / FX / HUD aggregates</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1551">#entry-1551</a></td>
+      </tr>
+      <tr>
         <td>15:45</td>
         <td>M4.5 完了 — principal REST/CLI/SSE + FX API</td>
         <td><span class="pill pill-ok">ok</span></td>
@@ -1206,6 +1212,25 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p><code>uv run pytest -q</code> — <strong>141 passed</strong>、coverage <strong>≈88%</strong>。Commit: <code>87747cb</code>。</p>
+</section>
+
+<section class="entry" id="entry-1551">
+  <h2>M4.6 完了 — mock-data.js 拡張<a href="#entry-1551" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 15:51 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p><code>shared/mock-data.js</code> に principal 5 値・<code>principal_transactions</code>・SSE <code>principal_changed</code>・FX mock（<code>getFxRate</code>/<code>formatMoney</code>）・HUD 用 aggregates を追加。runtime ledger を INV-D-06 v2 / D-07 / D-09 対応。<strong>既存 10 画面の <code>balance.*</code> API は不変</strong>。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/mockups/shared/mock-data.js（+principal/FX/HUD、<code>runQ3PrincipalDemo</code>）</li>
+    <li><span class="op op-mod">~</span> mockups/CHANGELOG.md、PHASE4_ROADMAP、INDEX、00_ROADMAP、README</li>
+  </ul>
+  <h3>検証</h3>
+  <p><code>uv run pytest -q</code> — <strong>141 passed</strong>、coverage <strong>≈88%</strong>。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

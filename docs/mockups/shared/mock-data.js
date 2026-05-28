@@ -52,6 +52,83 @@
 
   const normalTrades = buildTrades(58, 0.543, 1.1);
 
+  /** M4.6 — FX mock (ch18 / GET /api/v1/fx/usd_jpy 相当) */
+  const FX_USD_JPY_MOCK = {
+    rate: 156.42,
+    fetched_at: "2026-05-28T06:00:00+00:00",
+    source: "exchangerate.host",
+    stale: false,
+  };
+
+  const FX_USD_JPY_STALE_MOCK = {
+    rate: 155.88,
+    fetched_at: "2026-05-27T22:00:00+00:00",
+    source: "exchangerate.host",
+    stale: true,
+  };
+
+  function lockedFromPosition(pos) {
+    if (!pos || pos.size == null) {
+      return 0;
+    }
+    const size = Number(pos.size);
+    return Number.isFinite(size) && size > 0 ? size : 0;
+  }
+
+  /** H-1 派生: principal / locked / balance（自由資金）から 5 値を算出 */
+  function principalDerived(balanceFree, principalValue, locked) {
+    const principal = Number(principalValue);
+    const locked_principal = Number(locked) || 0;
+    const balance = Number(balanceFree);
+    const total_assets = balance + locked_principal;
+    const cumulative_pnl = Math.round((total_assets - principal) * 100) / 100;
+    const withdrawable_principal =
+      Math.round((principal - locked_principal) * 100) / 100;
+    return {
+      value: principal,
+      locked_principal: locked_principal,
+      withdrawable_principal: withdrawable_principal,
+      total_assets: Math.round(total_assets * 100) / 100,
+      cumulative_pnl: cumulative_pnl,
+    };
+  }
+
+  function bootstrapPrincipalTxns(initialPrincipal) {
+    return [
+      {
+        id: 1,
+        kind: "DEPOSIT",
+        amount: initialPrincipal,
+        balance_before: 0,
+        balance_after: initialPrincipal,
+        principal_before: 0,
+        principal_after: initialPrincipal,
+        ts_utc: "2026-05-08T04:00:00+09:00",
+        note: "initial_principal bootstrap",
+      },
+    ];
+  }
+
+  const HUD_SIGNAL_COUNTS_NORMAL = {
+    signals: 142,
+    entries: 58,
+    expired: 12,
+  };
+
+  const HUD_TRADE_STATS_NORMAL = {
+    max_win_usd: 4.85,
+    avg_size_usd: 6.2,
+    total_trades: 70,
+  };
+
+  const HUD_SYSTEM_PANELS_NORMAL = {
+    sse_status: "connected",
+    runtime_uptime_sec: 86412,
+    env: "paper",
+    brain: "markov+kelly",
+    host: "lab.local",
+  };
+
   /** §15.4.8 マスク済み完全サンプル（固定値） */
   const DAILY_REPORT_NORMAL = {
     schema_version: "1.0",
@@ -376,6 +453,12 @@
     normal: {
       bot_state: { state: "TRADING", mode: "paper" },
       balance: { current: 1042.18, initial: 1000.0 },
+      principal_base: 1000.0,
+      principal_transactions: bootstrapPrincipalTxns(1000.0),
+      signal_counts: HUD_SIGNAL_COUNTS_NORMAL,
+      trade_stats: HUD_TRADE_STATS_NORMAL,
+      system_panels: HUD_SYSTEM_PANELS_NORMAL,
+      nightly_countdown_sec: 48912,
       daily_pnl: { value: 8.42, percent: 0.84 },
       cumulative_pnl: { value: 42.18, percent: 4.22 },
       win_rate: { value: 0.543, wins: 38, losses: 32, display: "54.3%" },
@@ -425,6 +508,18 @@
       /* PHASE 2: 枠のみ — M2.2+ で詳細 */
       bot_state: { state: "TRADING", mode: "paper" },
       balance: { current: 1088.0, initial: 1000.0 },
+      principal_base: 1000.0,
+      principal_transactions: bootstrapPrincipalTxns(1000.0),
+      signal_counts: { signals: 98, entries: 72, expired: 6 },
+      trade_stats: {
+        max_win_usd: 6.2,
+        avg_size_usd: 6.8,
+        total_trades: 72,
+      },
+      system_panels: Object.assign({}, HUD_SYSTEM_PANELS_NORMAL, {
+        sse_status: "connected",
+      }),
+      nightly_countdown_sec: 12000,
       daily_pnl: { value: 14.2, percent: 1.42 },
       cumulative_pnl: { value: 88.0, percent: 8.8 },
       win_rate: { value: 0.72, wins: 52, losses: 20, display: "72.0%" },
@@ -467,6 +562,19 @@
       /* 緊急停止フロー検証用 */
       bot_state: { state: "EMERGENCY_STOP", mode: "paper" },
       balance: { current: 972.5, initial: 1000.0 },
+      principal_base: 1000.0,
+      principal_transactions: bootstrapPrincipalTxns(1000.0),
+      signal_counts: { signals: 210, entries: 68, expired: 24 },
+      trade_stats: {
+        max_win_usd: 3.1,
+        avg_size_usd: 5.9,
+        total_trades: 68,
+      },
+      system_panels: Object.assign({}, HUD_SYSTEM_PANELS_NORMAL, {
+        sse_status: "degraded",
+        runtime_uptime_sec: 43200,
+      }),
+      nightly_countdown_sec: 7200,
       daily_pnl: { value: -12.8, percent: -1.28 },
       cumulative_pnl: { value: -27.5, percent: -2.75 },
       win_rate: { value: 0.41, wins: 28, losses: 40, display: "41.2%" },
@@ -527,23 +635,36 @@
   /** Q3-MOCK: PaperExecutor 準拠の可変残高（open 減算 / close 加算、INV-D-06） */
   let runtimeLedger = null;
 
-  function resetRuntimeLedger(scenarioId, baseBalance) {
+  function resetRuntimeLedger(scenarioId, baseBalance, baseScenario) {
+    const principalBase =
+      baseScenario && baseScenario.principal_base != null
+        ? baseScenario.principal_base
+        : baseBalance.initial;
+    const txns =
+      baseScenario && baseScenario.principal_transactions
+        ? JSON.parse(JSON.stringify(baseScenario.principal_transactions))
+        : bootstrapPrincipalTxns(principalBase);
+    const staticLocked =
+      baseScenario && baseScenario.current_position
+        ? lockedFromPosition(baseScenario.current_position)
+        : 0;
+    const closedPnlSeed =
+      baseBalance.current + staticLocked - principalBase;
     runtimeLedger = {
       scenarioId: scenarioId,
       initial: baseBalance.initial,
       balance: baseBalance.current,
+      principal: principalBase,
       openPositions: [],
-      closedPnlSum: 0,
+      closedPnlSum: Math.round(closedPnlSeed * 100) / 100,
       nextTradeId: 8100,
+      principalTxns: txns,
     };
   }
 
-  function ensureRuntimeLedger(scenarioId, baseBalance) {
-    if (
-      !runtimeLedger ||
-      runtimeLedger.scenarioId !== scenarioId
-    ) {
-      resetRuntimeLedger(scenarioId, baseBalance);
+  function ensureRuntimeLedger(scenarioId, baseBalance, baseScenario) {
+    if (!runtimeLedger || runtimeLedger.scenarioId !== scenarioId) {
+      resetRuntimeLedger(scenarioId, baseBalance, baseScenario);
     }
     return runtimeLedger;
   }
@@ -557,13 +678,141 @@
     }, 0);
   }
 
+  function sumPrincipalDeposits() {
+    if (!runtimeLedger) {
+      return 0;
+    }
+    return runtimeLedger.principalTxns.reduce(function (sum, tx) {
+      return tx.kind === "DEPOSIT" ? sum + Number(tx.amount) : sum;
+    }, 0);
+  }
+
+  function sumPrincipalWithdrawals() {
+    if (!runtimeLedger) {
+      return 0;
+    }
+    return runtimeLedger.principalTxns.reduce(function (sum, tx) {
+      return tx.kind === "WITHDRAW" ? sum + Number(tx.amount) : sum;
+    }, 0);
+  }
+
+  /** INV-D-06 v2: balance + open ≈ principal + closed_pnl */
   function checkInvD06() {
     if (!runtimeLedger) {
       return true;
     }
     const left = runtimeLedger.balance + sumOpenNotional();
-    const right = runtimeLedger.initial + runtimeLedger.closedPnlSum;
+    const right = runtimeLedger.principal + runtimeLedger.closedPnlSum;
     return Math.abs(left - right) < 0.02;
+  }
+
+  /** INV-D-07: principal == Σ(DEPOSIT) − Σ(WITHDRAW) */
+  function checkInvD07() {
+    if (!runtimeLedger) {
+      return true;
+    }
+    const expected = sumPrincipalDeposits() - sumPrincipalWithdrawals();
+    return Math.abs(runtimeLedger.principal - expected) < 0.02;
+  }
+
+  function checkInvD09() {
+    if (!runtimeLedger) {
+      return true;
+    }
+    return runtimeLedger.principal >= -0.001 && runtimeLedger.balance >= -0.001;
+  }
+
+  function effectiveLocked(clone) {
+    const openSum = sumOpenNotional();
+    if (openSum > 0) {
+      return openSum;
+    }
+    return lockedFromPosition(clone && clone.current_position);
+  }
+
+  function buildPrincipalChangedPayload(kind, amount, note) {
+    const ledger = runtimeLedger;
+    if (!ledger) {
+      return null;
+    }
+    const locked = sumOpenNotional();
+    const balanceBefore = ledger.balance;
+    const principalBefore = ledger.principal;
+    let balanceAfter = balanceBefore;
+    let principalAfter = principalBefore;
+    if (kind === "DEPOSIT") {
+      balanceAfter += amount;
+      principalAfter += amount;
+    } else {
+      balanceAfter -= amount;
+      principalAfter -= amount;
+    }
+    const withdrawable = principalAfter - locked;
+    const totalAssets = balanceAfter + locked;
+    return {
+      kind: kind,
+      amount: amount,
+      balance_before: Math.round(balanceBefore * 100) / 100,
+      balance_after: Math.round(balanceAfter * 100) / 100,
+      principal_before: Math.round(principalBefore * 100) / 100,
+      principal_after: Math.round(principalAfter * 100) / 100,
+      locked_principal: Math.round(locked * 100) / 100,
+      withdrawable_principal: Math.round(withdrawable * 100) / 100,
+      total_assets: Math.round(totalAssets * 100) / 100,
+      cumulative_pnl:
+        Math.round((totalAssets - principalAfter) * 100) / 100,
+      ts_utc: new Date().toISOString(),
+      note: note || null,
+      severity: "INFO",
+    };
+  }
+
+  function applyPrincipalChange(payload) {
+    const ledger = runtimeLedger;
+    if (!ledger || !payload) {
+      return false;
+    }
+    const kind = payload.kind;
+    const amount = Number(payload.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return false;
+    }
+    if (kind === "WITHDRAW" && amount > ledger.balance + 0.001) {
+      console.warn("[M4.6-MOCK] INV-D-08: withdraw exceeds balance", amount);
+      return false;
+    }
+    const balanceBefore = ledger.balance;
+    const principalBefore = ledger.principal;
+    if (kind === "DEPOSIT") {
+      ledger.balance += amount;
+      ledger.principal += amount;
+    } else if (kind === "WITHDRAW") {
+      ledger.balance -= amount;
+      ledger.principal -= amount;
+    } else {
+      return false;
+    }
+    ledger.principalTxns.push({
+      id: ledger.principalTxns.length + 1,
+      kind: kind,
+      amount: amount,
+      balance_before: balanceBefore,
+      balance_after: ledger.balance,
+      principal_before: principalBefore,
+      principal_after: ledger.principal,
+      ts_utc: payload.ts_utc || new Date().toISOString(),
+      note: payload.note || null,
+    });
+    if (!checkInvD06()) {
+      console.warn("[M4.6-MOCK] INV-D-06 drift after principal change");
+    }
+    if (!checkInvD07()) {
+      console.warn("[M4.6-MOCK] INV-D-07 drift after principal change");
+    }
+    if (!checkInvD09()) {
+      console.warn("[M4.6-MOCK] INV-D-09 violated after principal change");
+    }
+    return true;
   }
 
   function applyPositionOpened(payload) {
@@ -625,24 +874,48 @@
   function getBalanceSnapshot() {
     if (!runtimeLedger) {
       const d = SCENARIOS[CURRENT_SCENARIO] || SCENARIOS.normal;
+      const locked = lockedFromPosition(d.current_position);
+      const derived = principalDerived(
+        d.balance.current,
+        d.principal_base,
+        locked,
+      );
       return {
         current: d.balance.current,
         initial: d.balance.initial,
-        open_notional: 0,
-        closed_pnl_sum: 0,
+        open_notional: locked,
+        closed_pnl_sum: derived.cumulative_pnl,
+        principal: derived.value,
+        locked_principal: derived.locked_principal,
+        withdrawable_principal: derived.withdrawable_principal,
+        total_assets: derived.total_assets,
+        cumulative_pnl: derived.cumulative_pnl,
       };
     }
+    const locked = sumOpenNotional();
+    const derived = principalDerived(
+      runtimeLedger.balance,
+      runtimeLedger.principal,
+      locked,
+    );
     return {
       current: runtimeLedger.balance,
       initial: runtimeLedger.initial,
-      open_notional: sumOpenNotional(),
+      open_notional: locked,
       closed_pnl_sum: runtimeLedger.closedPnlSum,
+      principal: derived.value,
+      locked_principal: derived.locked_principal,
+      withdrawable_principal: derived.withdrawable_principal,
+      total_assets: derived.total_assets,
+      cumulative_pnl: derived.cumulative_pnl,
     };
   }
 
   function simulatePositionOpened(sizeUsd, side) {
+    const scenarioId = getScenarioId();
+    const base = SCENARIOS[scenarioId] || SCENARIOS.normal;
     const data = getData();
-    const ledger = ensureRuntimeLedger(getScenarioId(), data.balance);
+    const ledger = ensureRuntimeLedger(scenarioId, data.balance, base);
     const payload = {
       trade_id: ledger.nextTradeId,
       market: "BTC_5MIN_UPDOWN",
@@ -684,6 +957,81 @@
       }),
     );
     return payload;
+  }
+
+  function simulatePrincipalDeposit(amountUsd, note) {
+    const scenarioId = getScenarioId();
+    const base = SCENARIOS[scenarioId] || SCENARIOS.normal;
+    const data = getData();
+    ensureRuntimeLedger(scenarioId, data.balance, base);
+    const payload = buildPrincipalChangedPayload(
+      "DEPOSIT",
+      amountUsd,
+      note || "simulate_deposit",
+    );
+    if (!payload || !applyPrincipalChange(payload)) {
+      return null;
+    }
+    global.document.dispatchEvent(
+      new CustomEvent("principal_changed", { detail: payload }),
+    );
+    global.document.dispatchEvent(
+      new CustomEvent("balance_updated", { detail: getBalanceSnapshot() }),
+    );
+    return payload;
+  }
+
+  function simulatePrincipalWithdraw(amountUsd, note) {
+    const scenarioId = getScenarioId();
+    const base = SCENARIOS[scenarioId] || SCENARIOS.normal;
+    const data = getData();
+    ensureRuntimeLedger(scenarioId, data.balance, base);
+    const payload = buildPrincipalChangedPayload(
+      "WITHDRAW",
+      amountUsd,
+      note || "simulate_withdraw",
+    );
+    if (!payload || !applyPrincipalChange(payload)) {
+      return null;
+    }
+    global.document.dispatchEvent(
+      new CustomEvent("principal_changed", { detail: payload }),
+    );
+    global.document.dispatchEvent(
+      new CustomEvent("balance_updated", { detail: getBalanceSnapshot() }),
+    );
+    return payload;
+  }
+
+  /** 手動確認: deposit → open → close → withdraw（M4.6） */
+  function runQ3PrincipalDemo() {
+    const log = [];
+    log.push({ step: "initial", snap: getBalanceSnapshot() });
+    const dep = simulatePrincipalDeposit(100, "q3_principal_demo");
+    log.push({ step: "deposit", payload: dep, snap: getBalanceSnapshot() });
+    const opened = simulatePositionOpened(5.0, "YES");
+    log.push({ step: "open", payload: opened, snap: getBalanceSnapshot() });
+    simulatePositionClosed(opened.trade_id, 0.8);
+    log.push({ step: "close", snap: getBalanceSnapshot() });
+    const wd = simulatePrincipalWithdraw(50, "q3_principal_demo");
+    log.push({ step: "withdraw", payload: wd, snap: getBalanceSnapshot() });
+    log.push({
+      step: "final",
+      inv_d06: checkInvD06(),
+      inv_d07: checkInvD07(),
+      inv_d09: checkInvD09(),
+      snap: getBalanceSnapshot(),
+    });
+    console.table(
+      log.map(function (row) {
+        return {
+          step: row.step,
+          balance: row.snap ? row.snap.current : null,
+          principal: row.snap ? row.snap.principal : null,
+        };
+      }),
+    );
+    return log;
   }
 
   /** 手動確認: 3 open → 順次 close（Q3-MOCK.4） */
@@ -729,9 +1077,18 @@
     CURRENT_SCENARIO = id;
     const base = SCENARIOS[id] || SCENARIOS.normal;
     const clone = JSON.parse(JSON.stringify(base));
-    const ledger = ensureRuntimeLedger(id, clone.balance);
+    const ledger = ensureRuntimeLedger(id, clone.balance, base);
     clone.balance.current = ledger.balance;
     clone.balance.initial = ledger.initial;
+    const locked = effectiveLocked(clone);
+    clone.principal = principalDerived(
+      ledger.balance,
+      ledger.principal,
+      locked,
+    );
+    clone.principal_transactions = JSON.parse(
+      JSON.stringify(ledger.principalTxns),
+    );
     if (id === "winning_streak" && base.recent_trades.length === 0) {
       const t = buildTrades(58, 0.72, 1.4);
       clone.recent_trades = t.slice(0, 5);
@@ -848,6 +1205,21 @@
       applied_at: "2026-05-28T04:15:00+09:00",
       diff: { MIN_PROB: [0.87, 0.89] },
     },
+    principal_changed: {
+      kind: "DEPOSIT",
+      amount: 500.0,
+      balance_before: 1042.18,
+      balance_after: 1542.18,
+      principal_before: 1000.0,
+      principal_after: 1500.0,
+      locked_principal: 7.1,
+      withdrawable_principal: 1492.9,
+      total_assets: 1549.28,
+      cumulative_pnl: 49.28,
+      ts_utc: "2026-05-28T05:30:00+00:00",
+      note: "mock_deposit",
+      severity: "INFO",
+    },
   };
 
   function ssePayload(eventName, overrides) {
@@ -868,9 +1240,11 @@
     const detail = ssePayload(eventName, payload);
     const delay = delayMs || 0;
     setTimeout(function () {
+      const scenarioId = getScenarioId();
+      const base = SCENARIOS[scenarioId] || SCENARIOS.normal;
       if (eventName === "position_opened") {
         const data = getData();
-        ensureRuntimeLedger(getScenarioId(), data.balance);
+        ensureRuntimeLedger(scenarioId, data.balance, base);
         applyPositionOpened(detail);
         global.document.dispatchEvent(
           new CustomEvent("balance_updated", {
@@ -879,8 +1253,17 @@
         );
       } else if (eventName === "position_closed") {
         const data = getData();
-        ensureRuntimeLedger(getScenarioId(), data.balance);
+        ensureRuntimeLedger(scenarioId, data.balance, base);
         applyPositionClosed(detail);
+        global.document.dispatchEvent(
+          new CustomEvent("balance_updated", {
+            detail: getBalanceSnapshot(),
+          }),
+        );
+      } else if (eventName === "principal_changed") {
+        const data = getData();
+        ensureRuntimeLedger(scenarioId, data.balance, base);
+        applyPrincipalChange(detail);
         global.document.dispatchEvent(
           new CustomEvent("balance_updated", {
             detail: getBalanceSnapshot(),
@@ -939,6 +1322,32 @@
     return JSON.parse(JSON.stringify(getData().modeHealth));
   }
 
+  function getPrincipalSnapshot() {
+    return JSON.parse(JSON.stringify(getData().principal));
+  }
+
+  function getPrincipalTransactions() {
+    return JSON.parse(JSON.stringify(getData().principal_transactions));
+  }
+
+  function getFxRate() {
+    const stale = getScenarioId() === "drawdown";
+    return JSON.parse(
+      JSON.stringify(stale ? FX_USD_JPY_STALE_MOCK : FX_USD_JPY_MOCK),
+    );
+  }
+
+  function formatMoney(valueUsd, currency, fxRate) {
+    const cur = (currency || "USD").toUpperCase();
+    if (cur === "JPY" && fxRate && Number.isFinite(fxRate.rate)) {
+      const jpy = Math.round(Number(valueUsd) * fxRate.rate);
+      return "¥" + jpy.toLocaleString("ja-JP");
+    }
+    const v = Number(valueUsd);
+    const sign = v >= 0 ? "" : "-";
+    return sign + "$" + Math.abs(v).toFixed(2);
+  }
+
   global.YoRuuMockData = {
     SCENARIOS: SCENARIOS,
     DAILY_REPORT_NORMAL: DAILY_REPORT_NORMAL,
@@ -961,7 +1370,18 @@
     simulatePositionOpened: simulatePositionOpened,
     simulatePositionClosed: simulatePositionClosed,
     runQ3BalanceDemo: runQ3BalanceDemo,
+    runQ3PrincipalDemo: runQ3PrincipalDemo,
+    simulatePrincipalDeposit: simulatePrincipalDeposit,
+    simulatePrincipalWithdraw: simulatePrincipalWithdraw,
     checkInvD06: checkInvD06,
+    checkInvD07: checkInvD07,
+    checkInvD09: checkInvD09,
+    getPrincipalSnapshot: getPrincipalSnapshot,
+    getPrincipalTransactions: getPrincipalTransactions,
+    getFxRate: getFxRate,
+    formatMoney: formatMoney,
+    FX_USD_JPY_MOCK: FX_USD_JPY_MOCK,
+    FX_USD_JPY_STALE_MOCK: FX_USD_JPY_STALE_MOCK,
     formatPnl: formatPnl,
     formatPct: formatPct,
     BASE_TIME: BASE_TIME,

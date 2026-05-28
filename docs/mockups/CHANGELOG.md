@@ -1,5 +1,16 @@
 # YoRuu UI Mockups — CHANGELOG
 
+## 2026-05-28 — M4.6 `mock-data.js` principal / FX / HUD aggregates
+
+| 項目 | 内容 |
+|------|------|
+| principal | 5 値スナップショット、`principal_transactions`、INV-D-06 v2 / D-07 / D-09 監視 |
+| SSE | `SSE_PAYLOADS.principal_changed` + `mockSSE` ledger 更新 |
+| FX | `getFxRate()` / `formatMoney()`、stale は `drawdown` シナリオ |
+| HUD 用 | `signal_counts` / `trade_stats` / `system_panels` / `nightly_countdown_sec` |
+| 手動 | `runQ3PrincipalDemo()`、`simulatePrincipalDeposit/Withdraw` |
+| 互換 | 既存 10 画面の `balance.*` API 不変 |
+
 ## 2026-05-28 — ch10 v1.2 / ch13 v1.0.5 設計ローリング（H-1）
 
 | 項目 | 内容 |

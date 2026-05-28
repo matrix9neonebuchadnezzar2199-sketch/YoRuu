@@ -18,7 +18,7 @@
 | PHASE 4 M4.3 | **完了** — ch10/13/16/18/22 ローリング済（`fca1306` 系 + 本バッチ） |
 | PHASE 4 M4.4 | **完了** — PrincipalService + migrate + INV 拡張 |
 | PHASE 4 M4.5 | **完了** — principal REST/CLI/SSE + FX API |
-| PHASE 4 M4.6 | **着手可** — mock-data 拡張 |
+| PHASE 4 M4.6 | **✅ 完了** — mock-data principal/FX/HUD aggregates |
 | pytest | **119** passed、カバレッジ **≈88%** |
 | `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
 | INV 実装 | **19 / 19**（設計一致） |
