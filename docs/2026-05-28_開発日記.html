@@ -441,6 +441,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1117">#entry-1117</a></td>
       </tr>
+      <tr>
+        <td>11:26</td>
+        <td>PHASE3 Exit 再評価 + 両完了承認記録</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1126">#entry-1126</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -680,6 +686,39 @@ body.diary > footer {
   <p>A-MED（<code>time.sleep</code>→<code>asyncio.sleep</code>）: <code>src/</code> に sleep 残存なし → 対応不要。INV-D-02: コード未実装のため UT 対象外（ch16 設計 19 件のうち実装 18）。</p>
   <h3>検証</h3>
   <p><code>uv run pytest -q</code> — 86 passed、coverage 89.07%、<code>fail_under=80</code>。Commit: <code>579402f</code>。</p>
+</section>
+
+<section class="entry" id="entry-1126">
+  <h2>PHASE3 並列完了承認 — phase2-sse / PHASE3-fix + Exit 再評価<a href="#entry-1126" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 11:26 JST</span>
+    <span class="tag tag-type">analysis</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>観察</h3>
+  <p><strong>phase2-sse（§F T4.1 / B1）</strong> — コミット <code>7cbfd49</code> / 日記 <code>9e752d5</code> / <code>#entry-1110</code>。B1 クローズ承認: <code>emergency_stop_triggered</code>（3 フィールド）、<code>mode_changed</code>（大文字モード + <code>timestamp</code>）、<code>strategy_applied</code>（5 フィールド）。<code>SSE_PAYLOADS</code> 11 イベント + <code>ssePayload()</code> 統一。FastAPI / ch24 WS は範囲外維持（テンプレ 9）。</p>
+  <p><strong>PHASE3-fix（Track 1 第二フェーズ）</strong> — <code>579402f</code> / <code>14f7b09</code>。カバレッジ <strong>89.07%</strong>（86 tests）、<code>fail_under</code> 55→80（70 省略は実測上妥当と承認）。Invariant UT 44（S 12 / D 14 / R 11 / M 3 + 統合 4）。INV-D-06 境界 0.02 USD UT 済。INV-S-04: <code>NIGHTLY_REVIEW→IDLE</code> 許可（<code>nightly generate</code> 修正）。A-MED: <code>src/</code> に sleep なし。</p>
+  <p><strong>INV-D-02（新規ブロッカー）</strong> — ch16 §16.3 定義: 当日 <code>trades.pnl</code> 合計と <code>bot_state.daily_pnl</code> キャッシュの差 &lt; $0.01。<code>invariants.py</code> に <code>inv_d02_*</code> なし → <strong>Case A（実装漏れ）</strong>。§16.6 severity 表に D-02 行なし（ローリング余地）。</p>
+  <h3>検証</h3>
+  <p><code>daily_pnl</code> キャッシュ: <strong>既存</strong> — <code>bot_state.daily_pnl</code>（schema）、<code>Database.get_daily_pnl</code> / <code>update_balance_and_pnl</code>、<code>PaperExecutor.close</code> で加算更新。未実装は <strong>日次集計 SQL + INV-D-02 検査</strong> のみ → 対応案 <strong>X（小規模）</strong>。</p>
+  <h3>結論 — PHASE 3 Exit ブロッカー（達成 3 / 残 7）</h3>
+  <ul>
+    <li>✅ カバレッジ 80%（<code>579402f</code>）</li>
+    <li>⚠️ InvariantChecker UT — 実装済み 18/19、<strong>INV-D-02 未実装</strong></li>
+    <li>✅ A-MED 不要</li>
+    <li>❌ 24h paper / ch24 CLOB WS / Binance WS / FastAPI 28 EP / live WS / T4.2 i18n・パレット / <strong>INV-D-02 実装</strong></li>
+  </ul>
+  <p>残タスク構図: 市場接続（WS）+ API（FastAPI）+ UI 整合（T4.2）+ 検証（24h）+ 設計実装漏れ 1 件。</p>
+  <h3>残課題（優先度）</h3>
+  <ol>
+    <li>INV-D-02 — 案 X で <code>sum(trades.pnl WHERE date(closed_at)=today)</code> + 検査 + UT 3 件（PHASE3-fix 派生可）</li>
+    <li>T4.2 テンプレ清書・投入 — <code>W_NIGHTLY_001</code>→<code>E_NIGHTLY_008</code>、locales、ch08 パレット、<code>build_locales.py --check</code></li>
+    <li>ch24 Polymarket CLOB WS（テンプレ清書）</li>
+    <li>REST / SSE 契約（テンプレ 9、PHASE 4 判断後）</li>
+    <li>24h paper — a〜d の後</li>
+  </ol>
+  <p>推奨順: INV-D-02 規模確定（済: 案 X）→ T4.2 清書 → INV-D-02 実装（並列可）→ ch24 WS テンプレ。</p>
 </section>
 </main>
 
