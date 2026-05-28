@@ -483,6 +483,12 @@ body.diary > footer {
         <td><span class="pill pill-ok">ok</span></td>
         <td><a href="#entry-1315">#entry-1315</a></td>
       </tr>
+      <tr>
+        <td>13:31</td>
+        <td>M4.2 完了確定・hub script 修正・カバレッジ所感</td>
+        <td><span class="pill pill-ok">ok</span></td>
+        <td><a href="#entry-1331">#entry-1331</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -878,6 +884,30 @@ body.diary > footer {
   </ul>
   <h3>検証</h3>
   <p>119 tests / 88.01% coverage。Commit: <code>02edfa0</code>。</p>
+</section>
+
+<section class="entry" id="entry-1331">
+  <h2>M4.2 完了確定 — 全テスト・手動 serve・hub script 修正<a href="#entry-1331" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-28 13:31 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>マスター受領の全テスト結果で <strong>PHASE 4 M4.2 完了</strong>を確定。<strong>119 passed</strong>、coverage <strong>88.01%</strong>（fail_under=80 を 8pt 超過）。<code>uv run yoruu serve</code> 手動確認で 11 画面 + static がすべて 200。</p>
+  <p>手動ログに <code>sse-client.js</code> が無かった原因は <code>build_web_static.py</code> の挿入が <code>mock-data.js</code> の閉じタグを欠落させていたこと。全 11 HTML を再生成し修正。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> tools/build_web_static.py（mock-data 閉じタグ保持で sse-client 挿入）</li>
+    <li><span class="op op-mod">~</span> src/yoruu/web/static/pages/*.html（11 ファイル）</li>
+  </ul>
+  <h3>設計判断</h3>
+  <p>品質債務（Exit ブロッカー外）を記録: <code>infra/ws_client.py</code> 59%、<code>review/nightly_reporter.py</code> 64%、<code>strategy/evaluator.py</code> 71%。次フェーズ優先は <strong>c→a→b</strong>（lab 24h paper → 結果踏まえ次判断 → 必要時のみテスト補強）。<code>ws_client</code> は 24h の再接続挙動を見てから補強優先度を決定。</p>
+  <h3>検証</h3>
+  <p>119 tests / 88.01%（マスター受領 + ローカル再実行一致）。手動: <code>yoruu serve</code> で hub・各ページ 200。Commit: <code>76dd89b</code>（fix）、<code>a1523fa</code>（日記）。</p>
+  <h3>残課題</h3>
+  <p>lab <code>paper-24h</code> 実運用、M4.3 REST 初期データ結線、ch10 v1.2 severity（PHASE 4 キックオフ判断）。</p>
 </section>
 </main>
 
