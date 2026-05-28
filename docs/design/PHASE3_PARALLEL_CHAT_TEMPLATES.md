@@ -4,6 +4,16 @@
 > **運用**: Track 3 先行 + `phase2-fix` は **Q3-MOCK のみ**（監査書 **T4.1 SSE とは別スコープ**）を `docs-sync` と並列可。  
 > **正本**: 監査書 §F の T3.1〜T3.9 / T4.1〜T4.9。本ファイルのチャット用 ID は §F と **1:1 対応表** で併記する。
 
+### 投入チャット索引（テンプレ 7〜9）
+
+| # | ID | 状態 | 前提コミット | 触る領域 | 備考 |
+|---|----|------|--------------|----------|------|
+| 7 | `phase2-sse` | 投入可 | `ff9f4e6` | `docs/mockups/shared/` | §F T4.1 / B1 スリム |
+| 8 | `PHASE3-fix`（継続） | 投入可 | `ff9f4e6` | `tests/**`, `src/yoruu/safety/` 等 | Track 1 第二フェーズ |
+| 9 | `PHASE3-sse-contract` | 索引のみ | TBD | `src/yoruu/api/sse/`, ch10/ch24 | PHASE 4 前提、本文後日清書 |
+
+**並列推奨（§L ≤ 3）**: テンプレ 7 + テンプレ 8 は **同時投入可**（ファイル衝突なし）。
+
 ---
 
 ## 調整メモ（貼り付け前チェック）
@@ -35,8 +45,8 @@
 
 | §F ID | 内容 | 本ファイルでの扱い |
 |-------|------|-------------------|
-| T4.1 | SSE_PAYLOADS 整備（B1） | **テンプレ 2 対象外** — 別チャットで §J.3 本番 |
-| — | Q3 残高モック整合 | **Q3-MOCK**（テンプレ 2） |
+| T4.1 | SSE_PAYLOADS 整備（B1） | **テンプレ 7** `phase2-sse`（スリム版。FastAPI 契約はテンプレ 9） |
+| — | Q3 残高モック整合 | **Q3-MOCK**（テンプレ 2、完了 `d5c44a8`） |
 
 ---
 
@@ -154,7 +164,116 @@ Q3-MOCK.7: 1 commit + push
 | 1 | `docs-sync` の T3.2（INDEX）完了 | Track 2 Opus 起動時の前提コミット hash 記載用（**推奨**、phase2-fix は非依存） |
 | 2 | `phase2-fix`（Q3-MOCK） | INDEX 非依存のため **並列可** |
 | 3 | Opus `ch3-rolling` 等 | INDEX 更新後推奨（§L どおり） |
-| 4 | 本番 **§F T4.1** SSE | Q3-MOCK 完了後、**別投入**。§G「T4.1 SSE + T4.3」と Q3-MOCK を混ぜない |
+| 4 | 本番 **§F T4.1** SSE | Q3-MOCK 完了後、**テンプレ 7** `phase2-sse` |
+| 5 | Track 1 第二フェーズ | **テンプレ 8** `PHASE3-fix` 継続（テンプレ 7 と並列可） |
+
+---
+
+## テンプレート 7 — `phase2-sse`（§F T4.1 / B1 スリム版）
+
+**チャット名**: `phase2-sse`  
+**モデル**: Composer 2.5  
+**投入**: Track 2 完了後（`ff9f4e6` 推奨）。**テンプレ 8 と並列可**
+
+```
+# Track 4.1: SSE_PAYLOADS 整備（§F T4.1 / B1）
+
+## 役割
+Composer 2.5。監査 B1 解消。**モック契約を ch10 §10.5.3 / ch8 §8.9 に一致**させる。
+設計章・`src/yoruu/**` は触らない（Track 2 完了済み）。
+
+## 前提
+- リポ: f:\Cursor\YoRuu / main
+- 前提コミット: ff9f4e6（または 0030f6d / c8fa393）
+- SSOT: ch10 §10.5.2〜10.5.3、ch8 §8.9.1
+
+## マスター判定（変更不可）
+- 11 イベント名は ch10 表と完全一致（state_changed 等）
+- B1 修正: emergency_stop_triggered / mode_changed / strategy_applied の形
+- 全イベントへの severity 新設はしない（alert_added のみ SSOT 通り）
+- W_* コードは送出しない（モック内も E_NIGHTLY_008）
+
+## スコープ
+1. docs/mockups/shared/mock-data.js に SSE_PAYLOADS（11 件）追加
+2. mockSSE() 呼び出しを定数参照に統一（app.js, 各 HTML）
+3. docs/mockups/CHANGELOG.md + 日記 #entry-HHMM
+4. commit + push + hash 追記
+
+## 範囲外
+- FastAPI / src/yoruu/api/sse/ / JSON Schema 新設
+- ch24 WS 実装、ch10/ch24 の SSE エンドポイント再設計
+- T4.2〜T4.9
+
+## 完了報告
+- hash、11 イベント before/after、B1 クローズ宣言、T4.2 申し送り
+- push 直前 git pull --rebase
+```
+
+**注意**: FastAPI 契約・全 SSE severity 必須化は **テンプレ 9** `PHASE3-sse-contract`（PHASE 4 キックオフ時）。
+
+---
+
+## テンプレート 8 — `PHASE3-fix` 継続（Track 1 第二フェーズ）
+
+**チャット名**: `PHASE3-fix`（継続）  
+**モデル**: Composer 2.5  
+**投入**: **テンプレ 7 と並列可**（`tests/**` vs `docs/mockups/**`）
+
+```
+# Track 1 第二フェーズ: coverage 80% 化 + InvariantChecker 全件 UT + A-MED 残対応
+
+## 役割
+Composer 2.5。PHASE 3 Exit ブロッカー（カバレッジ 80%、InvariantChecker UT、A-MED）の実装・テストのみ。
+設計章は触らない（Track 2 完了済み・SSOT 確定）。
+
+## 前提
+- リポジトリ: f:\Cursor\YoRuu / main
+- 前提コミット: ff9f4e6（または 0030f6d / c8fa393）
+- 並列: phase2-sse（テンプレ 7）— 衝突なし
+- SSOT（読取のみ）: ch16 §16.3 / §16.3.1（INV-D-06）、ch13 §13.2.5 D11、ch18 §18.3
+
+## マスター判定（変更不可）
+- 設計章変更禁止
+- INV-D-06 UT 追加（inv_d06_balance_conservation、閾値 0.02 USD）
+- fail_under 段階引き上げ: 55 → 70 → 80（一気に 80 で赤放置禁止）
+- paper_executor: time.sleep → asyncio.sleep 統一（残存撲滅）
+
+## スコープ
+### 1. InvariantChecker 個別 UT
+- ch16 §16.2〜16.5 の INV-S/D/R/M 全件（実装 invariants.py と対応）
+- tests/safety/test_invariants_individual.py（または既存へ追記）
+- 各 INV: 正常 / 違反 / 境界（INV-D-06 は 0.02 USD 厳密）
+
+### 2. カバレッジ 80%
+- pytest --cov=src/yoruu --cov-report=term-missing で穴埋め
+- pyproject.toml fail_under を 70 コミット → 80 コミット
+
+### 3. A-MED 残（監査 §F 一覧化 → 迷ったら停止）
+- paper 非同期 sleep 他、Track 1 残があれば対応 or 申し送り
+
+### 4. pytest-asyncio 整備（flaky 対策）
+
+## 範囲外
+- docs/design/**、WS クライアント、REST API 本体、24h paper、Track 4
+
+## 成果物
+- tests/** 補強、pyproject.toml、executor sleep 修正、日記、commit(s)+push
+
+## 完了報告
+- hash 一覧、最終 coverage、INV UT 件数、INV-D-06 境界結果、A-MED 解消/申し送り、phase2-sse 衝突有無
+```
+
+---
+
+## テンプレート 9 — `PHASE3-sse-contract`（索引のみ）
+
+| 項目 | 内容 |
+|------|------|
+| 目的 | FastAPI SSE Pydantic 契約、ch24 中継方針、JSON Schema |
+| 位置づけ | PHASE 4 前提。**§F T4.1（B1）とは別系統** |
+| 着手 | テンプレ 7 完了 + PHASE 4 キックオフ判断後 |
+| 本文 | マスター清書版（FastAPI 契約）を PHASE 4 時に本ファイルへ転記 |
+| 前提設計変更 | severity 全 SSE 必須化は ch10 v1.2 ローリング + ADR が先 |
 
 ---
 
@@ -189,3 +308,4 @@ Q3-MOCK.7: 1 commit + push
 |------|------|
 | 2026-05-28 | 初版（§F 厳密対応・Q3-MOCK 分離・パス修正・INV-D-06 式・fail_under 55） |
 | 2026-05-28 | Track 2 投入順序・§J.4〜J.7 索引追加 |
+| 2026-05-28 | テンプレ 7 `phase2-sse`（§F T4.1 B1 スリム）、8 Track1 第二フェーズ、9 `PHASE3-sse-contract` 索引 |
