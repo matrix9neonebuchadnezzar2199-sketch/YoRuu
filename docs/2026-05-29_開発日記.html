@@ -269,6 +269,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-1001">#entry-1001</a></td>
       </tr>
+      <tr>
+        <td>11:55</td>
+        <td>HUD に lab_24h シナリオ（24h 蓄積デモ表示）追加</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-1155">#entry-1155</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -340,6 +346,29 @@ body.diary > footer {
   </ul>
   <h3>残課題</h3>
   <p>M5.6 本番 24h → テンプレ記入 → M5.7 確定（Exit 宣言 + <code>pyproject.toml</code> v0.6.0 を 1 コミット）→ push。PHASE 6 着手時に C1〜C4 を M6.x へ割付。</p>
+</section>
+
+<section class="entry" id="entry-1155">
+  <h2>HUD に lab_24h シナリオ（24h 蓄積デモ表示）<a href="#entry-1155" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-29 11:55 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">tool</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>「24h 動作したと仮定したデータ蓄積を表示」したいとの要望に対し、方式 <strong>A（フロント mock 拡張・デモ限定）</strong> を採用。HUD/画面は <code>mock-data.js</code> の <code>getData()</code> を表示する設計のため、新シナリオ <code>lab_24h</code> を 1 つ追加するだけで全画面に反映。<strong>実 24h run（M5.6）の代替ではない</strong>合成データである点を明記。</p>
+  <h3>設計判断</h3>
+  <p>既存 <code>buildTrades()</code> と scenario 機構を流用（Surgical）。<code>lab24hTrades = buildTrades(64, 0.55, 1.2)</code>（288 サイクル中 64 エントリ）。集計値は既存 scenario と同じく固定値 + winRate 整合（動的集計ヘルパは追加しない）。<code>getData()</code> 分岐は不要（base に <code>recent_trades</code>/<code>all_trades</code> を保持）。<code>runtime_uptime_sec: 86400</code> で 24h ちょうどを表現。</p>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-mod">~</span> docs/mockups/shared/mock-data.js（lab24hTrades + SCENARIOS.lab_24h）</li>
+    <li><span class="op op-mod">~</span> docs/mockups/00_hud.html（scenario option）</li>
+    <li><span class="op op-mod">~</span> locales: ja.json / en.json / ja.bundle.js（scenario.lab_24h）</li>
+    <li><span class="op op-mod">~</span> src/yoruu/web/static/*（build_web_static 再生成）</li>
+  </ul>
+  <h3>検証</h3>
+  <p><code>build_locales --build/--check</code>（293 keys 一致）、<code>build_web_static</code>、<code>uv run pytest -q</code> — 全 pass、coverage 87.75%。利用: <code>yoruu serve</code> → <code>/pages/00_hud.html</code> でシナリオ <code>lab_24h</code> 選択、または <code>?scenario=lab_24h</code>。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

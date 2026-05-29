@@ -144,6 +144,7 @@
   "scenario.normal": "normal",
   "scenario.winning_streak": "winning_streak",
   "scenario.drawdown": "drawdown",
+  "scenario.lab_24h": "lab_24h (24h demo)",
   "lang.switch": "EN",
   "lang.switch_back": "JA",
   "mock.export_notice": "Mock: export is UI-only (no file written)",

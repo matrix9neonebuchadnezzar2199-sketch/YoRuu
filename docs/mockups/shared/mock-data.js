@@ -52,6 +52,10 @@
 
   const normalTrades = buildTrades(58, 0.543, 1.1);
 
+  // lab_24h: 24h 連続稼働（288 サイクル）を仮定した蓄積デモ。
+  // 実 24h run の代替ではなく HUD/画面の表示確認用（合成データ）。
+  const lab24hTrades = buildTrades(64, 0.55, 1.2);
+
   /** M4.6 — FX mock (ch18 / GET /api/v1/fx/usd_jpy 相当) */
   const FX_USD_JPY_MOCK = {
     rate: 156.42,
@@ -626,6 +630,67 @@
       modeHealth: Object.assign({}, MODE_HEALTH_MOCK, {
         ws_polymarket_connected: false,
       }),
+      whatIfScenarios: WHAT_IF_SCENARIOS,
+    },
+    lab_24h: {
+      /* 24h 連続稼働を仮定した蓄積デモ（合成データ、実 run 代替ではない） */
+      bot_state: { state: "TRADING", mode: "paper" },
+      balance: { current: 1013.4, initial: 1000.0 },
+      principal_base: 1000.0,
+      principal_transactions: bootstrapPrincipalTxns(1000.0),
+      signal_counts: { signals: 288, entries: 64, expired: 8 },
+      trade_stats: {
+        max_win_usd: 1.68,
+        avg_size_usd: 7.5,
+        total_trades: 64,
+      },
+      system_panels: Object.assign({}, HUD_SYSTEM_PANELS_NORMAL, {
+        runtime_uptime_sec: 86400,
+      }),
+      nightly_countdown_sec: 14400,
+      daily_pnl: { value: 13.4, percent: 1.34 },
+      cumulative_pnl: { value: 13.4, percent: 1.34 },
+      win_rate: { value: 0.5, wins: 32, losses: 32, display: "50.0%" },
+      ws_status: "connected",
+      last_trade_at: "2026-05-27T14:32:00+09:00",
+      current_position: {
+        side: "YES",
+        size: 7.5,
+        entry: 0.6,
+        expires_in_sec: 168,
+        edge: 0.031,
+        kelly: 0.65,
+        persistence: 0.6,
+      },
+      markov: {
+        p_uu: 0.58,
+        p_dd: 0.6,
+        persistence: 0.6,
+        threshold_met: true,
+        wait_reason: null,
+        recent_series: [
+          "U", "U", "D", "U", "U", "U", "D", "U", "U", "D",
+          "U", "U", "U", "D", "U", "U", "D", "U", "U", "U",
+        ],
+      },
+      recent_trades: lab24hTrades.slice(0, 5),
+      all_trades: lab24hTrades,
+      hub_meta: {
+        trade_count: 64,
+        nightly_unread: true,
+        strategy_version: "v1.2.4",
+        markov_p_uu: 0.58,
+        alert_unread: 1,
+      },
+      health: { degraded: false, message: "" },
+      dailyReport: DAILY_REPORT_NORMAL,
+      sampleProposal: SAMPLE_PROPOSAL_JSON,
+      strategyVersions: STRATEGY_VERSIONS_NORMAL,
+      markovLive: MARKOV_LIVE_NORMAL,
+      settings: SETTINGS_MOCK,
+      alerts: ALERTS_MOCK,
+      emergencyStop: null,
+      modeHealth: MODE_HEALTH_MOCK,
       whatIfScenarios: WHAT_IF_SCENARIOS,
     },
   };

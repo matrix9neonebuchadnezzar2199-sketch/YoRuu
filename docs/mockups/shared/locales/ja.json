@@ -135,6 +135,7 @@
   "scenario.normal": "normal",
   "scenario.winning_streak": "winning_streak",
   "scenario.drawdown": "drawdown",
+  "scenario.lab_24h": "lab_24h（24h蓄積デモ）",
 
   "lang.switch": "EN",
   "lang.switch_back": "JA",
