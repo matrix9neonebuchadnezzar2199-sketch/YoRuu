@@ -281,6 +281,12 @@ body.diary > footer {
         <td><span class="tag tag-ok">ok</span></td>
         <td><a href="#entry-0835">#entry-0835</a></td>
       </tr>
+      <tr>
+        <td>08:44</td>
+        <td>PHASE 6 詳細設計書を作成（M6.1〜M6.5 実装指示、コードなし）</td>
+        <td><span class="tag tag-ok">ok</span></td>
+        <td><a href="#entry-0844">#entry-0844</a></td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -425,6 +431,33 @@ body.diary > footer {
   </ul>
   <h3>残課題</h3>
   <p>マスター: 長時間ラン Ctrl+C → <code>uv sync</code> で <code>yoruu --version</code> = 0.6.0 反映。次は PHASE 6 M6.0 承認（PROPOSED → ADOPTED）→ M6.1 常駐ループ着手。Commit: <code>de77f0d</code>。</p>
+</section>
+
+<section class="entry" id="entry-0844">
+  <h2>PHASE 6 詳細設計書を作成（実装指示書）<a href="#entry-0844" class="anchor">#</a></h2>
+  <div class="meta">
+    <span class="date">2026-05-31 08:44 JST</span>
+    <span class="tag tag-type">dev</span>
+    <span class="tag tag-scope">docs</span>
+    <span class="tag tag-ok">ok</span>
+  </div>
+  <h3>概要</h3>
+  <p>コーディングは別モデルで行うため、<strong>設計のみ</strong>を作成。<code>PHASE6_DETAILED_DESIGN_v1.md</code> を新設し、M6.1〜M6.5 を「文脈なしで実装着手できる粒度」（新規/変更ファイル・インターフェース・統合点・テスト受け入れ基準）まで具体化した。実コード（<code>market_runner</code>/<code>binance_ws</code>/<code>ws_client</code>/<code>paper_executor</code>/<code>state_machine</code>/<code>ohlc_provider</code>/<code>risk_guard</code>/<code>cli</code>）と設計章（ch12/ch13/ch19）を読み合わせ、既存フックに接続する形で設計。</p>
+  <h3>設計判断・発見</h3>
+  <ul>
+    <li><strong>M6.1</strong>: <code>BinanceMarketWs(on_tick=)</code> / <code>PolymarketMarketWs(on_book=)</code> の既存フックを使い、新規 <code>TradingLoop</code>（単一 asyncio）で Markov 常駐 + 5 分境界評価。<code>Clock</code> 注入で決定論テスト。</li>
+    <li><strong>M6.2</strong>: <code>OhlcProvider.update_from_tick</code> は実装済だが、<code>serve</code>（API）と <code>run</code>（loop）が別プロセスのため反映されない。PHASE 5 で永続化は非ゴール → <strong>案 A（serve lifespan で loop 起動・OhlcProvider 共有）</strong>を推奨。要決定として明記。</li>
+    <li><strong>M6.3</strong>: ch13 §13.5 準拠（FillModel 共有・状態機械不使用・決定論・what_if_scenarios 格納）。</li>
+    <li><strong>M6.5</strong>: <code>/emergency/stop</code> が SSE publish のみの<strong>スタブ</strong>、自動トリガ未配線、CLI 不在を実コードで確認。<code>EmergencyStopController</code> 新設 + カオス 5 シナリオを設計。</li>
+    <li><strong>[要確認]</strong>: <code>what_if_scenarios</code> / <code>emergency_stops</code> テーブルの DB 実装有無（設計章にはあるが DB 未確認）。無ければ migrate を該当 M に含める。</li>
+  </ul>
+  <h3>変更ファイル</h3>
+  <ul class="changes">
+    <li><span class="op op-add">+</span> docs/design/PHASE6_DETAILED_DESIGN_v1.md（実装指示書、§11 に未確定 5 件）</li>
+    <li><span class="op op-mod">~</span> docs/design/PHASE6_ROADMAP_v1.md（詳細設計参照・着手ゲートを PHASE 5 完了に更新）</li>
+  </ul>
+  <h3>残課題</h3>
+  <p>M6.0 承認（§11 の OHLC プロセス境界・run/serve 役割分担・emergency 2 段階を確定）後、別モデルが M6.1 から実装着手。コードは本セッションでは書かない。Commit: <code>pending</code>。</p>
 </section>
 </main>
 

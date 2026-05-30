@@ -1,9 +1,10 @@
 # PHASE 6 ロードマップ v1（計画）
 
 **日付**: 2026-05-31  
-**ステータス**: **PROPOSED**（PHASE 5 Exit 確定前の先行計画）  
-**前提**: PHASE 5 コード完了（M5.0–M5.5、`8e87181`）。**PHASE 6 着手は M5.6 + M5.7 完了をゲートとする**。  
-**正本**: 本ファイル（PHASE 6 マイルストン SSOT）／全体は [`00_ROADMAP.md`](./00_ROADMAP.md)
+**ステータス**: **PROPOSED**（M6.0 承認待ち）  
+**前提**: PHASE 5 完了（M5.0–M5.7、v0.6.0、`113570e`）。  
+**正本**: 本ファイル（PHASE 6 マイルストン SSOT）／全体は [`00_ROADMAP.md`](./00_ROADMAP.md)  
+**実装詳細設計**: [`PHASE6_DETAILED_DESIGN_v1.md`](./PHASE6_DETAILED_DESIGN_v1.md)（M6.1〜M6.5 のインターフェース・ファイル・テスト基準の SSOT。別モデルでの実装着手はこちらを参照）
 
 ---
 
@@ -19,10 +20,10 @@ PHASE 5（観察・統合）で先送りした実装ギャップ（diary 2026-05
 
 | ID | 項目 | 担当 | 状態 |
 |----|------|------|------|
-| M5.6 | lab 24h paper 実運用 → `docs/operations/LAB_PAPER_24H_<date>.md` | マスター（運用） | ⏳ 未実施 |
-| M5.7 | PHASE 5 Exit 確定 + `pyproject.toml` v0.6.0 bump | Composer + マスター承認 | ⏳ 未実施 |
+| M5.6 | lab paper ハーネス安定性（短縮スモーク） | マスター（運用） | ✅ 完了（2026-05-31） |
+| M5.7 | PHASE 5 Exit 確定 + `pyproject.toml` v0.6.0 bump | Composer + マスター承認 | ✅ 完了（2026-05-31、`de77f0d`） |
 
-> 上記 2 件が完了するまで M6.1 以降には着手しない。M6.0（本ロードマップ確定）のみ先行可。
+> PHASE 5 ゲートは充足。**残るゲートは M6.0 承認**（本ロードマップ + [`PHASE6_DETAILED_DESIGN_v1.md`](./PHASE6_DETAILED_DESIGN_v1.md) の §11 未確定事項を確定）。承認後 M6.1 着手可。
 
 ---
 
