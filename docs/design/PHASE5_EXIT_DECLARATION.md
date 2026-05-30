@@ -53,7 +53,7 @@
 | `e383345` | M5.1–M5.2 | archive ROLLING、ch10 v1.3.0 OHLC SSOT |
 | `aa85261` | — | 表記整理（オリジナル / 外部 AI） |
 | `feaa328` | （PHASE 4） | v0.5.0、PHASE 4 Exit |
-| `pending` | M5.6–M5.7 | lab スモークレポート、Exit 確定 + v0.6.0 |
+| `de77f0d` | M5.6–M5.7 | lab スモークレポート、Exit 確定 + v0.6.0 |
 
 ---
 

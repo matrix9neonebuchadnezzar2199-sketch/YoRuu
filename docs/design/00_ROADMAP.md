@@ -335,4 +335,4 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-28 | v1.4 | **PHASE 4 Exit**（v0.5.0、HUD + 元本） | `feaa328` |
 | 2026-05-28 | v1.4 | PHASE 5 再スコープ（観察・統合、M5.0–M5.7 ADOPTED） | `9fb57a9` |
 | 2026-05-31 | v1.5 | **マイルストーン同期**: PHASE 4 重複行修正、PHASE 5 を実態（M5.0–M5.5 完了 / M5.6・M5.7 待ち）へ更新、PHASE 6 を PHASE6_ROADMAP_v1 と同期、C3 を PHASE 7 へ明記、Mermaid ラベル更新 | `d2dcf13` |
-| 2026-05-31 | v1.6 | **PHASE 5 完了**: M5.6 短縮スモーク + M5.7 Exit CONFIRMED + v0.6.0 bump、約定検証は PHASE 6 繰越 | `pending` |
+| 2026-05-31 | v1.6 | **PHASE 5 完了**: M5.6 短縮スモーク + M5.7 Exit CONFIRMED + v0.6.0 bump、約定検証は PHASE 6 繰越 | `de77f0d` |
