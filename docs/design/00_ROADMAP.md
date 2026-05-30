@@ -2,10 +2,10 @@
 
 > **目的**: YoRuu の全工程を PHASE 0〜7 に分割し、各 PHASE の Exit Criteria・成果物・マイルストーンを SSOT として管理する。本ドキュメントは設計・実装・運用すべての判断基準であり、章番号変更・スコープ変更が発生した場合は本ファイルを最初に更新する。
 
-**バージョン**: v1.5  
+**バージョン**: v1.6  
 **作成日**: 2026-05-27（最終更新: 2026-05-31）  
 **承認**: PHASE 0 完了時点  
-**現在 PHASE**: **PHASE 5**（コード完了 / M5.6・M5.7 運用待ち）→ **PHASE 6 計画策定済**  
+**現在 PHASE**: **PHASE 5 完了**（v0.6.0、M5.0–M5.7）→ **PHASE 6 着手可**（計画策定済）  
 **関連**: `INDEX.md`、`PHASE5_ROADMAP_v1.md`、`PHASE6_ROADMAP_v1.md`、`REVIEW_CHECKLIST_ch01-07.md`
 
 ---
@@ -215,14 +215,15 @@ gantt
 | M5.3 | OHLC API（`GET /api/v1/ohlc`、ring buffer 60） | ✅ 完了（`9fb57a9`） |
 | M5.4 | HUD チャート SVG + 5s polling | ✅ 完了 |
 | M5.5 | SSE severity 必須（全 12 イベント） | ✅ 完了 |
-| M5.6 | lab 24h paper **実運用** → `docs/operations/LAB_PAPER_24H_<date>.md` | ⏳ 運用（マスター） |
-| M5.7 | PHASE 5 Exit 確定 + `pyproject.toml` v0.6.0 | ⏳ 未実施 |
+| M5.6 | lab paper ハーネス安定性（短縮スモーク 5 cycle、INV 0） | ✅ 完了（2026-05-31、24h は冗長判断で短縮） |
+| M5.7 | PHASE 5 Exit 確定 + `pyproject.toml` v0.6.0 | ✅ 完了（2026-05-31） |
 
 **Exit Criteria**:
 
 - M5.0〜M5.5 コード完了（✅）、`pytest` **146** passed・カバレッジ ≈**88%**
-- lab 24h paper 実運用完了（M5.6、マスター作業）→ レポート保存
-- Exit 宣言確定・v0.6.0 bump（M5.7）
+- lab paper ハーネス安定性確認（M5.6、短縮スモーク）→ [`LAB_PAPER_24H_2026-05-31.md`](../operations/LAB_PAPER_24H_2026-05-31.md)
+- Exit 宣言確定・v0.6.0 bump（M5.7、[`PHASE5_EXIT_DECLARATION.md`](./PHASE5_EXIT_DECLARATION.md) CONFIRMED）
+- **約定パス検証は PHASE 6 へ繰り越し**（決定論モックでは約定が発生しないため）
 
 ### PHASE 6: 実データ paper 運用（14日）— **計画策定済**
 
@@ -334,3 +335,4 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-28 | v1.4 | **PHASE 4 Exit**（v0.5.0、HUD + 元本） | `feaa328` |
 | 2026-05-28 | v1.4 | PHASE 5 再スコープ（観察・統合、M5.0–M5.7 ADOPTED） | `9fb57a9` |
 | 2026-05-31 | v1.5 | **マイルストーン同期**: PHASE 4 重複行修正、PHASE 5 を実態（M5.0–M5.5 完了 / M5.6・M5.7 待ち）へ更新、PHASE 6 を PHASE6_ROADMAP_v1 と同期、C3 を PHASE 7 へ明記、Mermaid ラベル更新 | `d2dcf13` |
+| 2026-05-31 | v1.6 | **PHASE 5 完了**: M5.6 短縮スモーク + M5.7 Exit CONFIRMED + v0.6.0 bump、約定検証は PHASE 6 繰越 | `pending` |

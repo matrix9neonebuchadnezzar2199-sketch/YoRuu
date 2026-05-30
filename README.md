@@ -8,8 +8,8 @@
 
 <br>
 
-[![Status](https://img.shields.io/badge/status-PHASE_5_(chart+integration)-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/PHASE5_ROADMAP_v1.md)
-[![Version](https://img.shields.io/badge/version-0.5.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
+[![Status](https://img.shields.io/badge/status-PHASE_6_(paper_ops)-1a1a2e?style=for-the-badge&logo=gitbook&logoColor=c9b8ff&labelColor=2d2d44)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/blob/main/docs/design/PHASE6_ROADMAP_v1.md)
+[![Version](https://img.shields.io/badge/version-0.6.0-6c5ce7?style=for-the-badge)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu)
 [![Python](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-ready-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3.40+-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
@@ -61,7 +61,7 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → 外部 AI（手動）→ Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 5 着手** — OHLC HUD · SSE severity · ADR-001 |
+| **現フェーズ** | **PHASE 5 完了**（v0.6.0）→ **PHASE 6 着手可** — 実データ paper 運用・常駐ループ・backtest |
 | **テスト** | `pytest` **146** passed、カバレッジ **≈88%**、`fail_under` **80** |
 | **会計（H-1）** | `balance` = 自由資金、`principal` = 累積入出金、`total_assets` = balance + locked |
 
@@ -124,7 +124,7 @@
 
 正本: [`PHASE4_EXIT_DECLARATION.md`](docs/design/PHASE4_EXIT_DECLARATION.md)
 
-#### PHASE 5 — 観察・統合（進行中）
+#### PHASE 5 — 観察・統合 ✅
 
 | ID | 内容 | 状態 |
 |:---|:---|:---:|
@@ -134,18 +134,25 @@
 | M5.3 | `GET /api/v1/ohlc` + ring buffer | ✅ |
 | M5.4 | HUD SVG チャート + polling | ✅ |
 | M5.5 | SSE 全イベント `severity` 必須 | ✅ |
-| M5.6 | lab 24h paper レポート | ⏳ 運用 |
-| M5.7 | PHASE 5 Exit · v0.6.0 | ⏳ |
+| M5.6 | lab paper ハーネス安定性（短縮スモーク 5 cycle） | ✅ |
+| M5.7 | PHASE 5 Exit · v0.6.0 | ✅ |
 
-正本: [`PHASE5_ROADMAP_v1.md`](docs/design/PHASE5_ROADMAP_v1.md)
+正本: [`PHASE5_ROADMAP_v1.md`](docs/design/PHASE5_ROADMAP_v1.md) · Exit: [`PHASE5_EXIT_DECLARATION.md`](docs/design/PHASE5_EXIT_DECLARATION.md)
 
-#### PHASE 6 — ペーパー運用（予定）
+#### PHASE 6 — 実データ paper 運用（着手可）
 
-| ID | 内容 | 状態 |
-|:---|:---|:---:|
-| M6.1 | 初期戦略パラメータ確定 | ⏳ |
-| M6.2 | 1週目運用 + 日次レビュー | ⏳ |
-| M6.3 | 2週目運用 + パラメータ調整 | ⏳ |
+正本: [`PHASE6_ROADMAP_v1.md`](docs/design/PHASE6_ROADMAP_v1.md)
+
+| ID | 内容 | 由来 | 状態 |
+|:---|:---|:---:|:---:|
+| M6.1 | 常駐評価ループ統合 | C4 | ⏳ |
+| M6.2 | OHLC 実データ接続 | C2 | ⏳ |
+| M6.3 | BacktestExecutor | C1 | ⏳ |
+| M6.4 | 夜間レビュー自動化（04:00） | V1 | ⏳ |
+| M6.5 | 安全リハーサル（カオス + キル） | — | ⏳ |
+| M6.6 | 初期戦略パラメータ確定 | — | ⏳ |
+| M6.7 | paper 運用 14 日 + 日次レビュー | — | ⏳ |
+| M6.8 | PHASE 6 Exit · v0.7.0 | — | ⏳ |
 
 #### PHASE 7 — 段階移行 LIVE（任意・予定）
 
@@ -475,6 +482,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.5.0 · PHASE 5 着手 · last updated 2026-05-28</sub>
+<sub>README · v0.6.0 · PHASE 5 完了 / PHASE 6 着手可 · last updated 2026-05-31</sub>
 
 </div>
