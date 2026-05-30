@@ -2,10 +2,11 @@
 
 > **目的**: YoRuu の全工程を PHASE 0〜7 に分割し、各 PHASE の Exit Criteria・成果物・マイルストーンを SSOT として管理する。本ドキュメントは設計・実装・運用すべての判断基準であり、章番号変更・スコープ変更が発生した場合は本ファイルを最初に更新する。
 
-**バージョン**: v1.0  
-**作成日**: 2026-05-27  
+**バージョン**: v1.5  
+**作成日**: 2026-05-27（最終更新: 2026-05-31）  
 **承認**: PHASE 0 完了時点  
-**関連**: `INDEX.md`、`REVIEW_CHECKLIST_ch01-07.md`、`08_mockup_carryover.md`
+**現在 PHASE**: **PHASE 5**（コード完了 / M5.6・M5.7 運用待ち）→ **PHASE 6 計画策定済**  
+**関連**: `INDEX.md`、`PHASE5_ROADMAP_v1.md`、`PHASE6_ROADMAP_v1.md`、`REVIEW_CHECKLIST_ch01-07.md`
 
 ---
 
@@ -181,16 +182,13 @@ gantt
 |----|------|------|
 | M4.1 | FastAPI + SSE 契約 | ✅ `dea96e0` |
 | M4.2 | 静的モック + EventSource | ✅ `02edfa0` |
-| M4.3 | 設計章追補（ch10/13/16/18/22） | **完了**（2026-05-28） |
-| M4.4 | 元本コア実装 | **完了**（2026-05-28） |
-| M4.5 | principal REST/CLI/SSE + FX API | **完了**（2026-05-28） |
-| M4.6 | mock-data 拡張 | **✅ 完了** |
-| M4.4 | 元本コア（DB、PrincipalService、D11 v2） | ⏳ |
-| M4.5 | REST/CLI + SSE `principal_changed` | ⏳ |
-| M4.6 | `mock-data.js` 拡張 | ✅ |
-| M4.7 | `00_hud.html`（I-1 相互リンク、チャート placeholder） | ✅ |
-| M4.8 | i18n + `build_web_static` | ✅ |
-| M4.9 | PHASE 4 Exit 宣言 | ✅ |
+| M4.3 | 設計章追補（ch10/13/16/18/22） | ✅ 完了（2026-05-28） |
+| M4.4 | 元本コア（DB、PrincipalService、INV-D-06 v2） | ✅ 完了（2026-05-28） |
+| M4.5 | principal REST/CLI/SSE + FX API | ✅ 完了（2026-05-28） |
+| M4.6 | `mock-data.js` 拡張（principal/FX/HUD aggregates） | ✅ 完了 |
+| M4.7 | `00_hud.html`（I-1 相互リンク、チャート placeholder） | ✅ 完了 |
+| M4.8 | i18n（en）+ `build_web_static`、12 画面 serve | ✅ 完了 |
+| M4.9 | PHASE 4 Exit 宣言（v0.5.0、`feaa328`） | ✅ 完了 |
 
 **Exit Criteria**（PHASE 4）:
 
@@ -201,46 +199,64 @@ gantt
 
 **PHASE 3 運用残**: lab 24h paper → **PHASE 5**（HUD 完成後）
 
-### PHASE 5: 統合テスト（7日）
+### PHASE 5: 観察・統合 — **コード完了 / 運用待ち**（2026-05-28〜）
 
-**目的**: 安全性・例外系の最終検証。
+> **再スコープ注記**: 当初 PHASE 5 は「統合テスト（不変条件・カオス・緊急停止・backtest）」だったが、2026-05-28 に **観察・統合**（ローソク足 HUD・OHLC API・SSE severity・ADR-001 マージ）へ再定義した（[`PHASE5_ROADMAP_v1.md`](./PHASE5_ROADMAP_v1.md) **ADOPTED**）。当初の統合テスト項目（カオス・キルスイッチ・backtest）は **PHASE 6 へ移管**（[`PHASE6_ROADMAP_v1.md`](./PHASE6_ROADMAP_v1.md)）。
 
-**マイルストーン**:
+**目的**: ローソク足 HUD・lab 24h paper レポート・設計ドラフト本体マージ（ADR-001）。
 
-| ID | 内容 |
-|----|------|
-| M5.1 | 不変条件テスト |
-| M5.2 | カオステスト（WS切断・API障害・ディスクフル） |
-| M5.3 | 緊急停止リハーサル |
-| M5.4 | バックテストでの妥当性検証 |
+**正本**: [`PHASE5_ROADMAP_v1.md`](./PHASE5_ROADMAP_v1.md)（マイルストン SSOT） · Exit: [`PHASE5_EXIT_DECLARATION.md`](./PHASE5_EXIT_DECLARATION.md)（**DRAFT**）
 
-**Exit Criteria**:
-
-- 全テスト pass
-- 72 時間ペーパー連続稼働
-- カオステスト全シナリオで安全停止確認
-
-### PHASE 6: ペーパー運用（14日）
-
-**目的**: 実市場データでのペーパートレード運用。
-
-**マイルストーン**:
-
-| ID | 内容 |
-|----|------|
-| M6.1 | 初期戦略パラメータ確定 |
-| M6.2 | 1週目運用 + 日次レビュー |
-| M6.3 | 2週目運用 + 戦略パラメータ調整 |
+| ID | 内容 | 状態 |
+|----|------|------|
+| M5.0 | ロードマップ確定 | ✅ 完了 |
+| M5.1 | ADR-001 + archive クリーンアップ | ✅ 完了（`e383345`） |
+| M5.2 | ローソク足 SSOT（ch10 §10.3.15 / §10.6.14） | ✅ 完了 |
+| M5.3 | OHLC API（`GET /api/v1/ohlc`、ring buffer 60） | ✅ 完了（`9fb57a9`） |
+| M5.4 | HUD チャート SVG + 5s polling | ✅ 完了 |
+| M5.5 | SSE severity 必須（全 12 イベント） | ✅ 完了 |
+| M5.6 | lab 24h paper **実運用** → `docs/operations/LAB_PAPER_24H_<date>.md` | ⏳ 運用（マスター） |
+| M5.7 | PHASE 5 Exit 確定 + `pyproject.toml` v0.6.0 | ⏳ 未実施 |
 
 **Exit Criteria**:
 
-- 累積勝率 > 50%（参考値、絶対基準ではない）
-- 最大ドローダウン < 20%
-- 夜間レビューサイクル安定稼働
+- M5.0〜M5.5 コード完了（✅）、`pytest` **146** passed・カバレッジ ≈**88%**
+- lab 24h paper 実運用完了（M5.6、マスター作業）→ レポート保存
+- Exit 宣言確定・v0.6.0 bump（M5.7）
+
+### PHASE 6: 実データ paper 運用（14日）— **計画策定済**
+
+**目的**: 実市場データでのペーパートレード運用。当初 PHASE 5 から移管した安全系テストと、実装ギャップ（C1〜C4）を吸収する。
+
+**正本**: [`PHASE6_ROADMAP_v1.md`](./PHASE6_ROADMAP_v1.md)（**PROPOSED**、マイルストン SSOT）
+
+**着手ゲート**: PHASE 5 の M5.6 + M5.7 完了。
+
+| ID | 内容 | 由来 |
+|----|------|------|
+| M6.0 | PHASE 6 ロードマップ確定 | — |
+| M6.1 | 常駐評価ループ統合（単一 asyncio プロセス） | C4 |
+| M6.2 | OHLC 実データ接続（`update_from_tick` 配線） | C2 |
+| M6.3 | BacktestExecutor（`backtest run`） | C1 |
+| M6.4 | 夜間レビュー自動化（04:00 OS タイマー） | V1 |
+| M6.5 | 安全リハーサル（カオス + キルスイッチ） | 旧 PHASE5 統合テスト |
+| M6.6 | 初期戦略パラメータ確定 | 旧 M6.1 |
+| M6.7 | paper 運用 14 日 + 日次レビュー | 旧 M6.2/M6.3 |
+| M6.8 | PHASE 6 Exit 宣言 + v0.7.0 | — |
+
+**Exit Criteria**:
+
+- 全自動テスト pass、行カバレッジ ≥ 80%
+- 実データ paper **14 日連続**稼働、INV 違反 0・CRITICAL エラー 0
+- カオス全シナリオで安全停止確認
+- 夜間レビューサイクルが自動起動で安定稼働
+- 参考 KPI: 累積勝率 > 50%（絶対基準ではない）、最大ドローダウン < 20%
 
 ### PHASE 7: 段階移行（30日、任意）
 
 **目的**: 少額からの実運用。
+
+**前提実装**: C3（LIVE 配線 — `LiveExecutor` の CLI 公開、`live` モード許可）は本フェーズで実装する。PHASE 6 までは非ゴール。
 
 **マイルストーン**: $10 → $50 → $100 → 本格運用、各段階で1週間以上の検証。
 
@@ -257,9 +273,9 @@ flowchart LR
     P1 --> P3[PHASE 3<br>コア実装]
     P2 --> P4[PHASE 4<br>UI実装]
     P3 --> P4
-    P4 --> P5[PHASE 5<br>統合テスト]
-    P5 --> P6[PHASE 6<br>ペーパー運用]
-    P6 --> P7[PHASE 7<br>段階移行]
+    P4 --> P5[PHASE 5<br>観察・統合]
+    P5 --> P6[PHASE 6<br>実データ paper 運用]
+    P6 --> P7[PHASE 7<br>段階移行・LIVE]
 ```
 
 PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者の完了後に着手する。
@@ -314,4 +330,7 @@ PHASE 2 と PHASE 3 は PHASE 1 完了後に**並行可能**。PHASE 4 は両者
 | 2026-05-28 | v1.3 | **Track 2 完了**（設計ローリング 2A〜2D、T4.2 ゲート成立） | `c8fa393` |
 | 2026-05-28 | v1.3 | README Track 進捗表 + ROADMAP Track 表同期 | `704e387` |
 | 2026-05-28 | v1.4 | **PHASE 3 コード Exit**（Exit A + テンプレ 9、114 tests / 87.89%） | `dea96e0` |
-| 2026-05-28 | v1.4 | PHASE3_EXIT_DECLARATION 新設 | （本コミット） |
+| 2026-05-28 | v1.4 | PHASE3_EXIT_DECLARATION 新設 | `3f17b1d` |
+| 2026-05-28 | v1.4 | **PHASE 4 Exit**（v0.5.0、HUD + 元本） | `feaa328` |
+| 2026-05-28 | v1.4 | PHASE 5 再スコープ（観察・統合、M5.0–M5.7 ADOPTED） | `9fb57a9` |
+| 2026-05-31 | v1.5 | **マイルストーン同期**: PHASE 4 重複行修正、PHASE 5 を実態（M5.0–M5.5 完了 / M5.6・M5.7 待ち）へ更新、PHASE 6 を PHASE6_ROADMAP_v1 と同期、C3 を PHASE 7 へ明記、Mermaid ラベル更新 | `pending` |

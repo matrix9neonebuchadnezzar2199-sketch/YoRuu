@@ -2,8 +2,8 @@
 
 > **目的**: 全24章の設計書ステータスと閲覧順序を管理する SSOT。各章の `APPROVED` 状態は `REVIEW_CHECKLIST_ch01-07.md` / [`REVIEW_CHECKLIST_ch08.md`](./REVIEW_CHECKLIST_ch08.md) / [`REVIEW_CHECKLIST_ch09.md`](./REVIEW_CHECKLIST_ch09.md) / [`REVIEW_CHECKLIST_ch10.md`](./REVIEW_CHECKLIST_ch10.md) / [`REVIEW_CHECKLIST_ch11.md`](./REVIEW_CHECKLIST_ch11.md) / [`REVIEW_CHECKLIST_ch12.md`](./REVIEW_CHECKLIST_ch12.md) 等で管理する。
 
-**最終更新**: 2026-05-28  
-**現在 PHASE**: **PHASE 4 着手** — M4.2 静的 UI 結線完了／PHASE 3 コード Exit（`3f17b1d`）／PHASE 1・2 **完了**  
+**最終更新**: 2026-05-31  
+**現在 PHASE**: **PHASE 5**（M5.0–M5.5 コード完了／M5.6 lab 24h・M5.7 Exit は運用待ち）→ **PHASE 6 計画策定済**（[`PHASE6_ROADMAP_v1.md`](./PHASE6_ROADMAP_v1.md)）。PHASE 0〜4 **完了**  
 **M1.5**: a/b/c すべて完了（2026-05-27）  
 **関連**: [`00_ROADMAP.md`](./00_ROADMAP.md)、[`PHASE3_EXIT_DECLARATION.md`](./PHASE3_EXIT_DECLARATION.md)、[`PHASE3_QUALITY_AUDIT.md`](./PHASE3_QUALITY_AUDIT.md)、[`PHASE3_PARALLEL_CHAT_TEMPLATES.md`](./PHASE3_PARALLEL_CHAT_TEMPLATES.md)、[`PHASE1_M13_MIDPOINT_REVIEW.md`](./PHASE1_M13_MIDPOINT_REVIEW.md)、[`REVIEW_CHECKLIST_ch01-07.md`](./REVIEW_CHECKLIST_ch01-07.md) 〜 [`REVIEW_CHECKLIST_ch24.md`](./REVIEW_CHECKLIST_ch24.md)、[`REVIEW_CHECKLIST_appendix_a.md`](./REVIEW_CHECKLIST_appendix_a.md)、[`08_mockup_carryover.md`](./08_mockup_carryover.md)
 
@@ -21,13 +21,14 @@
 | PHASE 4 M4.6 | **✅ 完了** — mock-data principal/FX/HUD aggregates |
 | PHASE 4 M4.7 | **✅ 完了** — `00_hud.html` 主入口 HUD |
 | PHASE 4 M4.8 | **✅ 完了** — en i18n + 12 画面 serve |
-| PHASE 4 M4.9 | **✅ 完了** — [`PHASE4_EXIT_DECLARATION.md`](./PHASE4_EXIT_DECLARATION.md) |
-| PHASE 5 | **着手可** — ローソク足・lab 24h（仮） |
-| pytest | **119** passed、カバレッジ **≈88%** |
-| `fail_under` | **80**（Exit 到達、`pyproject.toml`） |
+| PHASE 4 M4.9 | **✅ 完了** — [`PHASE4_EXIT_DECLARATION.md`](./PHASE4_EXIT_DECLARATION.md)（v0.5.0、`feaa328`） |
+| PHASE 5 | **コード完了** — M5.0–M5.5（OHLC API・HUD chart・SSE severity・ADR-001） → [`PHASE5_ROADMAP_v1.md`](./PHASE5_ROADMAP_v1.md) |
+| PHASE 5 残 | **M5.6** lab 24h paper（マスター運用）・**M5.7** Exit + v0.6.0（待ち） |
+| PHASE 6 | **計画策定済**（PROPOSED） — C1〜C4 / V1〜V3 を M6.x へ割付 → [`PHASE6_ROADMAP_v1.md`](./PHASE6_ROADMAP_v1.md) |
+| pytest | **146** passed、カバレッジ **≈88%** |
+| `fail_under` | **80**（Exit 到達、`pyproject.toml`、現行 v0.5.0） |
 | INV 実装 | **19 / 19**（設計一致） |
-| 運用残 | lab VM で **24h paper** 実運用（ハーネス済） |
-| PHASE 4 前提 | `src/yoruu/web/` + `api/sse/` 前倒し済 → キックオフ [`PHASE4_KICKOFF_TEMPLATE.md`](./PHASE4_KICKOFF_TEMPLATE.md) |
+| 運用残 | lab VM で **24h paper** 実運用（M5.6、ハーネス済） |
 
 ---
 
