@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import click
@@ -401,17 +401,146 @@ def _principal_cli_payload(change) -> dict:
     }
 
 
+@main.command("run")
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+@click.option("--max-evaluations", type=int, default=None, help="Stop after N evaluation cycles")
+@click.option("--deadline-sec", type=float, default=None, help="Stop after N seconds")
+@click.option("--interval-sec", type=int, default=300, help="Evaluation interval (lab may shorten)")
+@click.option("--lab-mock-feed", is_flag=True, help="Synthetic ticks without live WS")
+def run_cmd(
+    config_path: Path,
+    max_evaluations: int | None,
+    deadline_sec: float | None,
+    interval_sec: int,
+    lab_mock_feed: bool,
+) -> None:
+    """常駐評価ループ (PHASE 6 M6.1)."""
+
+    import asyncio
+
+    from yoruu.core.loop_runtime import build_trading_loop
+
+    settings = load_settings(config_path)
+    if settings.mode not in (Mode.PAPER, Mode.SIMMER):
+        click.echo("mode must be PAPER or SIMMER; use yoruu backtest for BACKTEST", err=True)
+        sys.exit(1)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    loop = build_trading_loop(settings, db, interval_sec=interval_sec)
+    stats = asyncio.run(
+        loop.run(
+            max_evaluations=max_evaluations,
+            deadline_sec=deadline_sec,
+            lab_mock_feed=lab_mock_feed,
+            connect_ws=not lab_mock_feed,
+        )
+    )
+    db.close()
+    click.echo(
+        f"OK: evaluations={stats.evaluations} entries={stats.entries} "
+        f"closes={stats.closes} skipped_stale={stats.skipped_stale}"
+    )
+
+
+@main.command("emergency-stop")
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+@click.option("--confirm", is_flag=True, help="Required to trigger stop")
+def emergency_stop_cmd(config_path: Path, confirm: bool) -> None:
+    """Trigger emergency stop (ch19)."""
+
+    from yoruu.core.loop_runtime import build_trading_loop
+
+    if not confirm:
+        click.echo("Refusing without --confirm", err=True)
+        sys.exit(1)
+    settings = load_settings(config_path)
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    loop = build_trading_loop(settings, db)
+    assert loop.emergency_controller is not None
+    result = loop.emergency_controller.trigger(source="USER", detail="cli_confirm")
+    db.close()
+    click.echo(
+        f"OK: state={result.state.value} closed={result.open_closed} "
+        f"partial={result.partial}"
+    )
+
+
+@main.group("backtest")
+def backtest_group() -> None:
+    """Historical strategy replay (PHASE 6 M6.3)."""
+
+
+@backtest_group.command("run")
+@click.option("--start", required=True, help="YYYY-MM-DD")
+@click.option("--end", required=True, help="YYYY-MM-DD")
+@click.option("--seed", type=int, default=42)
+@click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
+@click.option("--out", "out_mode", type=click.Choice(["json", "db"]), default="json")
+def backtest_run_cmd(
+    start: str,
+    end: str,
+    seed: int,
+    config_path: Path,
+    out_mode: str,
+) -> None:
+    """Run backtest over historical bars."""
+
+    from yoruu.execution.backtest_executor import BacktestExecutor
+    from yoruu.infra.historical_loader import HistoricalLoader
+    from yoruu.strategy.evaluator import StrategyEvaluator
+    from yoruu.strategy.markov import MarkovEngine
+
+    settings = load_settings(config_path)
+    strategy = StrategyWriter(Path(settings.paths.strategy)).read()
+    db = Database(settings.paths.db)
+    db.initialize_schema()
+    loader = HistoricalLoader(db, historical_dir=Path(settings.paths.historical))
+    markov = MarkovEngine(window_size=MARKOV_WINDOW)
+    evaluator = StrategyEvaluator(markov, strategy)
+    executor = BacktestExecutor(
+        loader,
+        FillModel(settings.paper, seed=seed),
+        markov,
+        evaluator,
+        max_trade_size_usd=settings.risk.max_trade_size_usd,
+        initial_balance=settings.resolved_initial_principal,
+        spread_assumed=settings.paper.spread_assumed,
+    )
+    result = executor.run(start=start, end=end, rng_seed=seed)
+    payload = executor.result_to_json(result)
+    click.echo(payload)
+    if out_mode == "db":
+        run_id = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
+        db.insert_what_if_scenario(
+            name=f"backtest_{run_id}",
+            period_from=start,
+            period_to=end,
+            parameters_json=json.dumps(result.params),
+            result_json=payload,
+            created_by="CLI",
+        )
+        db.commit()
+    db.close()
+
+
 @main.command("serve")
 @click.option("--host", default="127.0.0.1")
 @click.option("--port", default=8765, type=int)
 @click.option("--config", "config_path", type=click.Path(path_type=Path), default=_default_config)
-def serve_cmd(host: str, port: int, config_path: Path) -> None:
-    """Run FastAPI server (ch10 §10.6)."""
+@click.option("--no-loop", is_flag=True, help="API only, no background TradingLoop")
+def serve_cmd(host: str, port: int, config_path: Path, no_loop: bool) -> None:
+    """Run FastAPI server with optional TradingLoop (ch10 §10.6)."""
 
     import uvicorn
 
     del config_path
-    uvicorn.run("yoruu.web.app:app", host=host, port=port, reload=False)
+    if no_loop:
+        from yoruu.web.app import create_app
+
+        uvicorn.run(create_app(with_trading_loop=False), host=host, port=port, reload=False)
+    else:
+        uvicorn.run("yoruu.web.app:app", host=host, port=port, reload=False)
 
 
 @main.group("market")

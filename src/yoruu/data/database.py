@@ -9,9 +9,22 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterator
 
+from dataclasses import dataclass
+
 from yoruu.data.schema import SCHEMA_SQL
 from yoruu.errors import DatabaseNotInitializedError
-from yoruu.types import Mode, State
+from yoruu.types import Mode, Side, State
+
+
+@dataclass(frozen=True)
+class OpenPositionRow:
+    """Open position joined with trade metadata (M6.5 emergency close)."""
+
+    position_id: int
+    trade_id: int
+    side: Side
+    size_usd: float
+    expires_at: str
 
 
 class Database:
@@ -482,6 +495,86 @@ class Database:
             "SELECT COUNT(*) AS c FROM positions WHERE status = 'OPEN'"
         ).fetchone()
         return int(row["c"]) if row else 0
+
+    def list_open_positions(self) -> list[OpenPositionRow]:
+        rows = self._conn.execute(
+            """
+            SELECT p.id AS position_id, p.trade_id, p.side, p.size_usd, p.expires_at
+            FROM positions p
+            WHERE p.status = 'OPEN'
+            ORDER BY p.opened_at
+            """
+        ).fetchall()
+        return [
+            OpenPositionRow(
+                position_id=int(r["position_id"]),
+                trade_id=int(r["trade_id"]),
+                side=Side(r["side"]),
+                size_usd=float(r["size_usd"]),
+                expires_at=str(r["expires_at"]),
+            )
+            for r in rows
+        ]
+
+    def insert_emergency_stop(
+        self,
+        *,
+        trigger: str,
+        state_before: str,
+        mode_before: str,
+        open_positions_closed: int,
+        daily_pnl_at_stop: float | None,
+    ) -> int:
+        ts = datetime.now(UTC).isoformat()
+        cur = self._conn.execute(
+            """
+            INSERT INTO emergency_stops (
+              triggered_at, trigger, state_before, mode_before,
+              open_positions_closed, daily_pnl_at_stop
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                ts,
+                trigger,
+                state_before,
+                mode_before,
+                open_positions_closed,
+                daily_pnl_at_stop,
+            ),
+        )
+        return int(cur.lastrowid)
+
+    def insert_what_if_scenario(
+        self,
+        *,
+        name: str,
+        period_from: str,
+        period_to: str,
+        parameters_json: str,
+        result_json: str,
+        created_by: str = "SYSTEM",
+        notes: str | None = None,
+    ) -> int:
+        ts = datetime.now(UTC).isoformat()
+        cur = self._conn.execute(
+            """
+            INSERT INTO what_if_scenarios (
+              name, period_from, period_to, parameters_json, result_json,
+              created_at, created_by, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                name,
+                period_from,
+                period_to,
+                parameters_json,
+                result_json,
+                ts,
+                created_by,
+                notes,
+            ),
+        )
+        return int(cur.lastrowid)
 
     def count_bot_state_rows(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) AS c FROM bot_state").fetchone()

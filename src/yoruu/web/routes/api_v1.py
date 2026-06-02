@@ -22,7 +22,8 @@ from yoruu.review.nightly_reporter import NightlyReporter
 from yoruu.review.strategy_applier import StrategyApplier
 from yoruu.review.strategy_writer import StrategyWriter
 from yoruu.infra.ohlc_provider import OhlcProvider
-from yoruu.web.deps import get_db, get_event_bus, get_ohlc_provider, get_settings
+from yoruu.core.loop_runtime import bootstrap_db, build_trading_loop
+from yoruu.web.deps import get_db, get_event_bus, get_ohlc_provider, get_settings, get_trading_loop
 
 router = APIRouter(prefix="/api/v1")
 
@@ -261,16 +262,28 @@ def mode_switch(body: ModeSwitchBody) -> dict[str, str]:
 
 
 @router.post("/emergency/stop")
-def emergency_stop(bus: ValidatingEventBus = Depends(get_event_bus)) -> dict[str, str]:
-    bus.publish(
-        "emergency_stop_triggered",
-        {
-            "trigger": "api_call",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "open_positions_closed": 0,
-        },
-    )
-    return {"status": "ok"}
+def emergency_stop(
+    db: Database = Depends(get_db),
+    bus: ValidatingEventBus = Depends(get_event_bus),
+    settings: AppSettings = Depends(get_settings),
+) -> dict[str, Any]:
+    loop = get_trading_loop()
+    if loop is not None and loop.emergency_controller is not None:
+        result = loop.emergency_controller.trigger(source="USER", detail="api_call")
+        return {
+            "status": "ok",
+            "open_positions_closed": result.open_closed,
+            "state": result.state.value,
+        }
+    bootstrap_db(settings, db)
+    standalone = build_trading_loop(settings, db, event_bus=bus)
+    assert standalone.emergency_controller is not None
+    result = standalone.emergency_controller.trigger(source="USER", detail="api_call")
+    return {
+        "status": "ok",
+        "open_positions_closed": result.open_closed,
+        "state": result.state.value,
+    }
 
 
 @router.post("/emergency/recover")
@@ -389,6 +402,7 @@ def get_ohlc(
     return {
         "symbol": "BTCUSDT",
         "interval": "5m",
+        "source": provider.source,
         "bars": provider.get_bars(bars),
     }
 

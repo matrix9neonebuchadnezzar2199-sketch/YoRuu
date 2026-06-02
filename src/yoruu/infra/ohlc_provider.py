@@ -37,6 +37,7 @@ class OhlcProvider:
     def __init__(self, *, max_bars: int = 60) -> None:
         self._max_bars = max_bars
         self._bars: list[OhlcBar] = []
+        self._live: bool = False
 
     def seed_lab_fixture(self, *, base_price: float = 68_250.0) -> None:
         """Populate synthetic BTC 5m bars for offline HUD (no network)."""
@@ -70,6 +71,12 @@ class OhlcProvider:
         if not self._bars:
             self.seed_lab_fixture()
 
+    @property
+    def source(self) -> str:
+        """``lab`` until a live tick arrives (M6.2 HUD honesty)."""
+
+        return "live" if self._live else "lab"
+
     def get_bars(self, limit: int | None = None) -> list[dict[str, float | str]]:
         """Return up to ``limit`` most recent bars (oldest first)."""
         self.ensure_seeded()
@@ -77,21 +84,44 @@ class OhlcProvider:
         n = max(1, min(n, self._max_bars, len(self._bars)))
         return [b.to_dict() for b in self._bars[-n:]]
 
+    def _bar_bucket_start(self, ts: datetime) -> datetime:
+        minute = (ts.minute // 5) * 5
+        return ts.replace(minute=minute, second=0, microsecond=0)
+
     def update_from_tick(self, price: float, ts_iso: str | None = None) -> None:
-        """Merge a trade tick into the current 5m bar (optional live feed)."""
-        self.ensure_seeded()
-        ts = ts_iso or datetime.now(UTC).isoformat()
-        if self._bars:
-            last = self._bars[-1]
-            self._bars[-1] = OhlcBar(
-                ts=last.ts,
-                open=last.open,
-                high=max(last.high, price),
-                low=min(last.low, price),
-                close=price,
-                volume=last.volume + 0.01,
-            )
-        else:
+        """Merge a trade tick; start a new 5m bar when the bucket changes."""
+        self._live = True
+        raw_ts = ts_iso or datetime.now(UTC).isoformat()
+        tick_ts = datetime.fromisoformat(raw_ts.replace("Z", "+00:00"))
+        bucket = self._bar_bucket_start(tick_ts)
+
+        if not self._bars:
+            self.seed_lab_fixture()
+            self._live = True
+
+        last = self._bars[-1]
+        last_bucket = self._bar_bucket_start(
+            datetime.fromisoformat(last.ts.replace("Z", "+00:00"))
+        )
+        if bucket > last_bucket:
             self._bars.append(
-                OhlcBar(ts=ts, open=price, high=price, low=price, close=price)
+                OhlcBar(
+                    ts=bucket.isoformat(),
+                    open=last.close,
+                    high=price,
+                    low=price,
+                    close=price,
+                )
             )
+            if len(self._bars) > self._max_bars:
+                self._bars = self._bars[-self._max_bars :]
+            return
+
+        self._bars[-1] = OhlcBar(
+            ts=last.ts,
+            open=last.open,
+            high=max(last.high, price),
+            low=min(last.low, price),
+            close=price,
+            volume=last.volume + 0.01,
+        )

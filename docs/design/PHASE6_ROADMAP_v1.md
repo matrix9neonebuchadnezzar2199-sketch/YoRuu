@@ -1,7 +1,7 @@
 # PHASE 6 ロードマップ v1（計画）
 
 **日付**: 2026-05-31  
-**ステータス**: **PROPOSED**（M6.0 承認待ち）  
+**ステータス**: **ADOPTED**（M6.0 承認 2026-06-02）  
 **前提**: PHASE 5 完了（M5.0–M5.7、v0.6.0、`113570e`）。  
 **正本**: 本ファイル（PHASE 6 マイルストン SSOT）／全体は [`00_ROADMAP.md`](./00_ROADMAP.md)  
 **実装詳細設計**: [`PHASE6_DETAILED_DESIGN_v1.md`](./PHASE6_DETAILED_DESIGN_v1.md)（M6.1〜M6.5 のインターフェース・ファイル・テスト基準の SSOT。別モデルでの実装着手はこちらを参照）

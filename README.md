@@ -61,8 +61,8 @@
 | **戦略** | Markov persistence + Kelly sizing |
 | **夜間レビュー** | レポート JSON → 外部 AI（手動）→ Web UI で apply |
 | **想定運用** | ローカル PC または Hetzner VPS（〜 $6/月） |
-| **現フェーズ** | **PHASE 5 完了**（v0.6.0）→ **PHASE 6 着手可** — 実データ paper 運用・常駐ループ・backtest |
-| **テスト** | `pytest` **146** passed、カバレッジ **≈88%**、`fail_under` **80** |
+| **現フェーズ** | **PHASE 6 実装完了**（v0.7.0）— M6.7 14日運用・M6.8 Exit はマスター運用待ち |
+| **テスト** | `pytest` **150** passed、カバレッジ **≈83%**、`fail_under` **80** |
 | **会計（H-1）** | `balance` = 自由資金、`principal` = 累積入出金、`total_assets` = balance + locked |
 
 ### 全 PHASE マイルストン一覧
@@ -145,13 +145,13 @@
 
 | ID | 内容 | 由来 | 状態 |
 |:---|:---|:---:|:---:|
-| M6.1 | 常駐評価ループ統合 | C4 | ⏳ |
-| M6.2 | OHLC 実データ接続 | C2 | ⏳ |
-| M6.3 | BacktestExecutor | C1 | ⏳ |
-| M6.4 | 夜間レビュー自動化（04:00） | V1 | ⏳ |
-| M6.5 | 安全リハーサル（カオス + キル） | — | ⏳ |
-| M6.6 | 初期戦略パラメータ確定 | — | ⏳ |
-| M6.7 | paper 運用 14 日 + 日次レビュー | — | ⏳ |
+| M6.1 | 常駐評価ループ統合 | C4 | ✅ |
+| M6.2 | OHLC 実データ接続 | C2 | ✅ |
+| M6.3 | BacktestExecutor | C1 | ✅ |
+| M6.4 | 夜間レビュー自動化（04:00） | V1 | ✅ |
+| M6.5 | 安全リハーサル（カオス + キル） | — | ✅ |
+| M6.6 | 初期戦略パラメータ確定 | — | ⏳ 運用 |
+| M6.7 | paper 運用 14 日 + 日次レビュー | — | ⏳ 運用 |
 | M6.8 | PHASE 6 Exit · v0.7.0 | — | ⏳ |
 
 #### PHASE 7 — 段階移行 LIVE（任意・予定）
@@ -180,6 +180,8 @@ uv run yoruu principal deposit 100 --note lab
 uv run yoruu db migrate --dry-run
 uv run yoruu db migrate
 uv run yoruu paper evaluate-once
+uv run yoruu run --lab-mock-feed --max-evaluations 3
+uv run yoruu backtest run --start 2026-05-01 --end 2026-05-07
 uv run yoruu serve
 # HUD 主入口: http://127.0.0.1:8765/pages/00_hud.html  (ルート / も同じへリダイレクト)
 # Hub (10画面): http://127.0.0.1:8765/pages/index.html
@@ -435,8 +437,8 @@ YoRuu/
 | **PHASE 2** | HTML モック 11画面 | ✅ |
 | **PHASE 3** | コア CLI + 品質トラック | ✅ [`PHASE3_EXIT`](docs/design/PHASE3_EXIT_DECLARATION.md) |
 | **PHASE 4** | HUD + 元本 + 静的 UI | ✅ [`PHASE4_EXIT`](docs/design/PHASE4_EXIT_DECLARATION.md) |
-| **PHASE 5** | OHLC · severity · ADR · lab 24h | **進行中** [`PHASE5_ROADMAP`](docs/design/PHASE5_ROADMAP_v1.md) |
-| **PHASE 6** | ペーパー運用 14日 | ⏳ |
+| **PHASE 5** | OHLC · severity · ADR · lab 24h | ✅ [`PHASE5_EXIT`](docs/design/PHASE5_EXIT_DECLARATION.md) |
+| **PHASE 6** | 常駐ループ・backtest・安全系 | **実装完了** [`PHASE6_ROADMAP`](docs/design/PHASE6_ROADMAP_v1.md) |
 | **PHASE 7** | 段階 LIVE 移行（任意） | ⏳ |
 
 マイルストン詳細は本文 [全 PHASE マイルストン一覧](#全-phase-マイルストン一覧)。SSOT: [`docs/design/00_ROADMAP.md`](docs/design/00_ROADMAP.md)
@@ -482,6 +484,6 @@ YoRuu/
 [![Issues](https://img.shields.io/github/issues/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/issues)
 [![Stars](https://img.shields.io/github/stars/matrix9neonebuchadnezzar2199-sketch/YoRuu?style=for-the-badge&logo=github&color=c9b8ff)](https://github.com/matrix9neonebuchadnezzar2199-sketch/YoRuu/stargazers)
 
-<sub>README · v0.6.0 · PHASE 5 完了 / PHASE 6 着手可 · last updated 2026-05-31</sub>
+<sub>README · v0.7.0 · PHASE 6 実装完了 / M6.7 運用待ち · last updated 2026-06-02</sub>
 
 </div>

@@ -1,7 +1,7 @@
 # PHASE 6 詳細設計 v1（実装指示書）
 
 **日付**: 2026-05-31  
-**ステータス**: **DRAFT**（M6.0 承認で ADOPTED）  
+**ステータス**: **ADOPTED**（M6.0 2026-06-02）  
 **位置づけ**: [`PHASE6_ROADMAP_v1.md`](./PHASE6_ROADMAP_v1.md) のマイルストン（M6.1〜M6.5）を、別チャット/別モデルが文脈なしで実装着手できる粒度まで具体化した設計書。マイルストン定義の SSOT はロードマップ、**実装インターフェースの SSOT は本ファイル**。  
 **前提コミット**: `113570e`（PHASE 5 完了、v0.6.0）  
 **設計章の根拠**: ch11（戦略）・ch12（モード）・ch13（約定 §13.5/§13.6）・ch16（不変条件）・ch19（キルスイッチ）
@@ -451,10 +451,10 @@ M6.6 → M6.7 → M6.8（運用 + Exit + v0.7.0）
 
 | # | 論点 | 推奨 | 状態 |
 |---|------|------|------|
-| 1 | OHLC ライブ配信のプロセス境界（M6.2 §2.2） | 案 A: `serve` lifespan で loop 起動・OhlcProvider 共有 | 要決定 |
-| 2 | `run` と `serve` の役割分担 | `serve`=loop+API（主入口）、`run`=loop 単独（軽量） | 要決定 |
-| 3 | `what_if_scenarios` / `emergency_stops` の DB 実装有無 | 着手時に確認、無ければ migrate 追加 | [要確認] |
-| 4 | `/emergency/stop` の 2 段階確認（confirm_token） | PHASE 6 は最小実装（`--confirm`）、2 段階は PHASE 7 | 要決定 |
+| 1 | OHLC ライブ配信のプロセス境界（M6.2 §2.2） | 案 A: `serve` lifespan で loop 起動・OhlcProvider 共有 | **確定** |
+| 2 | `run` と `serve` の役割分担 | `serve`=loop+API（主入口）、`run`=loop 単独（軽量） | **確定** |
+| 3 | `what_if_scenarios` / `emergency_stops` の DB 実装有無 | schema 済み、INSERT helper 追加 | **確定** |
+| 4 | `/emergency/stop` の 2 段階確認（confirm_token） | PHASE 6 は最小実装（`--confirm`）、2 段階は PHASE 7 | **確定** |
 | 5 | backtest 履歴データの入手（price_ticks 7日 or CSV） | lab は合成、実データは別途取得 | 運用依存 |
 
 ---
